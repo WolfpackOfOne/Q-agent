@@ -45,20 +45,24 @@ Open: http://localhost:2719
 
 Explores correlations between BTC/ETH/SOL prices (Coinbase, Kraken) plus COIN (yfinance) and Polymarket prediction market prices.
 
-**This notebook reads from local pipeline data.** First create a pipeline venv and run the pipelines:
+**This notebook reads from local pipeline data, which is not committed to the repo.** Run the setup script and both pipelines before launching the notebook:
 
 ```bash
-# One-time pipeline venv setup
-python -m venv infrastructure/.venv
+# One-time pipeline venv setup. Creates infrastructure/.venv and
+# editable-installs crypto_lean / polymarket_lean / yfinance_lean.
+bash infrastructure/setup.sh
 source infrastructure/.venv/bin/activate
-pip install -r infrastructure/requirements.txt
 
-# Crypto OHLCV (Coinbase + Kraken)
-python infrastructure/pipelines/crypto/scripts/run_pipeline.py
+# Crypto OHLCV. Defaults to BTC/ETH/SOL × USD/USDT/USDC; --exchange is required.
+python infrastructure/pipelines/crypto/scripts/run_pipeline.py --exchange coinbase
 
-# Polymarket YES-token prices
-python infrastructure/pipelines/polymarket/scripts/run_pipeline.py
+# Polymarket: snapshot market metadata first, then pull YES-token price series.
+python infrastructure/pipelines/polymarket/scripts/run_markets_pipeline.py
+python infrastructure/pipelines/polymarket/scripts/run_prices_pipeline.py --skip-existing
 ```
+
+The polymarket prices pull is incremental and resumable. For a fast smoke test,
+substitute `--limit 10` on the prices command.
 
 Then launch the notebook:
 

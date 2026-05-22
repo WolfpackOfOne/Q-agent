@@ -43,6 +43,10 @@ MyProjects/*/
 MyProjects/data/
 MyProjects/storage/
 
+# Pipeline outputs — every infrastructure/pipelines/<pipeline>/lean-data/ is
+# regenerated locally by running the pipeline's script. Never commit data.
+**/lean-data/
+
 # Exclude large data/cache within shared dirs
 *.zip
 *.cache
