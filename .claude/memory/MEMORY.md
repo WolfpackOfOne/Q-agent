@@ -26,7 +26,7 @@
 - See `lean-gotchas.md` for full API change details
 
 ## Correlation Analysis Notebook
-- `infrastructure/notebooks/crypto_polymarket_correlation.py`
+- `infrastructure/marimo/notebooks/crypto_polymarket_correlation.py`
 - Marimo server: port 2721
 - Key finding: spot price **leads** Polymarket (r≈0.25–0.70 for ret→nextΔprob); Polymarket does NOT lead price
 - Level correlation r≈0.92–0.97 (prob tracks spot tightly for price-target markets)

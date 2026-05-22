@@ -39,21 +39,19 @@ marimo run infrastructure/marimo/notebooks/election_industry_returns.py --port 2
 
 Open: http://localhost:2719
 
-> **Optional — WRDS users only**: One section overlays Global Factor data from the WRDS pipeline
-> (`infrastructure/pipelines/wrds/lean-data/alternative/global_factor/usa_2024.csv`).
-> If the file is not present the notebook shows a warning banner and skips that section automatically.
-> WRDS is a paid institutional data service — see [CREDENTIALS.md](CREDENTIALS.md) for setup.
-
 ---
 
 ### Crypto & Polymarket Correlation
 
-Explores correlations between BTC/ETH/SOL prices (Coinbase, Kraken) and Polymarket prediction market prices.
+Explores correlations between BTC/ETH/SOL prices (Coinbase, Kraken) plus COIN (yfinance) and Polymarket prediction market prices.
 
-**This notebook reads from local pipeline data.** Run the pipelines first:
+**This notebook reads from local pipeline data.** First create a pipeline venv and run the pipelines:
 
 ```bash
+# One-time pipeline venv setup
+python -m venv infrastructure/.venv
 source infrastructure/.venv/bin/activate
+pip install -r infrastructure/requirements.txt
 
 # Crypto OHLCV (Coinbase + Kraken)
 python infrastructure/pipelines/crypto/scripts/run_pipeline.py
@@ -66,7 +64,7 @@ Then launch the notebook:
 
 ```bash
 source infrastructure/marimo/venv/bin/activate
-marimo run infrastructure/notebooks/crypto_polymarket_correlation.py --port 2720
+marimo run infrastructure/marimo/notebooks/crypto_polymarket_correlation.py --port 2720
 ```
 
 Open: http://localhost:2720
@@ -78,7 +76,7 @@ Open: http://localhost:2720
 ```bash
 source infrastructure/marimo/venv/bin/activate
 marimo run infrastructure/marimo/notebooks/election_industry_returns.py --port 2719 &
-marimo run infrastructure/notebooks/crypto_polymarket_correlation.py --port 2720 &
+marimo run infrastructure/marimo/notebooks/crypto_polymarket_correlation.py --port 2720 &
 ```
 
 - Election notebook: http://localhost:2719

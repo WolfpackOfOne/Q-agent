@@ -108,8 +108,8 @@ Two runnable notebooks are included:
 
 | Notebook | Data sources | Local data required |
 |---|---|---|
-| [Election & Industry Returns](infrastructure/marimo/notebooks/election_industry_returns.py) | Polymarket CLOB API, Kenneth French data library | No — fetches live. WRDS global factor overlay is optional. |
-| [Crypto & Polymarket Correlation](infrastructure/notebooks/crypto_polymarket_correlation.py) | Coinbase, Kraken, Polymarket prices | Yes — run the crypto and Polymarket pipelines first. |
+| [Election & Industry Returns](infrastructure/marimo/notebooks/election_industry_returns.py) | Polymarket CLOB API, Kenneth French data library, yfinance factor ETFs | No — all data fetched live. |
+| [Crypto & Polymarket Correlation](infrastructure/marimo/notebooks/crypto_polymarket_correlation.py) | Coinbase, Kraken, Polymarket prices, yfinance (COIN) | Yes — run the crypto and Polymarket pipelines first. |
 
 See [GETTING_STARTED.md](GETTING_STARTED.md) for how to run them. For broader research directions see [docs/research-examples.md](docs/research-examples.md).
 
