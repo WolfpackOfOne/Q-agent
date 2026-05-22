@@ -23,11 +23,12 @@ Then invoke the skill:
 
 ## Rules
 
-- **Never edit `.py` notebook files directly while a marimo session is running.** Use `ctx.edit_cell()` / `ctx.create_cell()` via code_mode. Direct file writes are silently lost.
+- Editing `.py` notebook files directly while a marimo session is running is fine — marimo picks up the changes. `ctx.edit_cell()` / `ctx.create_cell()` via code_mode is the preferred path when you're already in a `/marimo-pair` session, but a direct file Edit is acceptable.
 - Install packages via `ctx.packages.add()`, not `pip` or `uv add`.
 - Keep signal logic pure Python (no LEAN imports) so it can graduate to `shared/signals/`.
 - Data paths should reference `../pipelines/...` (from `infrastructure/marimo/`) or use `pathlib` — no hardcoded absolute paths in cells.
 - No temp-file dependencies in cells (`/tmp/...` in cell code is a bug).
+- **Always pass `timeout=` to network calls** (`requests.get/post`, `urllib`, etc.). `requests` has no default timeout, so a slow or unreachable endpoint will hang the cell — and the whole marimo kernel — indefinitely. Reasonable defaults: `timeout=30` for typical JSON APIs (Polymarket, Coingecko), `timeout=60` for slower academic / file-download hosts (Ken French / Dartmouth, SEC EDGAR bulk files).
 
 ## Plot Styling
 

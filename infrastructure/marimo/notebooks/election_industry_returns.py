@@ -22,9 +22,10 @@ def _(mo):
     in Polymarket's Trump win probability to identify which industries benefit or suffer
     from a rising Trump election probability.
 
-    **Data sources:**
+    **Data sources — all fetched live, no local files required:**
     - **Polymarket CLOB API** — daily Trump YES-token probability (Jan–Nov 2024)
     - **Kenneth French Data Library** — 49 industry portfolio daily value-weighted returns
+    - **yfinance** — factor ETF daily prices (MTUM, QUAL, VLUE, USMV, IWM, IWF, IWD, SPY)
 
     **Method:** OLS: $R_{i,t} = \\alpha_i + \\beta_i \\cdot \\Delta P(\\text{Trump})_t + \\varepsilon_{i,t}$
     """)
@@ -42,17 +43,6 @@ def _():
     import pathlib
     import zipfile
     from scipy import stats
-
-    INFRA_ROOT = pathlib.Path(__file__).resolve().parents[2]
-    GLOBAL_FACTOR_PATH = (
-        INFRA_ROOT
-        / "pipelines"
-        / "wrds"
-        / "lean-data"
-        / "alternative"
-        / "global_factor"
-        / "usa_2024.csv"
-    )
 
     plt.style.use("dark_background")
     mpl.rcParams.update(
@@ -76,27 +66,20 @@ def _():
             "savefig.edgecolor": "#0d1117",
         }
     )
-    return GLOBAL_FACTOR_PATH, io, np, pd, plt, requests, stats, zipfile
+    return io, np, pd, plt, requests, stats, zipfile
 
 
 @app.cell
-def _(GLOBAL_FACTOR_PATH, mo):
-    _factor_status = "present" if GLOBAL_FACTOR_PATH.exists() else "not present"
-    _kind = "info" if GLOBAL_FACTOR_PATH.exists() else "warn"
+def _(mo):
     mo.callout(
-        mo.md(f"""
-        **Data availability check**
+        mo.md("""
+        **All data is fetched live from public sources — no local files or credentials required.**
 
-        The industry-return sections fetch Polymarket and Kenneth French data live from public
-        endpoints. The optional global-factor section uses a local WRDS-derived file that is
-        intentionally not committed to GitHub.
-
-        Optional local factor file: `{GLOBAL_FACTOR_PATH}` ({_factor_status}).
-
-        If the optional file is missing, the notebook will skip that section and still run the
-        public-data election/industry analysis.
+        - Polymarket CLOB API (Trump YES-token probability)
+        - Kenneth French Data Library (49 industry portfolio returns)
+        - yfinance (factor ETF prices: MTUM, QUAL, VLUE, USMV, IWM, IWF, IWD, SPY)
         """),
-        kind=_kind,
+        kind="info",
     )
     return
 
@@ -120,6 +103,7 @@ def _(pd, requests):
     r = requests.get(
         "https://clob.polymarket.com/prices-history",
         params={"market": TRUMP_TOKEN, "interval": "max", "fidelity": 1440},
+        timeout=30,
     )
     history = r.json().get("history", [])
 
@@ -199,7 +183,7 @@ def _(io, pd, requests, zipfile):
 
     # Download FF 49 industry portfolios (daily)
     url = "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/49_Industry_Portfolios_daily_CSV.zip"
-    resp = requests.get(url)
+    resp = requests.get(url, timeout=60)
     resp.raise_for_status()
     _z = zipfile.ZipFile(io.BytesIO(resp.content))
 
@@ -614,117 +598,138 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 10. Global Factor Signals vs ΔP(Trump)
+    ## 10. Factor ETF Sensitivity to ΔP(Trump)
 
-    For each of the **402 Jensen-Kelly-Pedersen signals**, construct a monthly
-    long-short factor return (top-quintile minus bottom-quintile), then regress
-    against monthly ΔP(Trump win). Top-5 by |t-stat| are plotted.
+    For eight US equity factor ETFs, compute monthly total return and regress against
+    monthly ΔP(Trump win). Positive beta = the factor style benefited when Trump's
+    election odds rose; negative = it was hurt.
+
+    ETFs: **MTUM** (momentum), **QUAL** (quality), **VLUE** (value), **USMV** (min-vol),
+    **IWM** (size), **IWF** (growth), **IWD** (value R1000), **SPY** (market).
     """)
     return
 
 
 @app.cell
-def _(GLOBAL_FACTOR_PATH, np, pd, trump_prob):
+def _(np, pd, trump_prob):
+    import yfinance as _yf
     from scipy import stats as _stats
 
-    # ── 1. Load factor data ──────────────────────────────────────────────
-    if not GLOBAL_FACTOR_PATH.exists():
-        print(f"Global factor file not found: {GLOBAL_FACTOR_PATH}")
-        aligned = pd.DataFrame(columns=["dp_trump"])
-        factor_ols = pd.DataFrame(columns=["factor", "beta", "t_stat", "p_value", "r2"])
-    else:
-        _gf = pd.read_csv(GLOBAL_FACTOR_PATH, parse_dates=["date"])
-        _gf["month"] = _gf["date"].dt.to_period("M")
-        _signal_cols = [c for c in _gf.columns if c not in ("permno", "date", "ret_exc", "month")]
+    _FACTOR_ETFS = {
+        "MTUM": "Momentum",
+        "QUAL": "Quality",
+        "VLUE": "Value",
+        "USMV": "Low Vol",
+        "IWM":  "Size",
+        "IWF":  "Growth",
+        "IWD":  "Value (R1K)",
+        "SPY":  "Market",
+    }
 
-        # ── 2. Monthly long-short factor returns (Q5 minus Q1) ───────────────
-        def _ls_return(sub, col):
-            valid = sub[[col, "ret_exc"]].dropna()
-            if len(valid) < 20:
-                return np.nan
-            q = pd.qcut(valid[col], 5, labels=False, duplicates="drop")
-            if q.nunique() < 2:
-                return np.nan
-            top = valid.loc[q == q.max(), "ret_exc"].mean()
-            bot = valid.loc[q == q.min(), "ret_exc"].mean()
-            return top - bot
+    # ── 1. Download 2024 daily prices ────────────────────────────────────
+    try:
+        _raw = _yf.download(
+            list(_FACTOR_ETFS), start="2024-01-01", end="2024-12-01",
+            auto_adjust=True, progress=False,
+        )["Close"]
+        _monthly_ret = _raw.resample("ME").last().pct_change().dropna()
+    except Exception as _e:
+        print(f"yfinance download failed: {_e}")
+        _monthly_ret = pd.DataFrame()
 
-        _months = sorted(_gf["month"].unique())
-        _ls_dict = {col: [] for col in _signal_cols}
-        for _m in _months:
-            _sub = _gf[_gf["month"] == _m]
-            for _col in _signal_cols:
-                _ls_dict[_col].append(_ls_return(_sub, _col))
+    # ── 2. Monthly ΔP(Trump) ─────────────────────────────────────────────
+    _dp_trump = trump_prob["prob_trump"].resample("ME").last().diff().dropna()
 
-        factor_returns = pd.DataFrame(_ls_dict, index=[str(m) for m in _months])
-        factor_returns.index = pd.PeriodIndex(factor_returns.index, freq="M").to_timestamp("M")
+    # ── 3. Align and run OLS per ETF ─────────────────────────────────────
+    aligned = pd.concat([_monthly_ret, _dp_trump.rename("dp_trump")], axis=1).dropna(subset=["dp_trump"])
 
-        # ── 3. Monthly ΔP(Trump) ─────────────────────────────────────────────
-        _trump_monthly = trump_prob["prob_trump"].resample("ME").last()
-        _dp_trump = _trump_monthly.diff().dropna()
+    _rows = []
+    for _ticker, _label in _FACTOR_ETFS.items():
+        if _ticker not in aligned.columns:
+            continue
+        _y = aligned[_ticker].dropna()
+        _x = aligned.loc[_y.index, "dp_trump"].values
+        if len(_y) < 5 or np.std(_y.values) < 1e-8:
+            continue
+        _slope, _intercept, _rv, _pv, _se = _stats.linregress(_x, _y.values)
+        _rows.append({
+            "ETF": _ticker,
+            "Factor": _label,
+            "beta": round(_slope, 4),
+            "t_stat": round(_slope / _se, 3) if _se > 0 else np.nan,
+            "p_value": round(_pv, 4),
+            "r2": round(_rv**2, 4),
+            "N": len(_y),
+        })
 
-        aligned = pd.concat([factor_returns, _dp_trump.rename("dp_trump")], axis=1, sort=True).dropna(subset=["dp_trump"])
-        print(f"Months: {len(aligned)}  |  ΔP(Trump): {aligned['dp_trump'].values}")
-
-        # ── 4. OLS per factor ─────────────────────────────────────────────────
-        _rows = []
-        for _col in _signal_cols:
-            _y = aligned[_col].dropna()
-            _xi = aligned.loc[_y.index, "dp_trump"].values
-            _yi = _y.values
-            if len(_yi) < 5 or np.std(_yi) < 1e-8:
-                continue
-            _slope, _intercept, _rv, _pv, _se = _stats.linregress(_xi, _yi)
-            _rows.append({
-                "factor": _col,
-                "beta": round(_slope, 4),
-                "t_stat": round(_slope / _se, 3) if _se > 0 else np.nan,
-                "p_value": round(_pv, 4),
-                "r2": round(_rv**2, 4),
-            })
-
-        factor_ols = pd.DataFrame(_rows, columns=["factor", "beta", "t_stat", "p_value", "r2"])
-        factor_ols = factor_ols.sort_values("t_stat", key=abs, ascending=False)
-        print(f"Top 10 by |t-stat|:")
-        print(factor_ols.head(10).to_string(index=False))
+    factor_ols = pd.DataFrame(_rows).sort_values("beta", ascending=False).reset_index(drop=True)
     factor_ols
     return aligned, factor_ols
 
 
 @app.cell
 def _(aligned, factor_ols, np, plt):
-    # Top 5 by |t-stat| — scatter + OLS fit
-    _top5 = factor_ols.head(5)
-    _colors_f = ["#3b82f6","#ef4444","#10b981","#f59e0b","#8b5cf6"]
+    if factor_ols.empty:
+        _fig_gf, _ax_gf = plt.subplots(figsize=(10, 5))
+        _ax_gf.text(0.5, 0.5, "No data — yfinance download failed.", ha="center", va="center",
+                    transform=_ax_gf.transAxes)
+    else:
+        _labels  = factor_ols["Factor"].tolist()
+        _betas   = factor_ols["beta"].tolist()
+        _pvals   = factor_ols["p_value"].tolist()
+        _tstats  = factor_ols["t_stat"].tolist()
+        _colors  = ["#10b981" if b > 0 else "#ef4444" for b in _betas]
+        _alphas  = [0.9 if p < 0.1 else 0.45 for p in _pvals]
 
-    _fig_gf, _axes_gf = plt.subplots(1, 5, figsize=(18, 5))
-    _dp_vals = aligned["dp_trump"].values
+        _fig_gf, _ax_gf = plt.subplots(figsize=(11, 5))
+        _bars = _ax_gf.barh(
+            _labels, _betas, color=_colors,
+            edgecolor="#30363d", linewidth=0.5,
+        )
+        for _bar, _a in zip(_bars, _alphas):
+            _bar.set_alpha(_a)
 
-    for _ax_f, (_, _row), _clr in zip(_axes_gf, _top5.iterrows(), _colors_f):
-        _ys = aligned[_row["factor"]].values
-        _mask_f = ~np.isnan(_ys)
-        _xi_f, _yi_f = _dp_vals[_mask_f], _ys[_mask_f]
+        _ax_gf.axvline(0, color="gray", lw=0.8, ls="--")
+        _ax_gf.set_xlabel("Beta  (monthly ETF return ~ ΔP(Trump win))")
+        _ax_gf.set_title(
+            "Factor ETF Sensitivity to ΔP(Trump Win)  |  Monthly, Jan–Nov 2024\n"
+            "Green = benefited from rising Trump odds  |  Faded = p > 0.10",
+            fontweight="bold", fontsize=11,
+        )
 
-        _ax_f.scatter(_xi_f, _yi_f, color=_clr, s=60, zorder=3, alpha=0.85)
-        _xline = np.linspace(_xi_f.min(), _xi_f.max(), 100)
-        _slope_f = _row["beta"]
-        _intercept_f = aligned[_row["factor"]].mean() - _slope_f * _dp_vals[_mask_f].mean()
-        _ax_f.plot(_xline, _slope_f * _xline + _intercept_f, color=_clr, lw=2, alpha=0.9)
+        _pad = max(abs(b) for b in _betas) * 0.05
+        for _bar, _t in zip(_bars, _tstats):
+            _x = _bar.get_width()
+            _ax_gf.text(
+                _x + (_pad if _x >= 0 else -_pad),
+                _bar.get_y() + _bar.get_height() / 2,
+                f"t={_t:.2f}",
+                va="center", ha="left" if _x >= 0 else "right", fontsize=9,
+            )
 
-        _name_f = _row["factor"]
-        _t_f = _row["t_stat"]
-        _p_f = _row["p_value"]
-        _r2_f = _row["r2"]
-        _ax_f.set_title(_name_f + "\nt=" + str(round(_t_f,2)) + "  p=" + str(round(_p_f,3)) + "  R²=" + str(round(_r2_f,2)),
-                        fontsize=8.5, fontweight="bold")
-        _ax_f.set_xlabel("ΔP(Trump win)", fontsize=8)
-        _ax_f.set_ylabel("L/S Factor Return", fontsize=8)
-        _ax_f.axhline(0, color="gray", lw=0.7, ls="--")
-        _ax_f.axvline(0, color="gray", lw=0.7, ls="--")
-        _ax_f.tick_params(labelsize=7)
+        # Scatter insets for top-3 by |t-stat|
+        _dp_vals = aligned["dp_trump"].values
+        _top3 = factor_ols.reindex(factor_ols["t_stat"].abs().nlargest(3).index)
+        _inset_colors = ["#3b82f6", "#f59e0b", "#8b5cf6"]
 
-    _fig_gf.suptitle("Top 5 Global Factors Most Sensitive to ΔP(Trump Win)  |  Monthly L/S Returns vs ΔP, Jan-Nov 2024",
-                      fontsize=10, fontweight="bold")
+        for _i, ((_, _row), _clr) in enumerate(zip(_top3.iterrows(), _inset_colors)):
+            _ax_ins = _fig_gf.add_axes([0.62 + _i * 0.125, 0.15, 0.10, 0.30])
+            _col = _row["ETF"]
+            if _col not in aligned.columns:
+                continue
+            _ys = aligned[_col].values
+            _mask = ~np.isnan(_ys)
+            _xi, _yi = _dp_vals[_mask], _ys[_mask]
+            _ax_ins.scatter(_xi, _yi, color=_clr, s=25, zorder=3, alpha=0.85)
+            _xline = np.linspace(_xi.min(), _xi.max(), 50)
+            _ax_ins.plot(_xline, _row["beta"] * _xline + (_yi.mean() - _row["beta"] * _xi.mean()),
+                         color=_clr, lw=1.5)
+            _ax_ins.axhline(0, color="gray", lw=0.5, ls="--")
+            _ax_ins.axvline(0, color="gray", lw=0.5, ls="--")
+            _ax_ins.set_title(_row["Factor"], fontsize=7, fontweight="bold")
+            _ax_ins.tick_params(labelsize=6)
+            _ax_ins.set_facecolor("#161b22")
+
     plt.tight_layout()
     plt.gca()
     return
