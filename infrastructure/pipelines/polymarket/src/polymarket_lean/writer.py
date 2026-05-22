@@ -52,14 +52,24 @@ def _outcome_token_ids(market: dict[str, Any]) -> tuple[str | None, str | None]:
     return str(ids[0]), str(ids[1])
 
 
-def _market_row(market: dict[str, Any]) -> dict[str, Any]:
+def _market_row(
+    market: dict[str, Any],
+    event_tag_index: dict[str, set[str]] | None = None,
+) -> dict[str, Any]:
     yes_id, no_id = _outcome_token_ids(market)
     ev = _first_event(market)
-    tags = sorted({
-        t.get("slug") for ev2 in (market.get("events") or [])
-        for t in (ev2.get("tags") or [])
-        if t.get("slug")
-    })
+    if event_tag_index is not None:
+        tags = sorted({
+            slug
+            for ev2 in (market.get("events") or [])
+            for slug in event_tag_index.get(str(ev2.get("id") or ""), set())
+        })
+    else:
+        tags = sorted({
+            t.get("slug") for ev2 in (market.get("events") or [])
+            for t in (ev2.get("tags") or [])
+            if t.get("slug")
+        })
     return {
         "MarketId": market.get("id"),
         "Slug": market.get("slug"),
@@ -81,9 +91,13 @@ def _market_row(market: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def write_markets_csv(markets: Iterable[dict[str, Any]], out_path: pathlib.Path) -> int:
+def write_markets_csv(
+    markets: Iterable[dict[str, Any]],
+    out_path: pathlib.Path,
+    event_tag_index: dict[str, set[str]] | None = None,
+) -> int:
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    rows = [_market_row(m) for m in markets]
+    rows = [_market_row(m, event_tag_index) for m in markets]
     df = pd.DataFrame(rows, columns=MARKET_COLUMNS)
     df.to_csv(out_path, index=False)
     return len(df)

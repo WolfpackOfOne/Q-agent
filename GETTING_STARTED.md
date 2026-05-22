@@ -54,7 +54,10 @@ bash infrastructure/setup.sh
 source infrastructure/.venv/bin/activate
 
 # Crypto OHLCV. Defaults to BTC/ETH/SOL × USD/USDT/USDC; --exchange is required.
+# Coinbase covers BTC and ETH but does not list any SOL pair, so run the
+# Kraken pull too if you want SOL data.
 python infrastructure/pipelines/crypto/scripts/run_pipeline.py --exchange coinbase
+python infrastructure/pipelines/crypto/scripts/run_pipeline.py --exchange kraken --pairs SOL/USD SOL/USDT SOL/USDC
 
 # Polymarket: snapshot market metadata first, then pull YES-token price series.
 python infrastructure/pipelines/polymarket/scripts/run_markets_pipeline.py

@@ -61,6 +61,21 @@ def main() -> int:
     )
 
     client = GammaClient()
+
+    # The /markets endpoint no longer embeds event tags, so build a separate
+    # event-id → tags index from /events first, then thread it through the
+    # filter and writer.
+    if filter_tags:
+        print("Pre-fetching event tags from /events…", file=sys.stderr)
+        event_tag_index = client.build_event_tag_index(
+            closed=None if args.include_closed else False,
+            max_pages=args.max_pages,
+        )
+        print(f"  Indexed {len(event_tag_index)} events with tags.",
+              file=sys.stderr)
+    else:
+        event_tag_index = None
+
     kept: list[dict] = []
     seen = 0
     for market in tqdm(
@@ -72,7 +87,9 @@ def main() -> int:
         desc="markets",
     ):
         seen += 1
-        if filter_tags and not client.market_matches_filter(market, filter_tags):
+        if filter_tags and not client.market_matches_filter(
+            market, filter_tags, event_tag_index
+        ):
             continue
         kept.append(market)
 
@@ -80,13 +97,13 @@ def main() -> int:
           file=sys.stderr)
 
     out_path = LEAN_ROOT / "markets.csv"
-    n = write_markets_csv(kept, out_path)
+    n = write_markets_csv(kept, out_path, event_tag_index=event_tag_index)
     print(f"Wrote {n} rows → {out_path}", file=sys.stderr)
 
     if args.snapshot:
         stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
         snap_path = LEAN_ROOT / "markets_history" / f"{stamp}.csv"
-        write_markets_csv(kept, snap_path)
+        write_markets_csv(kept, snap_path, event_tag_index=event_tag_index)
         print(f"Wrote snapshot → {snap_path}", file=sys.stderr)
 
     return 0

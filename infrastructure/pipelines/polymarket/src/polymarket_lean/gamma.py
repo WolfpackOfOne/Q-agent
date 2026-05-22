@@ -65,7 +65,15 @@ class GammaClient:
         active: bool | None = None,
         closed: bool | None = None,
     ) -> Iterator[dict[str, Any]]:
-        """Yield raw market dicts. Paginates until exhausted."""
+        """Yield raw market dicts. Paginates until exhausted.
+
+        Pagination notes for the Gamma API:
+        - The server silently caps each response at ~100 markets even when
+          `limit` is higher, so we advance `offset` by the actual batch length
+          rather than the requested limit.
+        - Stop on an empty batch, or HTTP 422 (the API uses 422 to signal an
+          offset past the available range), or when `max_pages` is reached.
+        """
         offset = 0
         page = 0
         while True:
@@ -74,7 +82,12 @@ class GammaClient:
                 params["active"] = str(active).lower()
             if closed is not None:
                 params["closed"] = str(closed).lower()
-            batch = self._get("/markets", params=params)
+            try:
+                batch = self._get("/markets", params=params)
+            except requests.exceptions.HTTPError as exc:
+                if exc.response is not None and exc.response.status_code == 422:
+                    return
+                raise
             if not batch:
                 return
             for m in batch:
@@ -82,25 +95,95 @@ class GammaClient:
             page += 1
             if max_pages and page >= max_pages:
                 return
-            if len(batch) < limit_per_page:
+            offset += len(batch)
+
+    def iter_events(
+        self,
+        limit_per_page: int = 500,
+        max_pages: int | None = None,
+        closed: bool | None = None,
+    ) -> Iterator[dict[str, Any]]:
+        """Yield raw event dicts. Same pagination quirks as iter_markets."""
+        offset = 0
+        page = 0
+        while True:
+            params: dict[str, Any] = {"limit": limit_per_page, "offset": offset}
+            if closed is not None:
+                params["closed"] = str(closed).lower()
+            try:
+                batch = self._get("/events", params=params)
+            except requests.exceptions.HTTPError as exc:
+                if exc.response is not None and exc.response.status_code == 422:
+                    return
+                raise
+            if not batch:
                 return
-            offset += limit_per_page
+            for e in batch:
+                yield e
+            page += 1
+            if max_pages and page >= max_pages:
+                return
+            offset += len(batch)
+
+    def build_event_tag_index(
+        self,
+        max_pages: int | None = None,
+        closed: bool | None = None,
+    ) -> dict[str, set[str]]:
+        """Return `{event_id: {tag_slug, ...}}` by iterating /events.
+
+        The Gamma /markets endpoint no longer embeds event tags, so callers
+        that want to filter markets by tag must pre-fetch this index and
+        pass it to `market_tags` / `market_matches_filter`.
+        """
+        index: dict[str, set[str]] = {}
+        for ev in self.iter_events(max_pages=max_pages, closed=closed):
+            eid = str(ev.get("id") or "")
+            if not eid:
+                continue
+            slugs = {
+                (t.get("slug") or "").lower()
+                for t in (ev.get("tags") or [])
+                if t.get("slug")
+            }
+            if slugs:
+                index[eid] = slugs
+        return index
 
     @staticmethod
-    def market_tags(market: dict[str, Any]) -> set[str]:
-        """Pull the union of tag slugs from a market's events."""
+    def market_tags(
+        market: dict[str, Any],
+        event_tag_index: dict[str, set[str]] | None = None,
+    ) -> set[str]:
+        """Pull the union of tag slugs from a market's events.
+
+        If `event_tag_index` is provided, tags are looked up by event id —
+        required because the /markets endpoint no longer embeds tags. If
+        omitted, falls back to whatever tags are inline on the market dict
+        (will be empty against the current Gamma API).
+        """
         tags: set[str] = set()
         for ev in market.get("events", []) or []:
-            for t in ev.get("tags", []) or []:
-                slug = t.get("slug")
-                if slug:
-                    tags.add(slug.lower())
+            if event_tag_index is not None:
+                eid = str(ev.get("id") or "")
+                tags |= event_tag_index.get(eid, set())
+            else:
+                for t in ev.get("tags", []) or []:
+                    slug = t.get("slug")
+                    if slug:
+                        tags.add(slug.lower())
         return tags
 
     @classmethod
     def market_matches_filter(
-        cls, market: dict[str, Any], filter_slugs: tuple[str, ...]
+        cls,
+        market: dict[str, Any],
+        filter_slugs: tuple[str, ...],
+        event_tag_index: dict[str, set[str]] | None = None,
     ) -> bool:
         if not filter_slugs:
             return True
-        return bool(cls.market_tags(market) & set(s.lower() for s in filter_slugs))
+        return bool(
+            cls.market_tags(market, event_tag_index)
+            & set(s.lower() for s in filter_slugs)
+        )
