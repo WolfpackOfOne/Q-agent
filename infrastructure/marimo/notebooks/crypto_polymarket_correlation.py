@@ -147,12 +147,23 @@ def _(POLY_PRICES_DIR, mo, pd, poly_ok):
             except Exception:
                 continue
 
-        meta_df = pd.DataFrame([{k: v for k, v in r.items() if k != "series"} for r in _records])
-        series_map = {r["slug"]: r["series"] for r in _records}
-        _poly_note = mo.md(
-            f"Loaded **{len(_records)} crypto Polymarket markets** across assets: "
-            + ", ".join(f"`{a}`" for a in sorted(meta_df["asset"].unique()))
+        # Enforced schema so downstream cells can call meta_df.set_index("slug")
+        # etc. without KeyError even when zero records match.
+        meta_df = pd.DataFrame(
+            [{k: v for k, v in r.items() if k != "series"} for r in _records],
+            columns=["slug", "asset", "n_days", "start", "end"],
         )
+        series_map = {r["slug"]: r["series"] for r in _records}
+        if _records:
+            _poly_note = mo.md(
+                f"Loaded **{len(_records)} crypto Polymarket markets** across assets: "
+                + ", ".join(f"`{a}`" for a in sorted(meta_df["asset"].unique()))
+            )
+        else:
+            _poly_note = mo.callout(
+                mo.md("Polymarket data found, but no crypto-tagged markets matched the filters."),
+                kind="warn",
+            )
 
     _poly_note
     return meta_df, series_map

@@ -662,7 +662,11 @@ def _(np, pd, trump_prob):
             "N": len(_y),
         })
 
-    factor_ols = pd.DataFrame(_rows).sort_values("beta", ascending=False).reset_index(drop=True)
+    if _rows:
+        factor_ols = pd.DataFrame(_rows).sort_values("beta", ascending=False).reset_index(drop=True)
+    else:
+        # Empty schema so downstream `factor_ols.empty` branch can render.
+        factor_ols = pd.DataFrame(columns=["ETF", "Factor", "beta", "t_stat", "p_value", "r2", "N"])
     factor_ols
     return aligned, factor_ols
 
