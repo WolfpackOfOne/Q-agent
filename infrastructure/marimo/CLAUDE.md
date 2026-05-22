@@ -29,6 +29,8 @@ Then invoke the skill:
 - Data paths should reference `../pipelines/...` (from `infrastructure/marimo/`) or use `pathlib` — no hardcoded absolute paths in cells.
 - No temp-file dependencies in cells (`/tmp/...` in cell code is a bug).
 - **Always pass `timeout=` to network calls** (`requests.get/post`, `urllib`, etc.). `requests` has no default timeout, so a slow or unreachable endpoint will hang the cell — and the whole marimo kernel — indefinitely. Reasonable defaults: `timeout=30` for typical JSON APIs (Polymarket, Coingecko), `timeout=60` for slower academic / file-download hosts (Ken French / Dartmouth, SEC EDGAR bulk files).
+- **Validate notebooks headless before committing.** Run `./venv/bin/python notebooks/<name>.py` (or any marimo `.py`) after edits. Marimo notebooks are executable scripts (`app.run()` at the bottom), and headless execution surfaces real cell-body errors with full tracebacks. A browser session can mask bugs — when a cell raises, the kernel can sit in stale state and the dev wastes time chasing UI symptoms.
+- **Cells must be safe when an upstream returns empty.** Guard every cell that consumes another cell's DataFrame/Series with an `if x.empty:` (or equivalent `is None` / `len(...) == 0`) branch that renders a friendly `mo.callout` or placeholder. Otherwise a single network failure or filter that returns no rows takes down every downstream cell and the whole notebook becomes uninspectable in the browser.
 
 ## Plot Styling
 
