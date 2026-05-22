@@ -1,10 +1,13 @@
 <!--
 claude_md:
   version: 2.0.0
-  last_updated: 2026-04-02
+  last_updated: 2026-05-21
   owners: [WolfpackOfOne]
   review_cadence: "monthly + after major architecture changes"
   changelog:
+    - date: 2026-05-21
+      change: "Added agent_graph_system in project map and created a separate section"
+      author: Dhrubo
     - date: 2026-04-02
       change: "Full restructure per deep-research-report best practices"
     - date: 2026-03-30
@@ -73,6 +76,14 @@ Q-agent/
 ├── AGENTS.md                # Architecture guidelines
 ├── claude.md                # This file
 ├── scripts/check-prereqs.sh # Validates venv/lean/docker/creds
+├── agent_graph_system/      # Agentic graph system (Neo4j + ChromaDB + FastAPI)
+│   ├── main.py              # CLI: init / ingest / query / agent / api / status
+│   ├── config.py            # Env-var driven config (Neo4j, ChromaDB, GitHub, API)
+│   ├── agents/              # CodingAgent, MonitoringAgent, OrchestrationAgent, ResearchAgent
+│   ├── graph/               # backend.py selects neo4j or local networkx automatically
+│   ├── rag/                 # GraphRAG retriever (ChromaDB + nomic-embed-text-v1)
+│   ├── api/                 # FastAPI app (port 8080)
+│   └── docker-compose.yml   # Neo4j (port 7474/7687) + ChromaDB (port 8000)
 └── MyProjects/              # Algorithm projects
     ├── lean.json            # (created by `lean init`, gitignored)
     ├── data/                # Local market data (gitignored at workspace level)
@@ -133,6 +144,27 @@ Rules:
 Full workflow knowledge (smoke-test recipe, GHCR pull verification, CI debug
 pointers, six known gotchas) lives in the `/docker-workflow` skill at
 `.claude/skills/docker-workflow/SKILL.md`. User-facing docs: `docs/docker.md`.
+
+# Agent graph system
+cd ~/Documents/Q-agent/agent_graph_system
+docker compose up -d                                   # start Neo4j + ChromaDB
+python -m agent_graph_system.main init                 # bootstrap graph indexes
+python -m agent_graph_system.main ingest --repo <path> # parse a repo into the graph
+python -m agent_graph_system.main query rag "<question>"
+python -m agent_graph_system.main agent <coding|monitoring|orchestration|research>
+python -m agent_graph_system.main api                  # FastAPI on :8080
+python -m agent_graph_system.main status
+GRAPH_BACKEND=neo4j  # set to use live Neo4j; defaults to local networkx (no server needed)
+
+## Agent graph system
+
+`agent_graph_system/` is an independent Python package. Run it from the repo root with `python -m agent_graph_system.main <subcommand>`.
+
+- **Graph backend**: `GRAPH_BACKEND=local` (default) uses an in-process networkx engine — no server needed. `GRAPH_BACKEND=neo4j` connects to Neo4j via Bolt and auto-falls back to local if unreachable.
+- **Vector store**: ChromaDB with `nomic-ai/nomic-embed-text-v1` embeddings. `rag/retriever.py` wraps both graph and vector stores for GraphRAG queries.
+- **Install deps**: `pip install -r agent_graph_system/requirements.txt`
+
+---
 
 ## LEAN API gotchas
 
