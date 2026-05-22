@@ -18,7 +18,9 @@ import pytest
 # short label used in failure messages.
 SECRET_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("AWS access key", re.compile(r"AKIA[0-9A-Z]{16}")),
-    ("Generic API key assignment", re.compile(r"(?i)\b(api[_-]?key|secret|token|password)\s*=\s*['\"][^'\"\s]{12,}['\"]")),
+    # Negative lookahead excludes shell/env-var refs ($VAR, ${VAR:-default}) and
+    # Jinja-style placeholders ({{NAME}}) — those aren't hardcoded secrets.
+    ("Generic API key assignment", re.compile(r"(?i)\b(api[_-]?key|secret|token|password)\s*=\s*['\"](?![\${])[^'\"\s]{12,}['\"]")),
     ("Private key block", re.compile(r"-----BEGIN (?:RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----")),
     ("Slack bot token", re.compile(r"xox[baprs]-[0-9A-Za-z-]{10,}")),
     ("GitHub personal token", re.compile(r"ghp_[A-Za-z0-9]{36}")),

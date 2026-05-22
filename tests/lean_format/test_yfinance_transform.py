@@ -62,9 +62,10 @@ class TestDailyBarTransform:
 
     def test_price_scaling_deci_cents(self, ohlcv_frame):
         out = transform.transform_daily_bars(ohlcv_frame)
-        # 100.12 * 10_000 = 1_001_200
-        assert out.loc[0, "open"] == 1_001_200
-        assert out.loc[0, "close"] == 1_008_000
+        # 100.12 * 10_000 = 1_001_200. The transform preserves the input
+        # DatetimeIndex, so we look up by position rather than label.
+        assert out.iloc[0]["open"] == 1_001_200
+        assert out.iloc[0]["close"] == 1_008_000
 
     def test_price_columns_are_integers(self, ohlcv_frame):
         out = transform.transform_daily_bars(ohlcv_frame)

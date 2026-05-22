@@ -27,6 +27,11 @@ def test_template_has_required_path(template_dir: Path, rel: str):
 def test_every_python_file_compiles(template_dir: Path):
     failures: list[str] = []
     for py in template_dir.rglob("*.py"):
+        # Skip files containing Jinja-style {{PLACEHOLDER}} tokens — they're
+        # scaffolding processed by new-strategy-coder, not standalone Python.
+        text = py.read_text(encoding="utf-8")
+        if "{{" in text and "}}" in text:
+            continue
         try:
             py_compile.compile(str(py), doraise=True)
         except py_compile.PyCompileError as exc:
