@@ -34,10 +34,11 @@ You want to write a systematic trading strategy, backtest it with real data, and
 
 **Start with:**
 
-1. [LEAN & QuantConnect Setup](getting-started.md) — install the LEAN CLI and connect your QuantConnect account
-2. [Architecture](architecture.md) — understand the atomic layer pattern before writing code
-3. [Data Pipelines Overview](pipelines/index.md) — know what local data is available
-4. [Agent Workflows](agent-workflows.md) — use Claude Code to accelerate strategy development safely
+1. [Golden Path](golden-path.md) — follow one hypothesis from raw data to a diagnosed backtest end to end
+2. [LEAN & QuantConnect Setup](getting-started.md) — install the LEAN CLI and connect your QuantConnect account
+3. [Architecture](architecture.md) — understand the atomic layer pattern before writing code
+4. [Data Pipelines Overview](pipelines/index.md) — know what local data is available
+5. [Agent Workflows](agent-workflows.md) — use Claude Code to accelerate strategy development safely
 
 **First action:** Create a project using the `_template` directory and run your first cloud backtest.
 

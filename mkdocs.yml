@@ -52,6 +52,7 @@ nav:
       - SEC EDGAR: pipelines/edgar.md
       - yfinance: pipelines/yfinance.md
   - Research:
+      - Golden Path: golden-path.md
       - Recipes: research-recipes.md
       - Examples: research-examples.md
   - Agent Workflows: agent-workflows.md

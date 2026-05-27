@@ -1,0 +1,8 @@
+# Lines are regular expressions. Links matching any pattern are skipped.
+
+# Local notebook/dev servers documented in setup guides
+^https?://localhost
+^https?://127\.0\.0\.1
+
+# Placeholder addresses used in examples
+example\.com
