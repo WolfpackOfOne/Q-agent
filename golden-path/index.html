@@ -10,9 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://wolfpackofone.github.io/Q-agent/treasury-rates-pipeline/">
+        <link rel="canonical" href="https://wolfpackofone.github.io/Q-agent/golden-path/">
       
       
+        <link rel="prev" href="../pipelines/yfinance/">
+      
+      
+        <link rel="next" href="../research-recipes/">
       
       
         
@@ -23,7 +27,7 @@
     
     
       
-        <title>Treasury.gov Rates Pipeline - Q-agent</title>
+        <title>Golden Path - Q-agent</title>
       
     
     
@@ -76,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#treasurygov-rates-pipeline" class="md-skip">
+        <a href="#golden-path-a-complete-worked-example" class="md-skip">
           Skip to content
         </a>
       
@@ -109,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Treasury.gov Rates Pipeline
+              Golden Path
             
           </span>
         </div>
@@ -336,11 +340,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../golden-path/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
           
   
   
@@ -888,26 +894,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
         
           
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
             
   
   
@@ -925,7 +936,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -940,10 +951,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../golden-path/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Golden Path
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -959,6 +997,103 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#stage-1-ingest-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 1 — Ingest data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-2-research-the-hypothesis-in-a-notebook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 2 — Research the hypothesis in a notebook
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-3-turn-the-finding-into-a-signal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 3 — Turn the finding into a signal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-4-wire-the-signal-into-a-lean-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 4 — Wire the signal into a LEAN strategy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-5-backtest-in-the-cloud" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 5 — Backtest in the cloud
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-6-diagnose-the-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stage 6 — Diagnose the results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-to-go-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where to go next
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1108,10 +1243,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#purpose" class="md-nav__link">
+  <a href="#stage-1-ingest-data" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Purpose
+        Stage 1 — Ingest data
       
     </span>
   </a>
@@ -1119,10 +1254,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pipeline-location" class="md-nav__link">
+  <a href="#stage-2-research-the-hypothesis-in-a-notebook" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Pipeline Location
+        Stage 2 — Research the hypothesis in a notebook
       
     </span>
   </a>
@@ -1130,10 +1265,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#main-script" class="md-nav__link">
+  <a href="#stage-3-turn-the-finding-into-a-signal" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Main Script
+        Stage 3 — Turn the finding into a signal
       
     </span>
   </a>
@@ -1141,10 +1276,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#output-files" class="md-nav__link">
+  <a href="#stage-4-wire-the-signal-into-a-lean-strategy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Output Files
+        Stage 4 — Wire the signal into a LEAN strategy
       
     </span>
   </a>
@@ -1152,10 +1287,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-usage" class="md-nav__link">
+  <a href="#stage-5-backtest-in-the-cloud" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example Usage
+        Stage 5 — Backtest in the cloud
       
     </span>
   </a>
@@ -1163,60 +1298,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-research-projects" class="md-nav__link">
+  <a href="#stage-6-diagnose-the-results" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example Research Projects
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Example Research Projects">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#equity-returns-vs-yield-curve" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Equity Returns vs Yield Curve
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#options-volatility-vs-rates" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Options Volatility vs Rates
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#etf-rotation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        ETF Rotation
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#future-enhancements" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Future Enhancements
+        Stage 6 — Diagnose the results
       
     </span>
   </a>
@@ -1224,10 +1309,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#notes" class="md-nav__link">
+  <a href="#where-to-go-next" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Notes
+        Where to go next
       
     </span>
   </a>
@@ -1254,93 +1339,126 @@
   
 
 
-<h1 id="treasurygov-rates-pipeline">Treasury.gov Rates Pipeline<a class="headerlink" href="#treasurygov-rates-pipeline" title="Permanent link">&para;</a></h1>
-<p>This document describes the Treasury.gov rates pipeline added to the Q-agent repository.</p>
-<h2 id="purpose">Purpose<a class="headerlink" href="#purpose" title="Permanent link">&para;</a></h2>
-<p>The pipeline downloads Treasury rate data from the U.S. Treasury FiscalData API and converts the data into research-friendly CSV files.</p>
-<p>This pipeline is designed for:</p>
-<ul>
-<li>Yield curve research</li>
-<li>Macro trading strategies</li>
-<li>Regime detection</li>
-<li>Fixed income analytics</li>
-<li>Feature engineering for machine learning</li>
-<li>QuantConnect research notebooks</li>
-<li>Cross-asset studies involving rates and equities</li>
-</ul>
-<h2 id="pipeline-location">Pipeline Location<a class="headerlink" href="#pipeline-location" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>infrastructure/pipelines/treasury_gov_rates/
+<h1 id="golden-path-a-complete-worked-example">Golden Path: A Complete Worked Example<a class="headerlink" href="#golden-path-a-complete-worked-example" title="Permanent link">&para;</a></h1>
+<p>This is the single end-to-end walkthrough the rest of the docs build toward: one hypothesis taken from raw data all the way to a backtest you can diagnose. Every command on this page runs against files that exist in the repository today.</p>
+<p>The worked example is <strong>Crypto × Prediction Markets</strong> — does Bitcoin react to political event probabilities? — because it needs no paid credentials and reuses the pipelines and notebook already shipped in the repo.</p>
+<pre class="mermaid"><code>graph LR
+    A[1. Ingest&lt;br/&gt;pipelines] --&gt; B[2. Research&lt;br/&gt;notebook]
+    B --&gt; C[3. Signal&lt;br/&gt;domain/]
+    C --&gt; D[4. Strategy&lt;br/&gt;LEAN]
+    D --&gt; E[5. Backtest&lt;br/&gt;cloud]
+    E --&gt; F[6. Diagnose&lt;br/&gt;notebook]</code></pre>
+<div class="admonition info">
+<p class="admonition-title">What runs today vs. what you build</p>
+<p><strong>Stages 1–2 run as-is</strong> with the committed pipelines and the
+<code>crypto_polymarket_correlation.py</code> notebook — no account required.
+<strong>Stages 3–6</strong> are a worked example built on the <code>MyProjects/_template</code>
+scaffold; the signal and strategy code below is illustrative and the
+backtest needs a free QuantConnect account. The point is to show the
+<em>shape</em> of a complete project, not to ship a profitable strategy.</p>
+</div>
+<hr />
+<h2 id="stage-1-ingest-data">Stage 1 — Ingest data<a class="headerlink" href="#stage-1-ingest-data" title="Permanent link">&para;</a></h2>
+<p>All pipelines share one virtual environment. Bootstrap it once, then pull crypto OHLCV and Polymarket prices into the local LEAN-format store.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># One-time pipeline venv setup</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>bash<span class="w"> </span>infrastructure/setup.sh
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">source</span><span class="w"> </span>infrastructure/.venv/bin/activate
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># Crypto OHLCV (Coinbase for BTC/ETH; Kraken for SOL)</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>python<span class="w"> </span>infrastructure/pipelines/crypto/scripts/run_pipeline.py<span class="w"> </span>--exchange<span class="w"> </span>coinbase
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>python<span class="w"> </span>infrastructure/pipelines/crypto/scripts/run_pipeline.py<span class="w"> </span>--exchange<span class="w"> </span>kraken<span class="w"> </span>--pairs<span class="w"> </span>SOL/USD<span class="w"> </span>SOL/USDT<span class="w"> </span>SOL/USDC
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># Polymarket: market metadata, then YES-token price series (add --limit 10 for a quick smoke test)</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>python<span class="w"> </span>infrastructure/pipelines/polymarket/scripts/run_markets_pipeline.py
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>python<span class="w"> </span>infrastructure/pipelines/polymarket/scripts/run_prices_pipeline.py<span class="w"> </span>--skip-existing
 </code></pre></div>
-<h2 id="main-script">Main Script<a class="headerlink" href="#main-script" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>download_treasury_rates.py
+<p>Each pipeline normalizes its source to LEAN-compatible CSVs under <code>infrastructure/pipelines/&lt;name&gt;/</code>. See the <a href="../pipelines/">Pipelines Overview</a> for the on-disk schema. Pipeline data is gitignored — every collaborator regenerates it locally.</p>
+<hr />
+<h2 id="stage-2-research-the-hypothesis-in-a-notebook">Stage 2 — Research the hypothesis in a notebook<a class="headerlink" href="#stage-2-research-the-hypothesis-in-a-notebook" title="Permanent link">&para;</a></h2>
+<p>Launch the committed marimo notebook. It reads the local pipeline data, computes rolling correlations between crypto returns and prediction-market probabilities, and renders the charts inline.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">source</span><span class="w"> </span>infrastructure/marimo/venv/bin/activate
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>marimo<span class="w"> </span>run<span class="w"> </span>infrastructure/marimo/notebooks/crypto_polymarket_correlation.py<span class="w"> </span>--port<span class="w"> </span><span class="m">2720</span>
 </code></pre></div>
-<h2 id="output-files">Output Files<a class="headerlink" href="#output-files" title="Permanent link">&para;</a></h2>
-<p>The script writes two CSV files:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>raw Treasury dataset
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>curve matrix dataset
+<p>Open <a href="http://localhost:2720">http://localhost:2720</a>. Charts for any market with no local data render empty with a note rather than crashing, so a partial pipeline pull is fine for exploration.</p>
+<p>This is where you decide whether the effect is real enough to trade: look at the sign and stability of the rolling correlation, and whether it concentrates around event dates. If the signal survives this stage, you formalize it as a pure function in the next step.</p>
+<hr />
+<h2 id="stage-3-turn-the-finding-into-a-signal">Stage 3 — Turn the finding into a signal<a class="headerlink" href="#stage-3-turn-the-finding-into-a-signal" title="Permanent link">&para;</a></h2>
+<p>A signal is a pure Python function in the <code>domain/</code> layer: no LEAN imports, testable with plain <code>pytest</code>. Reusable signals live in <code>MyProjects/shared/signals/</code> and are consumed via symlinks (see <a href="../architecture/#shared-signals-library">Architecture</a>).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># MyProjects/shared/signals/event_momentum.py</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">event_tilt</span><span class="p">(</span><span class="n">prob_change</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Map a change in event probability to a target tilt in [-1, 1].</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="sd">    Pure: no LEAN, no I/O. Unit-testable in isolation.</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="k">if</span> <span class="n">prob_change</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">:</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>        <span class="k">return</span> <span class="mf">1.0</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="k">if</span> <span class="n">prob_change</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">threshold</span><span class="p">:</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>        <span class="k">return</span> <span class="o">-</span><span class="mf">1.0</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="k">return</span> <span class="mf">0.0</span>
 </code></pre></div>
-<p>The curve matrix pivots the Treasury security descriptions into columns.</p>
-<h2 id="example-usage">Example Usage<a class="headerlink" href="#example-usage" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python<span class="w"> </span>infrastructure/pipelines/treasury_gov_rates/download_treasury_rates.py
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># tests/test_event_momentum.py</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">shared.signals.event_momentum</span><span class="w"> </span><span class="kn">import</span> <span class="n">event_tilt</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_event_tilt_thresholds</span><span class="p">():</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="k">assert</span> <span class="n">event_tilt</span><span class="p">(</span><span class="mf">0.10</span><span class="p">)</span> <span class="o">==</span> <span class="mf">1.0</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="k">assert</span> <span class="n">event_tilt</span><span class="p">(</span><span class="o">-</span><span class="mf">0.10</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mf">1.0</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="k">assert</span> <span class="n">event_tilt</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span> <span class="o">==</span> <span class="mf">0.0</span>
 </code></pre></div>
-<p>Custom output directory:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>python<span class="w"> </span>infrastructure/pipelines/treasury_gov_rates/download_treasury_rates.py<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span>--output-dir<span class="w"> </span>data/treasury_rates
+<p>Because the function is pure, this test runs in CI alongside every other <code>pytest -m "not integration"</code> test — no algorithm instance required.</p>
+<hr />
+<h2 id="stage-4-wire-the-signal-into-a-lean-strategy">Stage 4 — Wire the signal into a LEAN strategy<a class="headerlink" href="#stage-4-wire-the-signal-into-a-lean-strategy" title="Permanent link">&para;</a></h2>
+<p>Create a project from the template and fill in the atomic layers. The template ships with the structure and TODOs already in place.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">source</span><span class="w"> </span>~/Documents/Q-agent/venv/bin/activate
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nb">cd</span><span class="w"> </span>~/Documents/Q-agent/MyProjects
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>cp<span class="w"> </span>-r<span class="w"> </span>_template<span class="w"> </span>CryptoEventTilt
 </code></pre></div>
-<h2 id="example-research-projects">Example Research Projects<a class="headerlink" href="#example-research-projects" title="Permanent link">&para;</a></h2>
-<h3 id="equity-returns-vs-yield-curve">Equity Returns vs Yield Curve<a class="headerlink" href="#equity-returns-vs-yield-curve" title="Permanent link">&para;</a></h3>
-<p>Combine:</p>
+<p>The alpha model is an <strong>organism</strong>: it orchestrates, but defers the actual decision to the pure <code>event_tilt</code> atom from Stage 3.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># MyProjects/CryptoEventTilt/models/alpha.py  (illustrative)</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">AlgorithmImports</span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">domain.signals.event_momentum</span><span class="w"> </span><span class="kn">import</span> <span class="n">event_tilt</span>  <span class="c1"># symlinked from shared/</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="k">class</span><span class="w"> </span><span class="nc">CryptoEventTiltAlphaModel</span><span class="p">(</span><span class="n">AlphaModel</span><span class="p">):</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prob_source</span><span class="p">):</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">prob_source</span> <span class="o">=</span> <span class="n">prob_source</span>  <span class="c1"># yields latest event probability</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">Update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">algorithm</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>        <span class="n">insights</span> <span class="o">=</span> <span class="p">[]</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>        <span class="n">change</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob_source</span><span class="o">.</span><span class="n">daily_change</span><span class="p">(</span><span class="n">algorithm</span><span class="o">.</span><span class="n">Time</span><span class="p">)</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>        <span class="n">tilt</span> <span class="o">=</span> <span class="n">event_tilt</span><span class="p">(</span><span class="n">change</span><span class="p">)</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>        <span class="k">if</span> <span class="n">tilt</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>            <span class="n">direction</span> <span class="o">=</span> <span class="n">InsightDirection</span><span class="o">.</span><span class="n">Up</span> <span class="k">if</span> <span class="n">tilt</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">InsightDirection</span><span class="o">.</span><span class="n">Down</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>            <span class="n">insights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Insight</span><span class="o">.</span><span class="n">Price</span><span class="p">(</span><span class="s2">&quot;BTCUSD&quot;</span><span class="p">,</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">direction</span><span class="p">))</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>        <span class="k">return</span> <span class="n">insights</span>
+</code></pre></div>
+<p><code>main.py</code> stays thin — it only wires the pieces together:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">Initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">SetStartDate</span><span class="p">(</span><span class="mi">2022</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">SetEndDate</span><span class="p">(</span><span class="mi">2024</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">SetCash</span><span class="p">(</span><span class="mi">100_000</span><span class="p">)</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">AddCrypto</span><span class="p">(</span><span class="s2">&quot;BTCUSD&quot;</span><span class="p">,</span> <span class="n">Resolution</span><span class="o">.</span><span class="n">Daily</span><span class="p">)</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">SetAlpha</span><span class="p">(</span><span class="n">CryptoEventTiltAlphaModel</span><span class="p">(</span><span class="n">prob_source</span><span class="p">))</span>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">SetPortfolioConstruction</span><span class="p">(</span><span class="n">InsightWeightingPortfolioConstructionModel</span><span class="p">())</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>    <span class="bp">self</span><span class="o">.</span><span class="n">SetExecution</span><span class="p">(</span><span class="n">ImmediateExecutionModel</span><span class="p">())</span>
+</code></pre></div>
+<p>See <a href="../architecture/">Architecture</a> for what belongs in each layer.</p>
+<hr />
+<h2 id="stage-5-backtest-in-the-cloud">Stage 5 — Backtest in the cloud<a class="headerlink" href="#stage-5-backtest-in-the-cloud" title="Permanent link">&para;</a></h2>
+<p>Push the project and run a named backtest. This needs a free QuantConnect account and the LEAN CLI (see <a href="../getting-started/">LEAN &amp; QuantConnect Setup</a>).</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>lean<span class="w"> </span>cloud<span class="w"> </span>push<span class="w"> </span>--project<span class="w"> </span><span class="s2">&quot;CryptoEventTilt&quot;</span><span class="w"> </span>--force
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>lean<span class="w"> </span>cloud<span class="w"> </span>backtest<span class="w"> </span><span class="s2">&quot;CryptoEventTilt&quot;</span><span class="w"> </span>--name<span class="w"> </span><span class="s2">&quot;baseline&quot;</span>
+</code></pre></div>
+<p><code>lean cloud push</code> follows the signal symlinks, so QuantConnect cloud sees ordinary files. The strategy logs daily snapshots, positions, and trades to the ObjectStore via the template's <code>PortfolioLogger</code> for the next stage.</p>
+<hr />
+<h2 id="stage-6-diagnose-the-results">Stage 6 — Diagnose the results<a class="headerlink" href="#stage-6-diagnose-the-results" title="Permanent link">&para;</a></h2>
+<p>Pull the backtest artifacts from the ObjectStore into a research notebook and compute the diagnostics that tell you whether the signal actually worked: rolling Sharpe, drawdown profile, exposure over time, and per-trade attribution.</p>
+<p>See <a href="../research-examples/">Research Examples → QuantConnect Backtest Diagnostics</a> for the diagnostic outputs this stage produces, and <a href="../research-recipes/">Research Recipes</a> for variations on the hypothesis to test next.</p>
+<hr />
+<h2 id="where-to-go-next">Where to go next<a class="headerlink" href="#where-to-go-next" title="Permanent link">&para;</a></h2>
 <ul>
-<li>WRDS equity returns</li>
-<li>Treasury curve steepness</li>
-<li>Treasury regime classifications</li>
+<li><strong>Change the data:</strong> swap the crypto/Polymarket pair for any combination in the <a href="../pipelines/">Pipelines</a> catalog.</li>
+<li><strong>Change the hypothesis:</strong> browse <a href="../research-recipes/">Research Recipes</a> for ready-to-build ideas.</li>
+<li><strong>Use an agent:</strong> <a href="../agent-workflows/">Agent Workflows</a> shows how to drive these six stages with Claude Code.</li>
 </ul>
-<p>Potential factors:</p>
-<ul>
-<li>10Y minus 2Y spread</li>
-<li>Curve inversion duration</li>
-<li>Rolling rate volatility</li>
-<li>Front-end vs long-end momentum</li>
-</ul>
-<h3 id="options-volatility-vs-rates">Options Volatility vs Rates<a class="headerlink" href="#options-volatility-vs-rates" title="Permanent link">&para;</a></h3>
-<p>Combine:</p>
-<ul>
-<li>Treasury yields</li>
-<li>VIX term structure</li>
-<li>Option implied volatility</li>
-</ul>
-<h3 id="etf-rotation">ETF Rotation<a class="headerlink" href="#etf-rotation" title="Permanent link">&para;</a></h3>
-<p>Use Treasury curve information to classify macro environments:</p>
-<ul>
-<li>Steepening</li>
-<li>Flattening</li>
-<li>Inversion</li>
-<li>Re-steepening</li>
-</ul>
-<p>Then test ETF sector rotation strategies.</p>
-<h2 id="future-enhancements">Future Enhancements<a class="headerlink" href="#future-enhancements" title="Permanent link">&para;</a></h2>
-<p>Potential future upgrades:</p>
-<ul>
-<li>Daily Treasury par yield curve endpoint</li>
-<li>SOFR ingestion</li>
-<li>Fed Funds ingestion</li>
-<li>FRED integration</li>
-<li>QuantConnect custom data wrappers</li>
-<li>ObjectStore export helpers</li>
-<li>Automated scheduling jobs</li>
-<li>Notebook templates</li>
-<li>Database persistence layer</li>
-<li>Yield curve interpolation</li>
-<li>Nelson-Siegel fitting</li>
-<li>PCA factor extraction</li>
-</ul>
-<h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">&para;</a></h2>
-<p>This pipeline intentionally uses minimal dependencies:</p>
-<ul>
-<li>pandas</li>
-<li>requests</li>
-</ul>
-<p>The goal is to keep the example easy for masters students to understand and extend.</p>
 
 
 
