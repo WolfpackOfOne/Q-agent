@@ -28,7 +28,7 @@ Both notebooks are launched with `marimo run`. Open each URL in your browser.
 
 ### Election & Industry Returns
 
-Explores the relationship between Trump 2024 election probability (Polymarket) and US industry returns (Kenneth French data library).
+Explores the relationship between Trump 2024 election probability (Polymarket) and US sector/industry ETF returns (yfinance: 11 SPDR sector ETFs plus 8 Trump-themed industry slices).
 
 **All data is fetched live from public APIs — no local data required.**
 

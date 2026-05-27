@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.23.5"
+__generated_with = "0.23.7"
 app = marimo.App(width="medium")
 
 
@@ -11,23 +11,23 @@ def _():
     return (mo,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     # U.S. Presidential Elections and Stock Markets
 
     **Replicating Winterhalter (2025)** — _Evidence from the 2024 elections_
 
-    This notebook regresses daily Fama-French 49 industry portfolio returns on changes
-    in Polymarket's Trump win probability to identify which industries benefit or suffer
+    This notebook regresses daily US industry & sector ETF returns on changes in
+    Polymarket's Trump win probability to identify which industries benefit or suffer
     from a rising Trump election probability.
 
     **Data sources — all fetched live, no local files required:**
     - **Polymarket CLOB API** — daily Trump YES-token probability (Jan–Nov 2024)
-    - **Kenneth French Data Library** — 49 industry portfolio daily value-weighted returns
+    - **yfinance** — daily prices for 19 US sector & industry ETFs (XLE, XLF, XLV, ITA, XOP, KBE, IBB, ICLN, TAN, GDX, ITB, …)
     - **yfinance** — factor ETF daily prices (MTUM, QUAL, VLUE, USMV, IWM, IWF, IWD, SPY)
 
-    **Method:** OLS: $R_{i,t} = \\alpha_i + \\beta_i \\cdot \\Delta P(\\text{Trump})_t + \\varepsilon_{i,t}$
+    **Method:** OLS: $R_{i,t} = \alpha_i + \beta_i \cdot \Delta P(\text{Trump})_t + \varepsilon_{i,t}$
     """)
     return
 
@@ -39,9 +39,7 @@ def _():
     import matplotlib.pyplot as plt
     import matplotlib as mpl
     import requests
-    import io
     import pathlib
-    import zipfile
     from scipy import stats
 
     plt.style.use("dark_background")
@@ -66,25 +64,25 @@ def _():
             "savefig.edgecolor": "#0d1117",
         }
     )
-    return io, np, pd, plt, requests, stats, zipfile
+    return np, pd, plt, requests, stats
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.callout(
         mo.md("""
         **All data is fetched live from public sources — no local files or credentials required.**
 
         - Polymarket CLOB API (Trump YES-token probability)
-        - Kenneth French Data Library (49 industry portfolio returns)
-        - yfinance (factor ETF prices: MTUM, QUAL, VLUE, USMV, IWM, IWF, IWD, SPY)
+        - yfinance — US sector & industry ETFs (XLE, XLF, XLV, XLI, XLK, XLP, XLY, XLU, XLB, XLRE, XLC, XOP, ITA, KBE, IBB, ICLN, TAN, GDX, ITB)
+        - yfinance — factor ETFs (MTUM, QUAL, VLUE, USMV, IWM, IWF, IWD, SPY)
         """),
         kind="info",
     )
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ## 1. Polymarket — Trump Win Probability (2024)
@@ -167,85 +165,95 @@ def _(np, plt, trump_prob):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 2. Fama-French 49 Industry Portfolios
+    ## 2. US Industry & Sector ETFs (yfinance)
 
-    Download daily value-weighted returns from Kenneth French's data library.
-    Returns are in percent (0.50 = 0.50%). We filter to the 2024 election period.
+    Download daily adjusted-close prices for 19 US sector and industry ETFs from
+    yfinance, then convert to daily simple returns. Returns are stored in percent
+    (0.50 = 0.50%) so β is interpretable as basis points per 1pp ΔP(Trump).
+
+    The universe blends the 11 SPDR Select Sector ETFs with a handful of
+    Trump-themed industry slices (energy, defense, banks, biotech, clean energy,
+    solar, gold, homebuilders).
     """)
     return
 
 
 @app.cell
-def _(io, pd, requests, zipfile):
+def _(pd):
+    import yfinance as yf
 
-    # Download FF 49 industry portfolios (daily)
-    url = "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/49_Industry_Portfolios_daily_CSV.zip"
-    resp = requests.get(url, timeout=60)
-    resp.raise_for_status()
-    _z = zipfile.ZipFile(io.BytesIO(resp.content))
+    # US sector & industry ETF universe — broad SPDRs + Trump-themed industries
+    _ETF_UNIVERSE = {
+        # Broad SPDR Select Sector ETFs
+        "XLE":  "Energy",
+        "XLF":  "Financials",
+        "XLV":  "Healthcare",
+        "XLI":  "Industrials",
+        "XLK":  "Technology",
+        "XLP":  "Cons Staples",
+        "XLY":  "Cons Discr.",
+        "XLU":  "Utilities",
+        "XLB":  "Materials",
+        "XLRE": "Real Estate",
+        "XLC":  "Comm Svcs",
+        # Trump-themed industries
+        "XOP":  "Oil & Gas E&P",
+        "ITA":  "Aerospace/Def",
+        "KBE":  "Banks",
+        "IBB":  "Biotech",
+        "ICLN": "Clean Energy",
+        "TAN":  "Solar",
+        "GDX":  "Gold Miners",
+        "ITB":  "Homebuilders",
+    }
 
-    with _z.open(_z.namelist()[0]) as _f:
-        _raw = _f.read().decode("utf-8")
+    # Daily adjusted closes — Jan to Nov 2024
+    _prices = yf.download(
+        list(_ETF_UNIVERSE),
+        start="2024-01-01",
+        end="2024-11-07",
+        auto_adjust=True,
+        progress=False,
+    )["Close"]
+    _prices.index = pd.DatetimeIndex(_prices.index).normalize()
+    _prices.index.name = "date"
 
-    # Parse: find "Average Value Weighted Returns" section
-    _lines = _raw.split("\n")
-    _start_idx = None
-    _end_idx = None
-    for _i, _line in enumerate(_lines):
-        if "Average Value Weighted Returns" in _line:
-            _start_idx = _i + 1
-            break
+    # Daily simple returns in percent (matches the FF convention the rest of the
+    # notebook was originally written for)
+    industry_etfs_2024 = _prices.pct_change().dropna(how="all") * 100.0
 
-    _data_started = False
-    for _i in range(_start_idx, len(_lines)):
-        _stripped = _lines[_i].strip()
-        if _stripped and _stripped[0].isdigit():
-            _data_started = True
-        elif _data_started and not _stripped:
-            _end_idx = _i
-            break
+    # Rename ticker columns to readable labels
+    industry_etfs_2024 = industry_etfs_2024.rename(columns=_ETF_UNIVERSE)
 
-    _section = "\n".join(_lines[_start_idx:_end_idx])
-    ff49 = pd.read_csv(io.StringIO(_section), index_col=0)
-    ff49.index = pd.to_datetime(ff49.index.astype(str).str.strip(), format="%Y%m%d")
-    ff49.index.name = "date"
-    ff49.columns = ff49.columns.str.strip()
+    print(f"Industry/sector ETFs: {industry_etfs_2024.shape[1]}")
+    print(f"Trading days in 2024 sample: {len(industry_etfs_2024)}")
+    print(f"Date range: {industry_etfs_2024.index[0].date()} to {industry_etfs_2024.index[-1].date()}")
+    print(f"\nETF labels:\n{list(industry_etfs_2024.columns)}")
 
-    # Replace missing values
-    ff49 = ff49.replace([-99.99, -999.0], float("nan"))
-
-    # Filter to 2024 election period
-    ff49_2024 = ff49.loc["2024-01-01":"2024-11-06"].copy()
-
-    print(f"FF49 industries: {ff49_2024.shape[1]}")
-    print(f"Trading days in 2024 sample: {len(ff49_2024)}")
-    print(f"Date range: {ff49_2024.index[0].date()} to {ff49_2024.index[-1].date()}")
-    print(f"\nIndustry names:\n{list(ff49_2024.columns)}")
-
-    ff49_2024
-    return (ff49_2024,)
+    industry_etfs_2024
+    return (industry_etfs_2024,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## 3. Merge: Industry Returns × ΔP(Trump)
+    ## 3. Merge: Industry ETF Returns × ΔP(Trump)
 
-    Align on trading dates. Polymarket trades 24/7 but FF returns are business-day only.
+    Align on trading dates. Polymarket trades 24/7 but ETFs are business-day only.
     We use the Polymarket daily close that maps to each trading date.
     """)
     return
 
 
 @app.cell
-def _(ff49_2024, pd, trump_prob):
+def _(industry_etfs_2024, pd, trump_prob):
 
     # Merge on date — inner join keeps only dates present in both
     merged = pd.merge(
-        ff49_2024,
+        industry_etfs_2024,
         trump_prob[["prob_trump", "delta_prob"]],
         left_index=True,
         right_index=True,
@@ -255,23 +263,26 @@ def _(ff49_2024, pd, trump_prob):
     print(f"Merged dataset: {len(merged)} trading days × {merged.shape[1]} columns")
     print(f"Date range: {merged.index[0].date()} to {merged.index[-1].date()}")
     print(f"\nCorrelation of ΔP(Trump) with selected industries:")
-    _industries_to_show = ["Oil", "Guns", "Coal", "Drugs", "Hlth", "Util", "Fin", "Banks", "Steel", "Aero"]
+    _industries_to_show = [
+        "Energy", "Oil & Gas E&P", "Aerospace/Def", "Banks", "Financials",
+        "Healthcare", "Biotech", "Clean Energy", "Solar", "Utilities",
+    ]
     _available = [c for c in _industries_to_show if c in merged.columns]
     for _ind in _available:
         _corr = merged[_ind].corr(merged["delta_prob"])
-        print(f"  {_ind:8s}: {_corr:+.4f}")
+        print(f"  {_ind:16s}: {_corr:+.4f}")
 
     merged
     return (merged,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ## 4. OLS Regressions: $R_{i,t} = \alpha_i + \beta_i \cdot \Delta P(\text{Trump})_t + \varepsilon_{i,t}$
 
-    For each of the 49 industries, regress daily returns on the daily change in Trump
-    win probability. The $\beta_i$ coefficient tells us how many basis points industry $i$
+    For each industry/sector ETF, regress daily returns on the daily change in Trump
+    win probability. The $\beta_i$ coefficient tells us how many basis points ETF $i$
     moves per 1 percentage-point increase in Trump probability.
 
     Following Winterhalter (2025), we interpret statistically significant positive betas as
@@ -331,7 +342,7 @@ def _(merged, np, pd, stats):
     return (ols_results,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ## 5. Results: Industry Betas on ΔP(Trump)
@@ -378,8 +389,8 @@ def _(np, ols_results, plt):
     _ax_beta.set_yticklabels(_sorted_res["industry"], fontsize=8)
     _ax_beta.set_xlabel("β coefficient (return bps per 1pp ΔP(Trump))")
     _ax_beta.set_title(
-        "Industry Sensitivity to Trump Election Probability\n"
-        "Winterhalter (2025) replication — Polymarket × FF49, Jan–Nov 2024"
+        "Industry/Sector ETF Sensitivity to Trump Election Probability\n"
+        "Winterhalter (2025) replication — Polymarket × yfinance ETFs, Jan–Nov 2024"
     )
     _ax_beta.axvline(0, color="#8b949e", linewidth=0.8)
 
@@ -396,7 +407,7 @@ def _(np, ols_results, plt):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ## 6. Top Movers — Scatter Plots
@@ -437,7 +448,7 @@ def _(merged, np, ols_results, plt, stats):
         _ax_s.axvline(0, color="#30363d", linewidth=0.5)
 
     plt.suptitle(
-        "Top 3 Trump-Benefiting and Trump-Hurting Industries",
+        "Top 3 Trump-Benefiting and Trump-Hurting Industry ETFs",
         fontsize=14,
         fontweight="bold",
         color="#c9d1d9",
@@ -447,7 +458,7 @@ def _(merged, np, ols_results, plt, stats):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ## 7. Robustness: Rolling Beta Stability
@@ -477,7 +488,10 @@ def _(merged, np, pd, plt):
         _idx = _df.index[window:]
         return pd.Series(_betas, index=_idx)
 
-    _showcase_industries = ["Oil", "Coal", "Guns", "Drugs", "Hlth", "Fin", "Banks", "Steel"]
+    _showcase_industries = [
+        "Energy", "Oil & Gas E&P", "Aerospace/Def", "Biotech",
+        "Healthcare", "Financials", "Banks", "Clean Energy",
+    ]
     _available_showcase = [c for c in _showcase_industries if c in merged.columns]
 
     _fig_roll, _ax_roll = plt.subplots(figsize=(14, 6))
@@ -495,7 +509,7 @@ def _(merged, np, pd, plt):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ## 8. Event Windows — Key Dates
@@ -562,30 +576,36 @@ def _(merged, np, pd, plt):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
     ## 9. Summary & Interpretation
 
-    **Key findings (replicating Winterhalter 2025 approach):**
+    **Key findings (replicating Winterhalter 2025 approach with yfinance ETFs):**
 
-    1. **Energy industries** (Oil, Coal) tend to have positive betas — a rising Trump probability
-       is associated with higher energy returns, consistent with expectations of looser environmental
-       regulation and more favorable fossil fuel policy.
+    1. **Energy ETFs** (XLE, XOP) tend to have positive betas — a rising Trump probability
+       is associated with higher energy returns, consistent with expectations of looser
+       environmental regulation and more favorable fossil fuel policy.
 
-    2. **Healthcare and Drugs** tend to have negative betas — markets price in higher regulation
-       risk or policy uncertainty for healthcare under different administrations.
+    2. **Healthcare / Biotech** (XLV, IBB) tend to have negative betas — markets price in
+       higher regulation risk or drug-pricing uncertainty.
 
-    3. **Financial sectors** (Banks, Fin, Insurance) show positive sensitivity — reflecting
-       expectations of deregulation.
+    3. **Banks / Financials** (KBE, XLF) show positive sensitivity — reflecting expectations
+       of deregulation.
 
-    4. **Defense/Aerospace** — positive betas consistent with expectations of higher defense spending.
+    4. **Aerospace & Defense** (ITA) — positive betas consistent with expectations of higher
+       defense spending.
+
+    5. **Clean Energy / Solar** (ICLN, TAN) tend to have negative betas — losing subsidies
+       or tax credits is priced in as Trump's probability rises.
 
     **Caveats:**
     - R² values are low (typical for daily cross-sectional regressions)
     - Polymarket liquidity varied significantly over the sample
     - Confounding macro factors (Fed policy, earnings season) are not controlled for
     - This is a simple bivariate regression; Winterhalter (2025) includes additional controls
+    - ETF returns are total-return (auto-adjusted) but include intraday market noise
+      uncorrelated with election probability
 
     **References:**
     - Winterhalter, S. (2025). _U.S. presidential elections and stock markets: Evidence from the 2024 elections._ Aalto University thesis.
@@ -685,7 +705,15 @@ def _(aligned, factor_ols, np, plt):
         _colors  = ["#10b981" if b > 0 else "#ef4444" for b in _betas]
         _alphas  = [0.9 if p < 0.1 else 0.45 for p in _pvals]
 
-        _fig_gf, _ax_gf = plt.subplots(figsize=(11, 5))
+        # Layout: bar chart on left (3x width), 3 stacked scatter insets on right (1x width)
+        _fig_gf, _ax_dict = plt.subplot_mosaic(
+            [["bar", "i0"], ["bar", "i1"], ["bar", "i2"]],
+            figsize=(14, 6),
+            width_ratios=[3, 1],
+            constrained_layout=True,
+        )
+        _ax_gf = _ax_dict["bar"]
+
         _bars = _ax_gf.barh(
             _labels, _betas, color=_colors,
             edgecolor="#30363d", linewidth=0.5,
@@ -701,25 +729,30 @@ def _(aligned, factor_ols, np, plt):
             fontweight="bold", fontsize=11,
         )
 
-        _pad = max(abs(b) for b in _betas) * 0.05
+        # t-stat labels placed INSIDE each bar on the 0-axis side, away from y-tick labels
+        _pad = max(abs(b) for b in _betas) * 0.04
         for _bar, _t in zip(_bars, _tstats):
             _x = _bar.get_width()
+            _text_x = _pad if _x >= 0 else -_pad
+            _ha = "left" if _x >= 0 else "right"
             _ax_gf.text(
-                _x + (_pad if _x >= 0 else -_pad),
+                _text_x,
                 _bar.get_y() + _bar.get_height() / 2,
                 f"t={_t:.2f}",
-                va="center", ha="left" if _x >= 0 else "right", fontsize=9,
+                va="center", ha=_ha, fontsize=9,
+                color="#c9d1d9",
             )
 
-        # Scatter insets for top-3 by |t-stat|
+        # Scatter insets for top-3 by |t-stat| — stacked on the right
         _dp_vals = aligned["dp_trump"].values
         _top3 = factor_ols.reindex(factor_ols["t_stat"].abs().nlargest(3).index)
         _inset_colors = ["#3b82f6", "#f59e0b", "#8b5cf6"]
 
         for _i, ((_, _row), _clr) in enumerate(zip(_top3.iterrows(), _inset_colors)):
-            _ax_ins = _fig_gf.add_axes([0.62 + _i * 0.125, 0.15, 0.10, 0.30])
+            _ax_ins = _ax_dict[f"i{_i}"]
             _col = _row["ETF"]
             if _col not in aligned.columns:
+                _ax_ins.axis("off")
                 continue
             _ys = aligned[_col].values
             _mask = ~np.isnan(_ys)
@@ -730,12 +763,11 @@ def _(aligned, factor_ols, np, plt):
                          color=_clr, lw=1.5)
             _ax_ins.axhline(0, color="gray", lw=0.5, ls="--")
             _ax_ins.axvline(0, color="gray", lw=0.5, ls="--")
-            _ax_ins.set_title(_row["Factor"], fontsize=7, fontweight="bold")
-            _ax_ins.tick_params(labelsize=6)
+            _ax_ins.set_title(f"{_row['Factor']}  (t={_row['t_stat']:.2f})", fontsize=9, fontweight="bold")
+            _ax_ins.tick_params(labelsize=7)
             _ax_ins.set_facecolor("#161b22")
 
-    plt.tight_layout()
-    plt.gca()
+    plt.show()
     return
 
 

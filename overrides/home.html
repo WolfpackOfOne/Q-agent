@@ -1,0 +1,131 @@
+{% extends "main.html" %}
+
+{% block tabs %}
+{{ super() }}
+
+<section class="mdx-hero">
+  <div class="mdx-hero__inner md-grid">
+    <div class="mdx-hero__content">
+      <h1>Q-agent</h1>
+      <p>An agent-native quantitative research operating system — pipelines, notebooks,
+        strategies, and AI workflows in one reproducible workspace.</p>
+      <div class="mdx-hero__badges">
+        <img src="https://img.shields.io/github/actions/workflow/status/WolfpackOfOne/Q-agent/docs.yml?branch=main&label=docs&logo=readthedocs&logoColor=white&color=4051b5" alt="Docs">
+        <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
+        <img src="https://img.shields.io/badge/python-3.11+-blue.svg" alt="Python 3.11+">
+        <img src="https://img.shields.io/github/last-commit/WolfpackOfOne/Q-agent?color=4051b5" alt="Last Commit">
+        <img src="https://img.shields.io/github/stars/WolfpackOfOne/Q-agent?style=social" alt="Stars">
+      </div>
+      <div class="mdx-hero__ctas">
+        <a href="start-here/" class="md-button md-button--primary">Start Here →</a>
+        <a href="https://github.com/WolfpackOfOne/Q-agent" class="md-button">View on GitHub</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mdx-features">
+  <div class="mdx-features__inner md-grid">
+    <div class="mdx-feature">
+      <div class="mdx-feature__icon">📈</div>
+      <div class="mdx-feature__body">
+        <h3>QuantConnect &amp; LEAN</h3>
+        <p>Cloud and local backtesting with the LEAN engine. Atomic project structure,
+          shared signals library, and tested workflow patterns for strategy development.</p>
+      </div>
+    </div>
+
+    <div class="mdx-feature">
+      <div class="mdx-feature__icon">🗄️</div>
+      <div class="mdx-feature__body">
+        <h3>Data Pipelines</h3>
+        <p>Ready-made pipelines for crypto, Polymarket, WRDS&thinsp;/&thinsp;CRSP, SEC EDGAR,
+          and yfinance — all outputting LEAN-compatible formats.</p>
+      </div>
+    </div>
+
+    <div class="mdx-feature">
+      <div class="mdx-feature__icon">📓</div>
+      <div class="mdx-feature__body">
+        <h3>Research Notebooks</h3>
+        <p>Interactive Marimo notebooks for signal research, factor analysis, and backtest
+          diagnostics — runnable against real datasets with no cloud dependency.</p>
+      </div>
+    </div>
+
+    <div class="mdx-feature">
+      <div class="mdx-feature__icon">🤖</div>
+      <div class="mdx-feature__body">
+        <h3>AI-Assisted Workflows</h3>
+        <p>Claude Code integration with agent guidelines, tested prompt patterns, and
+          memory-backed workflows for safe, consistent AI-assisted development.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mdx-paths">
+  <div class="mdx-paths__inner md-grid">
+    <h2>Where should I start?</h2>
+    <div class="mdx-paths__grid">
+      <a href="start-here/#student" class="mdx-path">
+        <span class="mdx-path__icon">🎓</span>
+        <span class="mdx-path__label">I'm a student</span>
+        <span class="mdx-path__sub">New to quant finance</span>
+      </a>
+      <a href="start-here/#strategy" class="mdx-path">
+        <span class="mdx-path__icon">📊</span>
+        <span class="mdx-path__label">I want to build a strategy</span>
+        <span class="mdx-path__sub">LEAN backtests and signal research</span>
+      </a>
+      <a href="start-here/#pipeline" class="mdx-path">
+        <span class="mdx-path__icon">🔌</span>
+        <span class="mdx-path__label">I want to add a pipeline</span>
+        <span class="mdx-path__sub">Integrate a new data source</span>
+      </a>
+      <a href="start-here/#agents" class="mdx-path">
+        <span class="mdx-path__icon">🤖</span>
+        <span class="mdx-path__label">I want to use agents</span>
+        <span class="mdx-path__sub">AI-assisted development</span>
+      </a>
+      <a href="start-here/#contribute" class="mdx-path">
+        <span class="mdx-path__icon">🤝</span>
+        <span class="mdx-path__label">I want to contribute</span>
+        <span class="mdx-path__sub">Open source collaboration</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="mdx-quickstart">
+  <div class="mdx-quickstart__inner md-grid">
+    <div class="mdx-quickstart__text">
+      <h2>Zero to notebook in 3 commands</h2>
+      <p>Clone the repo, install notebook dependencies, and run the included
+        Election &amp; Industry Returns example — no QuantConnect account required.</p>
+      <a href="notebooks/" class="md-button md-button--primary">Full Setup Guide →</a>
+    </div>
+    <div class="mdx-quickstart__code">
+      <div class="mdx-code-block">
+        <div class="mdx-code-block__title">Terminal</div>
+        <pre><code>git clone https://github.com/WolfpackOfOne/Q-agent.git
+cd Q-agent
+python -m venv infrastructure/marimo/venv
+source infrastructure/marimo/venv/bin/activate
+pip install -r infrastructure/marimo/requirements.txt
+marimo run infrastructure/marimo/notebooks/election_industry_returns.py --port 2719</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mdx-courses">
+  <div class="mdx-courses__inner md-grid">
+    <p>Used in graduate quantitative finance and trading technology coursework.</p>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block content %}{% endblock %}
+{% block footer %}{{ super() }}{% endblock %}

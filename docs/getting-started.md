@@ -46,6 +46,8 @@ lean login
 lean --version
 ```
 
+![LEAN cloud backtest workflow](recordings/lean-backtest.gif)
+
 ## Recommended Workflow
 
 - Keep strategy logic modular

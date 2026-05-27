@@ -108,7 +108,7 @@ Two runnable notebooks are included:
 
 | Notebook | Data sources | Local data required |
 |---|---|---|
-| [Election & Industry Returns](infrastructure/marimo/notebooks/election_industry_returns.py) | Polymarket CLOB API, Kenneth French data library, yfinance factor ETFs | No — all data fetched live. |
+| [Election & Industry Returns](infrastructure/marimo/notebooks/election_industry_returns.py) | Polymarket CLOB API, yfinance sector ETFs (XLE, XLF, XLV, XLI, XLK, XLP, XLY, XLU, XLB, XLRE, XLC, XOP, ITA, KBE, IBB, ICLN, TAN, GDX, ITB) | No — all data fetched live. |
 | [Crypto & Polymarket Correlation](infrastructure/marimo/notebooks/crypto_polymarket_correlation.py) | Coinbase, Kraken, Polymarket prices, yfinance (COIN) | Yes — run the crypto and Polymarket pipelines first. |
 
 See [GETTING_STARTED.md](GETTING_STARTED.md) for how to run them. For broader research directions see [docs/research-examples.md](docs/research-examples.md).
