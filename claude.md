@@ -41,6 +41,8 @@ Architecture guidelines live in `AGENTS.md`. Push detailed playbooks to skills r
 - Never run destructive actions (dropping data, force-pushing, deleting projects) without explicit confirmation.
 - Do not edit files inside `Lean/` (reference-only engine repo).
 - Always activate the venv before running CLI commands: `source ~/Documents/Q-agent/venv/bin/activate`.
+- **`main` is branch-protected on the workspace repo.** Direct pushes are rejected by GitHub policy (`GH013: Changes must be made through a pull request`). Always: branch → commit → push the branch → `gh pr create` → merge via the GitHub UI.
+- **The workspace has two GitHub remotes — push to the right one.** `q-agent` (`WolfpackOfOne/Q-agent`) is the canonical workspace repo and what local `main` tracks. `origin` (`WolfpackOfOne/QuantConnect_Master`) is a separate, divergent repo and should not be the default target. When creating PRs with `gh`, always pass `--repo WolfpackOfOne/Q-agent`. Verify with `git remote -v` and `git branch -vv` before pushing.
 
 ## Prerequisites (first-time setup)
 
