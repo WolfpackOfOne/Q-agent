@@ -1,0 +1,11 @@
+# Per-project bundled data lives here.
+#
+# This directory is for small CSVs (or similar) that ship WITH the algorithm —
+# uploaded by `lean cloud push`, read in Initialize from disk. No runtime HTTP
+# calls from the algorithm itself.
+#
+# Distinct from MyProjects/data/ at the workspace level, which is gitignored
+# and used for regenerable local fixtures. THIS directory's CSV files ARE
+# committable. See workspace AGENTS.md § "Bundled Per-Project Data".
+#
+# Pair with `tools/refresh_<name>.py` for a one-off fetcher.

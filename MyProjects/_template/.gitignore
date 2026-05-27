@@ -43,3 +43,9 @@ __pycache__/
 *credential*
 *.pem
 *.key
+
+# NOTE: per-project `data/*.csv` IS committable — it's the bundled-data
+# convention (see workspace AGENTS.md § "Bundled Per-Project Data").
+# The workspace-level .gitignore that excludes `MyProjects/data/` applies
+# to the SHARED dir at MyProjects/data/, not your project's own data/.
+# Do NOT add `data/` here.

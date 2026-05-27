@@ -4,6 +4,17 @@ Durable LEAN, LEAN CLI, QuantConnect cloud, Docker, and research-container gotch
 
 Include symptoms and the confirmed fix. Do not store secrets or config values.
 
+## Shared signals — `domain/signals/` is a symlink, edit the shared source
+
+Workspace convention: pure-Python signal atoms live in `MyProjects/shared/signals/`. Projects consume them via relative symlinks inside `domain/signals/`. `lean cloud push` follows symlinks and uploads the file *content* — QC cloud never sees the link, so the cloud build behaves the same as a local clone.
+
+Rules:
+- Edit the file in `shared/signals/`, never the symlink copy inside a project. Edits to the link silently modify shared source.
+- Symlink path from a project two levels deep (`<Project>/domain/signals/foo.py`) is `../../../shared/signals/foo.py`. The third `..` is necessary.
+- Shared atoms must be importable without `from AlgorithmImports import *` — they should run under a plain venv with just `pandas` + `numpy`. Add a synthetic-data unit test before symlinking into a project.
+
+First use: `MyProjects/ElectionIndustryBeta/domain/signals/election_beta.py → ../../../shared/signals/election_beta.py`.
+
 ## Polymarket Pipeline — Resolved Markets Need fidelity=1440
 
 Symptom: `run_prices_pipeline.py` writes empty CSV files for closed/resolved markets.

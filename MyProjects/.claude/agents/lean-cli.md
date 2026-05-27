@@ -15,7 +15,21 @@ Before ANY lean command, you MUST activate the virtual environment:
 cd ~/Documents/Q-agent && source venv/bin/activate && cd MyProjects
 ```
 
-Verify with: `which lean` should output `~/Documents/Q-agent/venv/bin/lean`
+Verify with: `which lean` should output `~/Documents/Q-agent/venv/bin/lean`.
+
+**If the venv does not exist yet** (`source venv/bin/activate` fails or `which lean` is empty), create it once per machine — the venv is not checked in:
+
+```bash
+cd ~/Documents/Q-agent
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install lean
+```
+
+Then continue from "Verify with…". Full first-time setup including QC auth: `docs/getting-started.md`.
+
+Run `bash scripts/check-prereqs.sh` if you're unsure whether the workspace is ready.
 
 ## Directory Structure
 - **Working directory**: `~/Documents/Q-agent/MyProjects`
@@ -88,8 +102,8 @@ lean cloud backtest "<ProjectName>" --name "Descriptive run name"
 
 | Issue | Solution |
 |-------|----------|
-| `lean: command not found` | Activate venv: `source venv/bin/activate` |
-| `lean.json not found` | Navigate to MyProjects: `cd MyProjects` |
+| `lean: command not found` | Activate venv: `source venv/bin/activate`. If still missing, the venv hasn't been built — see "Virtual Environment Requirement" above. |
+| `lean.json not found` | `cd MyProjects && lean init` (creates it; gitignored) |
 | Push fails | Check for Python syntax errors in code |
 | Auth errors | Run `lean login` to re-authenticate |
 

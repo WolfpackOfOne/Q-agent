@@ -40,7 +40,21 @@ Architecture guidelines live in `AGENTS.md`. Push detailed playbooks to skills r
 - Never introduce secrets (API keys, tokens, credentials) in code, logs, or docs.
 - Never run destructive actions (dropping data, force-pushing, deleting projects) without explicit confirmation.
 - Do not edit files inside `Lean/` (reference-only engine repo).
-- Always activate the venv before running CLI commands: `source ~/Documents/Q-agent/venv/bin/activate`
+- Always activate the venv before running CLI commands: `source ~/Documents/Q-agent/venv/bin/activate`.
+
+## Prerequisites (first-time setup)
+
+After `git clone`, these resources don't exist yet — create them once per machine:
+
+| Resource | Why missing | Create with |
+|---|---|---|
+| `venv/` | Not checked in | `python3 -m venv venv && source venv/bin/activate && pip install --upgrade pip && pip install lean` (see `docs/getting-started.md:22-32`) |
+| `~/.lean/credentials` | User-specific auth | `lean login` (preferred — `docs/getting-started.md:35-40`, `CREDENTIALS.md:82-85`) |
+| `MyProjects/lean.json` | Created on demand | `cd MyProjects && lean init` |
+| `<Project>/config.json` | Per-project cloud IDs | `lean project-create` or first `lean cloud push` |
+| Docker Desktop running | Required for `lean backtest` (not for cloud) | `open -a "Docker"` on macOS |
+
+One-shot validator: `bash scripts/check-prereqs.sh`.
 
 ---
 
@@ -48,22 +62,28 @@ Architecture guidelines live in `AGENTS.md`. Push detailed playbooks to skills r
 
 ```
 Q-agent/
-├── venv/                    # Python virtual environment (activate first!)
+├── venv/                    # (created on first setup — see Prerequisites)
 ├── Lean/                    # LEAN engine repo (reference only, do not edit)
 ├── AGENTS.md                # Architecture guidelines
 ├── claude.md                # This file
+├── scripts/check-prereqs.sh # Validates venv/lean/docker/creds
 └── MyProjects/              # Algorithm projects
-    ├── lean.json            # LEAN CLI configuration
-    ├── data/                # Local market data
-    ├── storage/             # ObjectStore outputs
-    ├── shared/              # Reusable signal atoms (never pushed to QC)
-    │   └── signals/         # Pure Python signal files — see shared/signals/README.md
-    └── <ProjectName>/       # Individual projects
+    ├── lean.json            # (created by `lean init`, gitignored)
+    ├── data/                # Local market data (gitignored at workspace level)
+    ├── storage/             # ObjectStore outputs (gitignored)
+    ├── shared/              # Reusable signal atoms (TRACKED in this repo)
+    │   ├── README.md        # Shared-library doc — read before adding a signal
+    │   └── signals/         # Pure Python signal files
+    ├── _template/           # Project scaffold
+    ├── ElectionIndustryBeta/ # Reference example — bundled data + shared signal
+    └── <ProjectName>/       # Individual project (typically its own Git repo)
         ├── main.py          # Algorithm entry point
         ├── config.json      # Cloud/local IDs (DO NOT COMMIT)
         ├── models/          # Algorithm modules
         ├── domain/          # Business logic
-        │   └── signals/     # Symlinks → shared/signals/ (see below)
+        │   └── signals/     # Symlinks → ../../../shared/signals/ (see below)
+        ├── data/            # Bundled per-project data (CSV is committable here)
+        ├── tools/           # One-off helpers (refresh scripts, etc.)
         ├── docs/            # Documentation
         └── research/        # Jupyter notebooks
 ```
@@ -92,23 +112,42 @@ These are hard-won lessons. Follow them as imperative rules:
 
 - **Always call `SetWarmUp` in `Initialize`** with the longest lookback the strategy needs. Omitting it means `IsReady` stays `False` and no trades fire until enough history accumulates organically.
 - **`DateRules.MonthStart(n)` treats `n` as a Symbol, not a day offset.** Use `DateRules.MonthStart()` for the first trading day, or `DateRules.MonthStart("SPY", 5)` for a day offset.
-- **Avoid the `SetAlpha` + `SetPortfolioConstruction` + coarse universe pattern** in teaching projects. Use direct `SetHoldings` calls in a `_rebalance` method instead.
+- **Avoid the `SetAlpha` + `SetPortfolioConstruction` + coarse universe pattern** in teaching/example projects. Use direct `SetHoldings` calls in a scheduled `_rebalance` method instead. The `_template/` scaffold has `models/{alpha,portfolio,execution}.py` set up as framework subclasses (`AlphaModel` etc.) for production use; for teaching, demote them to plain helper classes that `_rebalance` calls directly. See `MyProjects/ElectionIndustryBeta/` for a worked example.
 - **Pyright warnings on LEAN PascalCase API are false positives.** `AlgorithmImports` resolves at runtime. Suppress with `# type: ignore` if needed; backtests compile fine.
 
 ## Shared signals library
 
 `MyProjects/shared/signals/` is the canonical source for reusable signal atoms (pure Python, no `AlgorithmImports`). Projects consume them via symlinks — `lean cloud push` follows symlinks and uploads the file content, so QC cloud sees a normal file. `shared/` itself is never inside any project directory and is never pushed.
 
+Read `MyProjects/shared/README.md` before adding a new shared signal.
+
 **One-time setup per project** (run from inside the project directory):
 ```bash
 mkdir -p domain/signals
-ln -s ../shared/signals/my_signal.py domain/signals/my_signal.py
+ln -s ../../../shared/signals/my_signal.py domain/signals/my_signal.py
 ```
 
+The target path is **three `..` deep** because symlink targets resolve relative to the symlink's location (`<Project>/domain/signals/`), not the cwd. Two `..` produces a dangling link.
+
 **Rules:**
-- Signal files in `shared/signals/` must be pure Python (no LEAN imports, no QC types)
-- Edit `shared/signals/` — never the symlink copy inside a project
-- All projects that need a signal get their own symlink; no project gets signals it doesn't use
+- Signal files in `shared/signals/` must be pure Python (no LEAN imports, no QC types).
+- Edit `shared/signals/` — never the symlink copy inside a project.
+- All projects that need a signal get their own symlink; no project gets signals it doesn't use.
+- Verify the link after creation: `ls -la domain/signals/<name>.py` should show `-> ../../../shared/signals/<name>.py`.
+
+## Bundled per-project data
+
+Per-project data (small CSVs that ship with the algorithm) lives at `<Project>/data/*.csv` and **is committable** — distinct from the workspace-level `MyProjects/data/` which is gitignored. The pattern is:
+
+```
+<Project>/
+├── data/
+│   └── <name>.csv          # committed, uploaded by lean cloud push, read in Initialize
+└── tools/
+    └── refresh_<name>.py   # one-off fetcher — NOT called by the algorithm
+```
+
+The algorithm reads `<Project>/data/*.csv` from disk in `Initialize` — no runtime HTTP calls. The fetcher in `tools/` is run manually whenever you want a fresher snapshot. Worked example: `ElectionIndustryBeta/{data/trump_prob.csv, tools/refresh_trump_prob.py}`.
 
 ## Coding conventions
 
@@ -123,8 +162,8 @@ ln -s ../shared/signals/my_signal.py domain/signals/my_signal.py
 
 | Error | Fix |
 |---|---|
-| `lean: command not found` | `source ~/Documents/Q-agent/venv/bin/activate` |
-| `lean.json not found` | `cd ~/Documents/Q-agent/MyProjects` |
+| `lean: command not found` | `source ~/Documents/Q-agent/venv/bin/activate`; if venv missing, follow `docs/getting-started.md:22-32` |
+| `lean.json not found` | `cd MyProjects && lean init` (creates it; gitignored) |
 | collaboration lock | add `--force` to `lean cloud push` |
 | `is not a Lean project` | directory has no `config.json` — use `lean project-create` |
 | No data in local backtest | use cloud: `lean cloud backtest "<ProjectName>"` |
@@ -163,7 +202,10 @@ Automatic extraction writes candidates to `.claude/memory/pending.md`. Review th
 
 ## Resources
 
+- **First-time setup**: `docs/getting-started.md`
 - **Architecture guidelines**: `AGENTS.md`
+- **Shared signals library**: `MyProjects/shared/README.md`
+- **Worked example project**: `MyProjects/ElectionIndustryBeta/` (bundled data + shared signal + teaching pattern)
 - **New project bootstrap**: `.claude/agents/new_strategy_coder.md`
 - **New data pipeline**: `.claude/agents/new-pipeline-coder.md`
 - **LEAN CLI guide**: `MyProjects/.claude/agents/lean-cli.md`

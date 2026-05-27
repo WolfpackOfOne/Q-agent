@@ -469,14 +469,35 @@ When setting up a new QuantConnect project with atomic structure:
 **One-time setup** (run from inside the project directory):
 ```bash
 mkdir -p domain/signals
-ln -s ../shared/signals/my_signal.py domain/signals/my_signal.py
+ln -s ../../../shared/signals/my_signal.py domain/signals/my_signal.py
 ```
+
+The target is **three `..` deep** — symlink targets resolve relative to the symlink's *location* (`<Project>/domain/signals/`), not the cwd. Two `..` produces a dangling link that fails at import time. Verify with `ls -la domain/signals/my_signal.py`.
+
+See `MyProjects/shared/README.md` for the full convention and the bundled-data pattern that often pairs with it.
 
 **Rules for agents:**
 - Signal files in `shared/signals/` must be pure Python — no `from AlgorithmImports import *`, no LEAN types
 - When a project needs a shared signal, create the symlink; do not copy the file
 - When editing a shared signal, edit `shared/signals/` — never the symlink copy inside a project
 - Do not create symlinks that point outside `MyProjects/shared/` (keeps paths predictable)
+- Always use **relative** symlink targets, never absolute
+
+### Bundled Per-Project Data
+
+Some projects need to ship a small CSV alongside the algorithm (e.g. an alt-data snapshot, a static config). The convention:
+
+```
+<Project>/
+├── data/                # tracked, committed
+│   └── <name>.csv       # bundled snapshot — uploaded by `lean cloud push`, read in Initialize
+└── tools/               # tracked
+    └── refresh_<name>.py  # one-off fetcher run manually; NOT imported by the algorithm
+```
+
+Important: `MyProjects/data/` (workspace level) is gitignored, but `MyProjects/<Project>/data/*.csv` IS committable — the per-project `data/` is treated as bundled algorithm input, not regenerable local cache. The project's own `.gitignore` should *not* exclude `data/`.
+
+The algorithm reads the CSV from disk in `Initialize` — no runtime HTTP calls. Refresh by running `python tools/refresh_<name>.py` manually, then re-pushing. Worked example: `MyProjects/ElectionIndustryBeta/{data/trump_prob.csv, tools/refresh_trump_prob.py}`.
 
 ### Documentation Checklist
 

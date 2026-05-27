@@ -1,0 +1,10 @@
+# Per-project one-off scripts (not imported by the algorithm).
+#
+# Typical contents: `refresh_<name>.py` — fetches a snapshot from an external
+# API and writes the result into `../data/<name>.csv`. Run manually whenever
+# you want a fresher bundled snapshot.
+#
+# These scripts MUST NOT be imported by main.py or any model — the algorithm
+# reads bundled data from `../data/` via plain disk I/O.
+#
+# Pair with `data/<name>.csv`.

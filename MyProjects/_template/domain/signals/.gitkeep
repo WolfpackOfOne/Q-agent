@@ -1,0 +1,11 @@
+# Project-local signals live here. Two valid file types:
+#
+# 1. Project-specific signal modules (plain Python files) — only used by this
+#    project. Edit freely.
+#
+# 2. SYMLINKS to reusable signals in `MyProjects/shared/signals/`. Create with:
+#       ln -s ../../../shared/signals/my_signal.py domain/signals/my_signal.py
+#    (THREE `..` — targets resolve relative to the symlink's location.)
+#    Edit the shared source, NEVER the link.
+#
+# See MyProjects/shared/README.md and workspace AGENTS.md § "Using Shared Signals".

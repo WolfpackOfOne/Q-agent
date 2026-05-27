@@ -21,7 +21,10 @@
 │   └── logger.py            # ObjectStore logging
 ├── domain/                  # Molecules + Atoms
 │   ├── config.py            # Configuration constants
-│   └── models.py            # DTOs, enums
+│   ├── models.py            # DTOs, enums
+│   └── signals/             # Project-local signals or symlinks to ../../../shared/signals/
+├── data/                    # Bundled per-project CSV (committable; see AGENTS.md)
+├── tools/                   # One-off refresh scripts (NOT imported by algorithm)
 ├── docs/                    # Documentation
 │   ├── architecture.md      # System architecture
 │   ├── strategy.md          # Strategy logic
@@ -30,6 +33,8 @@
 ├── config.json              # QC cloud config (DO NOT COMMIT)
 └── claude.md                # This file
 ```
+
+**Pattern choice**: this scaffold ships the `models/` files as QC framework subclasses (`AlphaModel` etc.) for production use. For **teaching/example** projects, demote them to plain helper classes called from a scheduled `_rebalance` method — see `AGENTS.md` § "Pattern Choice" and `MyProjects/ElectionIndustryBeta/` as a worked example.
 
 ## Strategy Parameters
 

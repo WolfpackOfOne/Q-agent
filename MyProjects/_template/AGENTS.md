@@ -19,10 +19,24 @@ main.py              # Composition Root - wires models together
 │   ├── portfolio.py # Portfolio construction
 │   ├── execution.py # Order execution
 │   └── logger.py    # ObjectStore logging
-└── domain/          # Molecules + Atoms - pure business logic
-    ├── config.py    # Constants (ATOMS)
-    └── models.py    # DTOs, enums (ATOMS)
+├── domain/          # Molecules + Atoms - pure business logic
+│   ├── config.py    # Constants (ATOMS)
+│   ├── models.py    # DTOs, enums (ATOMS)
+│   └── signals/     # Optional — symlinks to ../../../shared/signals/<name>.py
+├── data/            # Optional — bundled per-project CSV (committable)
+└── tools/           # Optional — one-off refresh scripts (NOT imported by algorithm)
 ```
+
+## Pattern Choice — Framework vs Direct SetHoldings
+
+This template ships `models/{alpha,portfolio,execution}.py` as framework subclasses (`AlphaModel`, `PortfolioConstructionModel`, `ExecutionModel`). That's the right shape for production strategies that need the full QC alpha-streaming + insight lifecycle.
+
+**For teaching / example projects, demote them to plain helper classes** called directly from a scheduled `_rebalance(self)` method in `main.py`. This is the workspace-wide rule from `~/Documents/Q-agent/CLAUDE.md` — the QC framework lifecycle (with coarse universe) is hard to follow when explaining a strategy. Direct `SetHoldings` keeps the wiring obvious.
+
+- **Production pattern (this template default)**: classes subclass `AlphaModel` / `PortfolioConstructionModel` / `ExecutionModel`; wired via `SetAlpha` / `SetPortfolioConstruction` / `SetExecution`.
+- **Teaching pattern**: same files, same layer roles, but classes are plain Python (no `AlphaModel` parent). `main.py::_rebalance` calls `alpha.compute_signals(...)` → `portfolio.to_targets(...)` → `executor.execute(...)` → `SetHoldings(...)`. Worked example: `MyProjects/ElectionIndustryBeta/`.
+
+Both keep the atomic structure; only the integration with QC's lifecycle differs.
 
 ## Strategy Invariants
 

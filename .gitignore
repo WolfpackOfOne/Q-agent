@@ -40,6 +40,9 @@ MyProjects/*/
 # But keep shared resources
 !MyProjects/_template/
 !MyProjects/.claude/
+!MyProjects/shared/
+# ElectionIndustryBeta is tracked as a reference example for onboarding
+!MyProjects/ElectionIndustryBeta/
 
 # Exclude data/storage entirely — populate locally via `lean init` after cloning.
 # QC sample data (AlgoSeek-sourced) is not redistributed in this repo.
