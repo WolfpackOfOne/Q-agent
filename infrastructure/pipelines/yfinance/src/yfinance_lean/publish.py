@@ -33,6 +33,26 @@ def publish_daily_bar(ticker, df):
     return zip_path
 
 
+def publish_forex_bar(symbol, df, market='oanda'):
+    """Write forex daily bars as forex/<market>/daily/{symbol}.zip → {symbol}.csv.
+
+    DataFrame must have columns: date_str, open, high, low, close (no volume).
+    Forex has no factor/map files, so only the bar zip is written.
+    """
+    symbol = symbol.lower()
+    daily_dir = os.path.join(LEAN_DATA_ROOT, 'forex', market, 'daily')
+    os.makedirs(daily_dir, exist_ok=True)
+    lines = [
+        f"{r['date_str']},{r['open']},{r['high']},{r['low']},{r['close']}"
+        for _, r in df.iterrows()
+    ]
+    csv_content = '\n'.join(lines) + '\n'
+    zip_path = os.path.join(daily_dir, f'{symbol}.zip')
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr(f'{symbol}.csv', csv_content)
+    return zip_path
+
+
 def publish_factor_file(ticker, df):
     """Write factor file DataFrame as {ticker}.csv (no header).
 
