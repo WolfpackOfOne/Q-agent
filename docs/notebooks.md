@@ -36,6 +36,20 @@ Open: <http://localhost:2719>
 
 ![Notebook setup walkthrough](recordings/notebook-election.gif)
 
+### Sample outputs
+
+**Industry & Sector ETF Sensitivity to Trump Election Probability**
+
+OLS betas for 19 ETFs regressed on daily ΔP(Trump win). Green = Trump-benefiting, red = Trump-hurting. Stars indicate 5% significance.
+
+![Industry betas bar chart](assets/plots/industry_betas.png)
+
+**Factor ETF Sensitivity to ΔP(Trump Win)**
+
+Monthly betas for 8 US equity factor ETFs. Faded bars have p > 0.10. Scatter insets show the top-3 ETFs by absolute t-stat.
+
+![Factor ETF betas](assets/plots/factor_betas.png)
+
 ---
 
 ## Notebook 2: Crypto & Polymarket Correlation
