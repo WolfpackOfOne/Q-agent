@@ -1,0 +1,49 @@
+# QuantConnect project .gitignore
+
+# Project config (contains organization-id, cloud-id)
+config.json
+
+# Backtest results (regeneratable)
+backtests/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+*.egg
+
+# Jupyter
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+*.local
+
+# Secrets (never commit these)
+*token*
+*secret*
+*password*
+*credential*
+*.pem
+*.key
+
+# NOTE: data/trump_prob.csv IS committed — it is a bundled snapshot that
+# travels with the algorithm. The workspace-level .gitignore that excludes
+# MyProjects/data/ applies to the shared dir, not per-project data/.
