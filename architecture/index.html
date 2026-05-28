@@ -1358,6 +1358,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#runtime-artifact-the-workspace-docker-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime artifact: the workspace Docker image
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1551,6 +1562,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#runtime-artifact-the-workspace-docker-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime artifact: the workspace Docker image
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1691,6 +1713,46 @@
 <li><strong>Readability for students</strong>: each layer has a single clear responsibility</li>
 <li><strong>Safe AI-assisted development</strong>: the structure gives agents a predictable target</li>
 </ul>
+<hr />
+<h2 id="runtime-artifact-the-workspace-docker-image">Runtime artifact: the workspace Docker image<a class="headerlink" href="#runtime-artifact-the-workspace-docker-image" title="Permanent link">&para;</a></h2>
+<p>The workspace publishes a single runtime image to GitHub Container Registry
+on every push to <code>main</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ghcr.io/wolfpackofone/q-agent:latest   # tracks main
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>ghcr.io/wolfpackofone/q-agent:sha-&lt;x&gt;  # per-commit
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>ghcr.io/wolfpackofone/q-agent:vX.Y.Z   # version tags
+</code></pre></div>
+<p>The image bundles three things that today require three separate host venvs:</p>
+<ul>
+<li><strong>LEAN CLI</strong> (<code>lean</code>), pinned via the <code>LEAN_VERSION</code> build arg</li>
+<li><strong>Infrastructure pipelines</strong> (crypto / Polymarket / EDGAR / WRDS / yfinance)</li>
+<li><strong>marimo</strong> with its plotting stack</li>
+</ul>
+<p>Build pipeline:</p>
+<pre class="mermaid"><code>graph LR
+    SRC["Dockerfile&lt;br/&gt;.dockerignore"]
+    CI[".github/workflows/docker.yml"]
+    BLD["Buildx build (linux/amd64)"]
+    SMK["Smoke tests&lt;br/&gt;(in built image)"]
+    GHCR["ghcr.io/wolfpackofone/q-agent"]
+
+    SRC --&gt; CI
+    CI --&gt; BLD
+    BLD --&gt; SMK
+    SMK --&gt; GHCR</code></pre>
+<p><code>.dockerignore</code> mirrors <code>.gitignore</code> and additionally excludes the LEAN engine
+checkout, <code>References/</code>, the rendered mkdocs site, all per-user data
+directories, and every <code>MyProjects/*/</code> subtree except the
+<code>ElectionIndustryBeta/</code> reference example. The image runs as non-root
+<code>qagent</code> (uid 1000) and contains no credentials — <code>lean.json</code>, <code>.env</code>, and
+<code>config.json</code> files are mounted in at runtime, never baked.</p>
+<p>The image deliberately does <strong>not</strong> support <code>lean backtest</code> (local). That
+command spawns a nested <code>quantconnect/lean</code> Docker container, which would
+require either the Docker socket (privilege escalation) or Docker-in-Docker.
+<code>lean cloud backtest</code> works inside the container; <code>lean backtest</code> runs on
+the host. Tracked as issue #27.</p>
+<p>For build commands, smoke-test recipe, GHCR pull verification, and the six
+known gotchas, see <a href="../docker/">Docker</a> and the <code>/docker-workflow</code> skill at
+<code>.claude/skills/docker-workflow/SKILL.md</code>.</p>
 
 
 

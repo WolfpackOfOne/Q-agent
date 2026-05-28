@@ -1405,6 +1405,40 @@
 <li>documentation drafting</li>
 <li>pipeline scaffolding</li>
 </ul>
+<h3 id="project-scoped-skills">Project-scoped skills<a class="headerlink" href="#project-scoped-skills" title="Permanent link">&para;</a></h3>
+<p>Reusable knowledge for this workspace lives in <code>.claude/skills/</code>. Skills are
+markdown playbooks with a frontmatter whitelist of tools; invoke one with a
+slash command from Claude Code.</p>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/docker-workflow</code></td>
+<td>Build, smoke-test, publish, and verify the Q-agent Docker image. Handles <code>LEAN_VERSION</code> bumps, GHCR pull verification, CI debugging. See <a href="../docker/">Docker</a>.</td>
+</tr>
+<tr>
+<td><code>/marimo-pair</code></td>
+<td>Pair-program inside a running marimo notebook.</td>
+</tr>
+<tr>
+<td><code>/push-git</code></td>
+<td>Wrap the canonical workspace push flow (branch → PR → merge).</td>
+</tr>
+<tr>
+<td><code>/push-lean</code></td>
+<td>Push the active project to QuantConnect with <code>lean cloud push --force</code>.</td>
+</tr>
+<tr>
+<td><code>/run-local-research-notebook</code></td>
+<td>Boot a research notebook against local pipeline data.</td>
+</tr>
+</tbody>
+</table>
 <hr />
 <h1 id="repository-philosophy">Repository Philosophy<a class="headerlink" href="#repository-philosophy" title="Permanent link">&para;</a></h1>
 <p>Q-agent encourages:</p>

@@ -1339,6 +1339,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#reproducible-dev-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reproducible dev environment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#commit-style" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1439,6 +1450,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#reproducible-dev-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reproducible dev environment
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#commit-style" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1512,18 +1534,27 @@
 </ul>
 <h2 id="pull-request-workflow">Pull Request Workflow<a class="headerlink" href="#pull-request-workflow" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Create a feature branch</li>
+<li>Create a feature branch (<code>main</code> is branch-protected — direct pushes are rejected)</li>
 <li>Make focused changes</li>
 <li>Update documentation where appropriate</li>
 <li>Ensure no secrets or credentials are committed</li>
 <li>Open a pull request into <code>main</code></li>
+<li>Wait for CI to pass: tests, secret-scan (gitleaks + personal-paths), docs (mkdocs build + linkcheck), and — if <code>Dockerfile</code> / <code>requirements*.txt</code> / <code>.dockerignore</code> change — the docker build</li>
 </ol>
+<h2 id="reproducible-dev-environment">Reproducible dev environment<a class="headerlink" href="#reproducible-dev-environment" title="Permanent link">&para;</a></h2>
+<p>You can develop against the host venvs (see <a href="../getting-started/">Getting Started</a>)
+or against the prebuilt workspace image:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>-v<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">:/workspace&quot;</span><span class="w"> </span>ghcr.io/wolfpackofone/q-agent:latest
+</code></pre></div>
+<p>The image is pinned to a specific <code>LEAN_VERSION</code> (visible on the image's GHCR
+page) and matches the venvs used by CI, so smoke-test results are
+reproducible across machines. See <a href="../docker/">Docker</a> for the full workflow.</p>
 <h2 id="commit-style">Commit Style<a class="headerlink" href="#commit-style" title="Permanent link">&para;</a></h2>
 <p>Keep commit messages short and imperative:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Add WRDS sector pipeline
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Refactor LEAN notebook utilities
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Add Polymarket ingestion example
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>Improve ETF constituent documentation
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Add WRDS sector pipeline
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>Refactor LEAN notebook utilities
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>Add Polymarket ingestion example
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>Improve ETF constituent documentation
 </code></pre></div>
 <h2 id="prohibited-content">Prohibited Content<a class="headerlink" href="#prohibited-content" title="Permanent link">&para;</a></h2>
 <p>Do not commit:</p>

@@ -1395,6 +1395,13 @@
 <li>educational workflows</li>
 </ul>
 <hr />
+<h1 id="recently-shipped">Recently Shipped<a class="headerlink" href="#recently-shipped" title="Permanent link">&para;</a></h1>
+<ul>
+<li><strong>Docker / GHCR image</strong> (<a href="https://github.com/WolfpackOfOne/Q-agent/issues/20">#20</a>, <a href="https://github.com/WolfpackOfOne/Q-agent/pull/25">#25</a>). Public image at <code>ghcr.io/wolfpackofone/q-agent:latest</code> bundles LEAN CLI + infrastructure pipelines + marimo. CI builds on every PR, publishes on every push to <code>main</code>. See <a href="../docker/">Docker</a>.</li>
+<li><strong>Workflow-first documentation site</strong> — mkdocs at <a href="https://wolfpackofone.github.io/Q-agent/">https://wolfpackofone.github.io/Q-agent/</a> with linkcheck on every PR.</li>
+<li><strong>Personal-paths CI scanner</strong> — <code>.github/workflows/secret-scan.yml</code> blocks PRs that leak host home directories.</li>
+</ul>
+<hr />
 <h1 id="near-term-priorities">Near-Term Priorities<a class="headerlink" href="#near-term-priorities" title="Permanent link">&para;</a></h1>
 <h2 id="documentation-hardening">Documentation Hardening<a class="headerlink" href="#documentation-hardening" title="Permanent link">&para;</a></h2>
 <ul>
@@ -1404,6 +1411,11 @@
 <li>agent workflows</li>
 <li>reproducibility improvements</li>
 <li>onboarding clarity</li>
+</ul>
+<h2 id="docker-followups">Docker Followups<a class="headerlink" href="#docker-followups" title="Permanent link">&para;</a></h2>
+<ul>
+<li>multi-arch image (<code>linux/arm64</code> so Apple Silicon hosts can pull natively) — <a href="https://github.com/WolfpackOfOne/Q-agent/issues/26">#26</a></li>
+<li>support <code>lean backtest</code> (local) inside the container — <a href="https://github.com/WolfpackOfOne/Q-agent/issues/27">#27</a></li>
 </ul>
 <hr />
 <h2 id="research-workflows">Research Workflows<a class="headerlink" href="#research-workflows" title="Permanent link">&para;</a></h2>
