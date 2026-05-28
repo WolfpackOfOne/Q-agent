@@ -14,6 +14,13 @@ relationships:
     properties:
       - generated_at: datetime
 
+  HAS_BACKTEST:
+    description: "Strategy lineage to one of its backtest runs (used by deployment_gate)"
+    from: [Strategy]
+    to: [Backtest]
+    properties:
+      - linked_at: datetime
+
   DEPENDS_ON:
     description: "Hard dependency — downstream breaks if upstream is stale"
     from: [Notebook, Strategy, Pipeline, FactorModel, Backtest]

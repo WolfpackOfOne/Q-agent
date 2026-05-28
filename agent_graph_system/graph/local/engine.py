@@ -19,6 +19,9 @@ log = logging.getLogger(__name__)
 
 _PERSIST_PATH = Path(__file__).parent.parent.parent / ".local_graph.pkl"
 
+# Backtest statuses that never count as a valid completed backtest.
+_INVALID_BACKTEST_STATUSES = frozenset({"failed", "running"})
+
 # MultiDiGraph: multiple edge types between same pair of nodes
 _G: nx.MultiDiGraph = nx.MultiDiGraph()
 
@@ -265,6 +268,48 @@ def _extract_label_from_match(cypher: str) -> str:
     import re
     m = re.search(r":\s*([A-Za-z][A-Za-z0-9_]*)", cypher)
     return m.group(1) if m else ""
+
+
+def latest_backtest_for_strategy(strategy: str) -> dict[str, Any] | None:
+    """Return the latest valid backtest linked to ``strategy``, or None.
+
+    A backtest is linked either via a ``Strategy -[HAS_BACKTEST]-> Backtest``
+    edge or by carrying a ``strategy`` property. Failed/running backtests are
+    excluded; "latest" is the max over completed_at / run_date / created_at /
+    updated_at. Results are de-duplicated by run_id.
+    """
+    candidates: dict[str, dict[str, Any]] = {}
+
+    def _add(node: dict[str, Any]) -> None:
+        if node.get("_label") != "Backtest":
+            return
+        key = node.get("run_id") or node.get("name") or id(node)
+        candidates[str(key)] = dict(node)
+
+    seed_id = f"Strategy::{strategy}"
+    if seed_id in _G:
+        for _, v, data in _G.out_edges(seed_id, data=True):
+            if data.get("_type") == "HAS_BACKTEST":
+                _add(_G.nodes.get(v, {}))
+
+    for _, data in _G.nodes(data=True):
+        if data.get("_label") == "Backtest" and data.get("strategy") == strategy:
+            _add(data)
+
+    pool = [
+        b for b in candidates.values()
+        if b.get("status", "completed") not in _INVALID_BACKTEST_STATUSES
+    ]
+    if not pool:
+        return None
+
+    def _ts(node: dict[str, Any]) -> str:
+        for key in ("completed_at", "run_date", "created_at", "updated_at"):
+            if node.get(key):
+                return str(node[key])
+        return ""
+
+    return max(pool, key=_ts)
 
 
 def graph_stats() -> dict[str, Any]:
