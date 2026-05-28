@@ -2,6 +2,18 @@
 
 This guide explains how to set up the Q-agent workspace locally.
 
+> **Fast path:** the [Docker image](docker.md) bundles LEAN CLI, the
+> infrastructure pipelines, and marimo into one container. If you don't need
+> local `lean backtest` (host-only — see Docker page) and prefer not to
+> manage host venvs, run:
+>
+> ```bash
+> docker run --rm -it -v "$(pwd):/workspace" ghcr.io/wolfpackofone/q-agent:latest
+> ```
+>
+> The host setup below is required only if you want to run `lean backtest`
+> locally or develop without containers.
+
 ## Prerequisites
 
 Install the following:

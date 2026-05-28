@@ -90,7 +90,20 @@ See [docs/architecture.md](docs/architecture.md) for the full architecture guide
 
 ## Getting Started
 
-See [GETTING_STARTED.md](GETTING_STARTED.md) for setup instructions and how to run the example notebooks.
+The fastest path is the Docker image — one command, no host venvs:
+
+```bash
+docker pull ghcr.io/wolfpackofone/q-agent:latest
+docker run --rm -it -v "$(pwd):/workspace" ghcr.io/wolfpackofone/q-agent:latest
+```
+
+That image bundles the LEAN CLI, the infrastructure pipelines, and marimo.
+Apple Silicon hosts add `--platform linux/amd64`.
+
+For host-based setup (three separate Python venvs), see
+[GETTING_STARTED.md](GETTING_STARTED.md). Full Docker instructions —
+mounted dev workflow, credentials, building locally — live in
+[docs/docker.md](docs/docker.md).
 
 ## Daily Workflow
 
@@ -118,6 +131,7 @@ See [GETTING_STARTED.md](GETTING_STARTED.md) for how to run them. For broader re
 | Document | Purpose |
 |---|---|
 | [GETTING_STARTED.md](GETTING_STARTED.md) | First-time setup and running the example notebooks |
+| [docs/docker.md](docs/docker.md) | Docker image + GHCR workflow |
 | [docs/project-map.md](docs/project-map.md) | Repository layout and responsibilities |
 | [docs/research-examples.md](docs/research-examples.md) | Research project ideas |
 | [docs/architecture.md](docs/architecture.md) | Atomic architecture guide |

@@ -58,6 +58,10 @@ After `git clone`, these resources don't exist yet — create them once per mach
 
 One-shot validator: `bash scripts/check-prereqs.sh`.
 
+**Skip the prerequisites entirely** by running the published image:
+`docker run --rm -it -v "$(pwd):/workspace" ghcr.io/wolfpackofone/q-agent:latest`.
+See the **Docker / GHCR image** section below.
+
 ---
 
 ## Project map
@@ -107,6 +111,28 @@ lean research "<Project>"
 ```
 
 Validation: `python -m py_compile main.py models/*.py`
+
+## Docker / GHCR image
+
+The workspace ships a public image at `ghcr.io/wolfpackofone/q-agent:latest`
+bundling LEAN CLI + infrastructure pipelines + marimo. Published to GHCR by
+`.github/workflows/docker.yml` on every push to `main`. Tags: `:latest` (tracks
+main), `:sha-<short>` (per commit), `:vX.Y.Z` (version tags). `linux/amd64`
+only — Apple Silicon hosts need `--platform linux/amd64`.
+
+```bash
+docker pull ghcr.io/wolfpackofone/q-agent:latest
+docker run --rm -it -v "$(pwd):/workspace" ghcr.io/wolfpackofone/q-agent:latest
+```
+
+Rules:
+- `lean cloud backtest` works inside the container; `lean backtest` (local) does **not** (would require docker-in-docker). Run local backtests on the host.
+- Never bake credentials into the image. Mount at runtime: `-v "$HOME/.lean:/home/qagent/.lean:ro"` for QC, `--env-file infrastructure/.env` for pipelines.
+- Bump LEAN: edit `ARG LEAN_VERSION=` in `Dockerfile`, open a PR, CI publishes a new tag on merge.
+
+Full workflow knowledge (smoke-test recipe, GHCR pull verification, CI debug
+pointers, six known gotchas) lives in the `/docker-workflow` skill at
+`.claude/skills/docker-workflow/SKILL.md`. User-facing docs: `docs/docker.md`.
 
 ## LEAN API gotchas
 
@@ -202,6 +228,8 @@ Then join freely against any calendar-date-indexed CSV. Pure-Python signal atoms
 | `is not a Lean project` | directory has no `config.json` — use `lean project-create` |
 | No data in local backtest | use cloud: `lean cloud backtest "<ProjectName>"` |
 | Docker errors | make sure Docker Desktop is running |
+| `no matching manifest for linux/arm64/v8` on GHCR pull | `docker pull --platform linux/amd64 ghcr.io/wolfpackofone/q-agent:latest` (image is amd64-only; tracked in issue #26) |
+| `lean --help` errors with `FileNotFoundError: modules-1.14.json` inside container | rebuild — `Dockerfile` pre-caches this file as root before dropping to `qagent` user; symptom means the pre-cache step regressed |
 
 ## Data sources
 
@@ -242,6 +270,7 @@ Automatic extraction writes candidates to `.claude/memory/pending.md`. Review th
 - **Worked example project**: `MyProjects/ElectionIndustryBeta/` (bundled data + shared signal + teaching pattern)
 - **New project bootstrap**: `.claude/agents/new_strategy_coder.md`
 - **New data pipeline**: `.claude/agents/new-pipeline-coder.md`
+- **Docker / GHCR workflow**: `.claude/skills/docker-workflow/SKILL.md` (skill) and `docs/docker.md` (user docs)
 - **LEAN CLI guide**: `MyProjects/.claude/agents/lean-cli.md`
 - **GitHub sync**: `MyProjects/.claude/agents/github-sync.md`
 - **References library**: `References/index.md` (books, repos, papers, notes)

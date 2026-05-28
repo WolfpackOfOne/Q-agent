@@ -16,6 +16,12 @@ Q-agent/
 ├── Lean/                    # LEAN engine checkout (OUT OF SCOPE - do not edit)
 ├── AGENTS.md                # This file (workspace-level guidelines)
 ├── claude.md                # Workspace setup and CLI reference
+├── Dockerfile               # Workspace runtime image (LEAN CLI + pipelines + marimo)
+├── .dockerignore            # Build-context exclusions; mirrors .gitignore
+├── .github/workflows/       # CI: tests, docs, secret-scan, docker (GHCR publish)
+├── .claude/
+│   ├── agents/              # Agent prompts (new-strategy-coder, new-pipeline-coder, ...)
+│   └── skills/              # Project-scoped skills (/docker-workflow, /marimo-pair, ...)
 ├── infrastructure/          # Data pipelines & tooling (NOT algorithm code)
 │   └── pipelines/
 │       ├── crypto/              # CCXT crypto OHLCV pipeline
@@ -49,6 +55,7 @@ Q-agent/
 - `infrastructure/pipelines/` subdirectories are workspace-managed pipeline code unless a nested `.git/` proves otherwise
 - The `Lean/` directory is an engine checkout and is **out of scope for edits**
 - All projects use the shared `venv/` Python environment
+- A workspace-level Docker image is published to `ghcr.io/wolfpackofone/q-agent:latest` on every push to `main`. Use it as a reproducible runtime; do not bake credentials into derivative images. See `docs/docker.md` and `.claude/skills/docker-workflow/SKILL.md`.
 - Project-level documentation takes precedence over workspace-level guidelines
 
 ---

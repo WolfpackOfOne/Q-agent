@@ -13,6 +13,14 @@ Q-agent aims to become a reproducible, AI-compatible quantitative research works
 
 ---
 
+# Recently Shipped
+
+- **Docker / GHCR image** ([#20](https://github.com/WolfpackOfOne/Q-agent/issues/20), [#25](https://github.com/WolfpackOfOne/Q-agent/pull/25)). Public image at `ghcr.io/wolfpackofone/q-agent:latest` bundles LEAN CLI + infrastructure pipelines + marimo. CI builds on every PR, publishes on every push to `main`. See [Docker](docker.md).
+- **Workflow-first documentation site** — mkdocs at <https://wolfpackofone.github.io/Q-agent/> with linkcheck on every PR.
+- **Personal-paths CI scanner** — `.github/workflows/secret-scan.yml` blocks PRs that leak host home directories.
+
+---
+
 # Near-Term Priorities
 
 ## Documentation Hardening
@@ -23,6 +31,11 @@ Q-agent aims to become a reproducible, AI-compatible quantitative research works
 - agent workflows
 - reproducibility improvements
 - onboarding clarity
+
+## Docker Followups
+
+- multi-arch image (`linux/arm64` so Apple Silicon hosts can pull natively) — [#26](https://github.com/WolfpackOfOne/Q-agent/issues/26)
+- support `lean backtest` (local) inside the container — [#27](https://github.com/WolfpackOfOne/Q-agent/issues/27)
 
 ---
 

@@ -145,3 +145,55 @@ MyFirstStrategy/
 - **Reusable research**: signals live in `shared/`, not inside projects
 - **Readability for students**: each layer has a single clear responsibility
 - **Safe AI-assisted development**: the structure gives agents a predictable target
+
+---
+
+## Runtime artifact: the workspace Docker image
+
+The workspace publishes a single runtime image to GitHub Container Registry
+on every push to `main`:
+
+```
+ghcr.io/wolfpackofone/q-agent:latest   # tracks main
+ghcr.io/wolfpackofone/q-agent:sha-<x>  # per-commit
+ghcr.io/wolfpackofone/q-agent:vX.Y.Z   # version tags
+```
+
+The image bundles three things that today require three separate host venvs:
+
+- **LEAN CLI** (`lean`), pinned via the `LEAN_VERSION` build arg
+- **Infrastructure pipelines** (crypto / Polymarket / EDGAR / WRDS / yfinance)
+- **marimo** with its plotting stack
+
+Build pipeline:
+
+```mermaid
+graph LR
+    SRC["Dockerfile<br/>.dockerignore"]
+    CI[".github/workflows/docker.yml"]
+    BLD["Buildx build (linux/amd64)"]
+    SMK["Smoke tests<br/>(in built image)"]
+    GHCR["ghcr.io/wolfpackofone/q-agent"]
+
+    SRC --> CI
+    CI --> BLD
+    BLD --> SMK
+    SMK --> GHCR
+```
+
+`.dockerignore` mirrors `.gitignore` and additionally excludes the LEAN engine
+checkout, `References/`, the rendered mkdocs site, all per-user data
+directories, and every `MyProjects/*/` subtree except the
+`ElectionIndustryBeta/` reference example. The image runs as non-root
+`qagent` (uid 1000) and contains no credentials — `lean.json`, `.env`, and
+`config.json` files are mounted in at runtime, never baked.
+
+The image deliberately does **not** support `lean backtest` (local). That
+command spawns a nested `quantconnect/lean` Docker container, which would
+require either the Docker socket (privilege escalation) or Docker-in-Docker.
+`lean cloud backtest` works inside the container; `lean backtest` runs on
+the host. Tracked as issue #27.
+
+For build commands, smoke-test recipe, GHCR pull verification, and the six
+known gotchas, see [Docker](docker.md) and the `/docker-workflow` skill at
+`.claude/skills/docker-workflow/SKILL.md`.

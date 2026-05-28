@@ -22,11 +22,25 @@ This repository is an open-source educational and research workspace focused on 
 
 ## Pull Request Workflow
 
-1. Create a feature branch
+1. Create a feature branch (`main` is branch-protected — direct pushes are rejected)
 2. Make focused changes
 3. Update documentation where appropriate
 4. Ensure no secrets or credentials are committed
 5. Open a pull request into `main`
+6. Wait for CI to pass: tests, secret-scan (gitleaks + personal-paths), docs (mkdocs build + linkcheck), and — if `Dockerfile` / `requirements*.txt` / `.dockerignore` change — the docker build
+
+## Reproducible dev environment
+
+You can develop against the host venvs (see [Getting Started](getting-started.md))
+or against the prebuilt workspace image:
+
+```bash
+docker run --rm -it -v "$(pwd):/workspace" ghcr.io/wolfpackofone/q-agent:latest
+```
+
+The image is pinned to a specific `LEAN_VERSION` (visible on the image's GHCR
+page) and matches the venvs used by CI, so smoke-test results are
+reproducible across machines. See [Docker](docker.md) for the full workflow.
 
 ## Commit Style
 

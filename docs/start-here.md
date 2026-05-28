@@ -26,6 +26,15 @@ pip install -r infrastructure/marimo/requirements.txt
 marimo run infrastructure/marimo/notebooks/election_industry_returns.py --port 2719
 ```
 
+Or skip the venv entirely with the Docker image (see [Docker](docker.md)):
+
+```bash
+docker run --rm -it -p 2719:2719 -v "$(pwd):/workspace" \
+  ghcr.io/wolfpackofone/q-agent:latest \
+  marimo run --host 0.0.0.0 --port 2719 --no-token \
+  infrastructure/marimo/notebooks/election_industry_returns.py
+```
+
 ---
 
 ## I want to build a strategy { #strategy }
@@ -49,6 +58,21 @@ cp -r _template MyFirstStrategy
 lean cloud push --project "MyFirstStrategy" --force
 lean cloud backtest "MyFirstStrategy" --name "baseline"
 ```
+
+Prefer a containerised LEAN CLI? Mount your QuantConnect credentials read-only
+into the Docker image:
+
+```bash
+docker run --rm -it \
+  -v "$(pwd):/workspace" \
+  -v "$HOME/.lean:/home/qagent/.lean:ro" \
+  ghcr.io/wolfpackofone/q-agent:latest \
+  bash -c "cd MyProjects && lean cloud push --project MyFirstStrategy --force \
+                       && lean cloud backtest MyFirstStrategy --name baseline"
+```
+
+Note: `lean backtest` (local) is host-only — the container does not bundle a
+nested LEAN engine container. See [Docker](docker.md) for the full workflow.
 
 ---
 

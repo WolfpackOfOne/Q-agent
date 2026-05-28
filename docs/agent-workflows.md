@@ -26,6 +26,20 @@ Suggested use cases:
 - documentation drafting
 - pipeline scaffolding
 
+### Project-scoped skills
+
+Reusable knowledge for this workspace lives in `.claude/skills/`. Skills are
+markdown playbooks with a frontmatter whitelist of tools; invoke one with a
+slash command from Claude Code.
+
+| Skill | Purpose |
+|---|---|
+| `/docker-workflow` | Build, smoke-test, publish, and verify the Q-agent Docker image. Handles `LEAN_VERSION` bumps, GHCR pull verification, CI debugging. See [Docker](docker.md). |
+| `/marimo-pair` | Pair-program inside a running marimo notebook. |
+| `/push-git` | Wrap the canonical workspace push flow (branch → PR → merge). |
+| `/push-lean` | Push the active project to QuantConnect with `lean cloud push --force`. |
+| `/run-local-research-notebook` | Boot a research notebook against local pipeline data. |
+
 ---
 
 # Repository Philosophy

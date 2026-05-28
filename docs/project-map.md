@@ -9,6 +9,10 @@
 | claude.md | Claude Code and workspace setup |
 | CONTRIBUTING.md | Contribution standards |
 | SECURITY.md | Credential and security guidance |
+| Dockerfile | Multi-stage build for the workspace runtime image |
+| .dockerignore | Files excluded from the Docker build context |
+| .github/workflows/docker.yml | Builds + publishes the GHCR image |
+| .claude/skills/docker-workflow/SKILL.md | `/docker-workflow` playbook for Docker / GHCR tasks |
 
 ## MyProjects
 
