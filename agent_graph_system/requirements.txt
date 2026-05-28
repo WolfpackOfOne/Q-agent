@@ -1,5 +1,5 @@
 neo4j>=5.0
-chromadb>=0.4
+chromadb>=1.5.9
 sentence-transformers>=2.7
 fastapi>=0.110
 uvicorn[standard]>=0.29
