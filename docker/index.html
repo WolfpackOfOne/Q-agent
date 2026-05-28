@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://wolfpackofone.github.io/Q-agent/pipelines/">
+        <link rel="canonical" href="https://wolfpackofone.github.io/Q-agent/docker/">
       
       
-        <link rel="prev" href="../docker/">
+        <link rel="prev" href="../notebooks/">
       
       
-        <link rel="next" href="crypto/">
+        <link rel="next" href="../pipelines/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Overview - Q-agent</title>
+        <title>Docker - Q-agent</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#data-pipelines" class="md-skip">
+        <a href="#docker" class="md-skip">
           Skip to content
         </a>
       
@@ -113,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Overview
+              Docker
             
           </span>
         </div>
@@ -301,10 +301,12 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../getting-started/" class="md-tabs__link">
           
   
@@ -321,13 +323,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../pipelines/" class="md-tabs__link">
           
   
   
@@ -651,26 +651,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   
@@ -688,7 +693,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
@@ -759,98 +764,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../docker/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Docker
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-    
-  
-  
-  
-    
-    
-    
-    
-      
-        
-        
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
-        
-          
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Data Pipelines
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_6">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Data Pipelines
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
     
   
   
@@ -870,7 +783,7 @@
   <span class="md-ellipsis">
     
   
-    Overview
+    Docker
   
 
     
@@ -888,7 +801,7 @@
   <span class="md-ellipsis">
     
   
-    Overview
+    Docker
   
 
     
@@ -914,10 +827,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#available-pipelines" class="md-nav__link">
+  <a href="#quickstart" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Available pipelines
+        Quickstart
       
     </span>
   </a>
@@ -925,10 +838,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#how-pipelines-work" class="md-nav__link">
+  <a href="#whats-inside" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How pipelines work
+        What's inside
       
     </span>
   </a>
@@ -936,10 +849,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#lean-csv-format" class="md-nav__link">
+  <a href="#mounted-dev-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        LEAN CSV format
+        Mounted dev workflow
       
     </span>
   </a>
@@ -947,10 +860,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#adding-a-new-pipeline" class="md-nav__link">
+  <a href="#running-a-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Adding a new pipeline
+        Running a pipeline
       
     </span>
   </a>
@@ -958,10 +871,54 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#infrastructure-venv" class="md-nav__link">
+  <a href="#running-marimo" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Infrastructure venv
+        Running marimo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lean-cloud-backtest-in-the-container-local-backtest-on-the-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LEAN: cloud backtest in the container, local backtest on the host
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Credentials
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building-locally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building locally
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#image-size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Image size
       
     </span>
   </a>
@@ -977,6 +934,65 @@
 
               
             
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Pipelines
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Data Pipelines
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
               
                 
   
@@ -984,7 +1000,35 @@
   
   
     <li class="md-nav__item">
-      <a href="crypto/" class="md-nav__link">
+      <a href="../pipelines/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pipelines/crypto/" class="md-nav__link">
         
   
   
@@ -1012,7 +1056,7 @@
   
   
     <li class="md-nav__item">
-      <a href="polymarket/" class="md-nav__link">
+      <a href="../pipelines/polymarket/" class="md-nav__link">
         
   
   
@@ -1040,7 +1084,7 @@
   
   
     <li class="md-nav__item">
-      <a href="wrds/" class="md-nav__link">
+      <a href="../pipelines/wrds/" class="md-nav__link">
         
   
   
@@ -1068,7 +1112,7 @@
   
   
     <li class="md-nav__item">
-      <a href="edgar/" class="md-nav__link">
+      <a href="../pipelines/edgar/" class="md-nav__link">
         
   
   
@@ -1096,7 +1140,7 @@
   
   
     <li class="md-nav__item">
-      <a href="yfinance/" class="md-nav__link">
+      <a href="../pipelines/yfinance/" class="md-nav__link">
         
   
   
@@ -1402,10 +1446,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#available-pipelines" class="md-nav__link">
+  <a href="#quickstart" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Available pipelines
+        Quickstart
       
     </span>
   </a>
@@ -1413,10 +1457,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#how-pipelines-work" class="md-nav__link">
+  <a href="#whats-inside" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How pipelines work
+        What's inside
       
     </span>
   </a>
@@ -1424,10 +1468,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#lean-csv-format" class="md-nav__link">
+  <a href="#mounted-dev-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        LEAN CSV format
+        Mounted dev workflow
       
     </span>
   </a>
@@ -1435,10 +1479,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#adding-a-new-pipeline" class="md-nav__link">
+  <a href="#running-a-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Adding a new pipeline
+        Running a pipeline
       
     </span>
   </a>
@@ -1446,10 +1490,54 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#infrastructure-venv" class="md-nav__link">
+  <a href="#running-marimo" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Infrastructure venv
+        Running marimo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lean-cloud-backtest-in-the-container-local-backtest-on-the-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LEAN: cloud backtest in the container, local backtest on the host
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#credentials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Credentials
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building-locally" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Building locally
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#image-size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Image size
       
     </span>
   </a>
@@ -1476,106 +1564,128 @@
   
 
 
-<h1 id="data-pipelines">Data Pipelines<a class="headerlink" href="#data-pipelines" title="Permanent link">&para;</a></h1>
-<p>Q-agent ships with ready-made pipelines for the most common quantitative research data sources. Each pipeline pulls data from its source, normalizes it to LEAN-compatible CSV format, and writes it to a local directory.</p>
-<hr />
-<h2 id="available-pipelines">Available pipelines<a class="headerlink" href="#available-pipelines" title="Permanent link">&para;</a></h2>
+<h1 id="docker">Docker<a class="headerlink" href="#docker" title="Permanent link">&para;</a></h1>
+<p>Q-agent ships a single workspace image bundling the LEAN CLI, the
+infrastructure pipelines (crypto / Polymarket / EDGAR / WRDS / yfinance), and
+marimo. The image is built and published to GitHub Container Registry by
+<code>.github/workflows/docker.yml</code> on every push to <code>main</code>.</p>
+<h2 id="quickstart">Quickstart<a class="headerlink" href="#quickstart" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>docker<span class="w"> </span>pull<span class="w"> </span>ghcr.io/wolfpackofone/q-agent:latest
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># Drop into an interactive shell with lean, marimo, python, and pytest ready.</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>ghcr.io/wolfpackofone/q-agent:latest
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Or run a specific tool one-off.</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>ghcr.io/wolfpackofone/q-agent:latest<span class="w"> </span>lean<span class="w"> </span>--help
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>ghcr.io/wolfpackofone/q-agent:latest<span class="w"> </span>marimo<span class="w"> </span>--help
+</code></pre></div>
+<p>The image is built for <code>linux/amd64</code>. The <code>latest</code> tag tracks <code>main</code>;
+short-SHA tags (<code>sha-abc1234</code>) and version tags (<code>v1.2.3</code>) are also published.</p>
+<h2 id="whats-inside">What's inside<a class="headerlink" href="#whats-inside" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Base: <code>python:3.12-slim</code></li>
+<li>LEAN CLI pinned via build arg (<code>LEAN_VERSION</code>, defaults to the version that
+  was current at the time the image was built — see image labels)</li>
+<li>A single venv at <code>/opt/venv</code> with: <code>lean</code>, infrastructure dependencies
+  (<code>ccxt</code>, <code>pandas</code>, <code>numpy</code>, <code>yfinance</code>, <code>tenacity</code>, <code>tqdm</code>, <code>python-dotenv</code>,
+  <code>requests</code>), marimo + its plotting stack (<code>matplotlib</code>, <code>plotly</code>, <code>seaborn</code>,
+  <code>scipy</code>, <code>nbformat</code>), and dev tools (<code>pytest</code>, <code>pytest-cov</code>, <code>pytest-mock</code>)</li>
+<li>The repository copied into <code>/workspace</code> (everything in <code>.dockerignore</code> is
+  excluded — no credentials, no per-user data, no <code>.git/</code>)</li>
+<li>The <code>MyProjects/ElectionIndustryBeta/</code> demo project as a worked example</li>
+<li>Runs as non-root user <code>qagent</code> (uid 1000)</li>
+</ul>
+<h2 id="mounted-dev-workflow">Mounted dev workflow<a class="headerlink" href="#mounted-dev-workflow" title="Permanent link">&para;</a></h2>
+<p>Mount your local checkout to keep edits in sync with the host:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>-v<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">:/workspace&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>ghcr.io/wolfpackofone/q-agent:latest
+</code></pre></div>
+<p>The bind mount overrides the baked-in <code>/workspace</code>, so you work against your
+live files. This is the recommended workflow for contributors who want a
+reproducible Python environment without managing three host venvs.</p>
+<h2 id="running-a-pipeline">Running a pipeline<a class="headerlink" href="#running-a-pipeline" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span>-v<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">:/workspace&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>ghcr.io/wolfpackofone/q-agent:latest<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span>python<span class="w"> </span>infrastructure/pipelines/crypto/scripts/run_pipeline.py<span class="w"> </span>--help
+</code></pre></div>
+<p>Pipeline outputs land under <code>infrastructure/pipelines/&lt;name&gt;/lean-data/</code> —
+because of the bind mount, they appear on the host too.</p>
+<h2 id="running-marimo">Running marimo<a class="headerlink" href="#running-marimo" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span>-p<span class="w"> </span><span class="m">2718</span>:2718<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span>-v<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">:/workspace&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span>ghcr.io/wolfpackofone/q-agent:latest<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span>marimo<span class="w"> </span>edit<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">2718</span><span class="w"> </span>--no-token<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">  </span>infrastructure/marimo/notebooks/election_industry_returns.py
+</code></pre></div>
+<p>Then open <a href="http://localhost:2718">http://localhost:2718</a> on the host. <code>--host 0.0.0.0</code> is required so
+the container's port is reachable from outside; <code>--no-token</code> skips the auth
+prompt (only safe on a local-only port).</p>
+<h2 id="lean-cloud-backtest-in-the-container-local-backtest-on-the-host">LEAN: cloud backtest in the container, local backtest on the host<a class="headerlink" href="#lean-cloud-backtest-in-the-container-local-backtest-on-the-host" title="Permanent link">&para;</a></h2>
+<p>The image supports the <strong>cloud</strong> LEAN workflow out of the box:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span>-v<span class="w"> </span><span class="s2">&quot;</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">:/workspace&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span>-v<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$HOME</span><span class="s2">/.lean:/home/qagent/.lean:ro&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span>ghcr.io/wolfpackofone/q-agent:latest<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span>bash<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;cd MyProjects &amp;&amp; lean cloud push --project ElectionIndustryBeta --force &amp;&amp; lean cloud backtest ElectionIndustryBeta&quot;</span>
+</code></pre></div>
+<p>It does <strong>not</strong> support <code>lean backtest</code> (local). <code>lean backtest</code> spawns its
+own <code>quantconnect/lean</code> Docker container, which would require either the
+Docker socket (privilege escalation) or Docker-in-Docker (complex). Run
+<code>lean backtest</code> on the host instead.</p>
+<h2 id="credentials">Credentials<a class="headerlink" href="#credentials" title="Permanent link">&para;</a></h2>
+<p>The image is deliberately built <strong>without</strong> any credentials. Provide them at
+runtime via read-only mounts or <code>--env-file</code>:</p>
 <table>
 <thead>
 <tr>
-<th>Pipeline</th>
-<th>Data</th>
-<th>Credentials</th>
-<th>Status</th>
+<th>Credential</th>
+<th>Mount / env strategy</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><a href="crypto/">Crypto</a></td>
-<td>BTC / ETH / SOL OHLCV (Coinbase, Kraken)</td>
-<td>None</td>
-<td>✅ Available</td>
+<td>QuantConnect (<code>lean.json</code>)</td>
+<td><code>-v "$HOME/.lean:/home/qagent/.lean:ro"</code> (lean reads <code>~/.lean/credentials</code>)</td>
 </tr>
 <tr>
-<td><a href="polymarket/">Polymarket</a></td>
-<td>Prediction market YES-token prices</td>
-<td>None</td>
-<td>✅ Available</td>
+<td>Pipeline env (<code>infrastructure/.env</code>)</td>
+<td><code>--env-file infrastructure/.env</code></td>
 </tr>
 <tr>
-<td><a href="wrds/">WRDS / CRSP</a></td>
-<td>30-stock equity universe, daily 1998–present</td>
-<td>WRDS institutional</td>
-<td>✅ Available</td>
-</tr>
-<tr>
-<td><a href="edgar/">SEC EDGAR</a></td>
-<td>Income statements, balance sheets, cash flow</td>
-<td>None</td>
-<td>✅ Available</td>
-</tr>
-<tr>
-<td><a href="yfinance/">yfinance</a></td>
-<td>Any Yahoo Finance ticker, free</td>
-<td>None</td>
-<td>✅ Available</td>
+<td>Exchange API keys (CCXT)</td>
+<td><code>--env-file &lt;your-secrets&gt;.env</code> — never bake into the image</td>
 </tr>
 </tbody>
 </table>
-<hr />
-<h2 id="how-pipelines-work">How pipelines work<a class="headerlink" href="#how-pipelines-work" title="Permanent link">&para;</a></h2>
-<p>All pipelines follow the same pattern:</p>
-<pre class="mermaid"><code>graph LR
-    A[Data Source&lt;br/&gt;API / File] --&gt; B[run_pipeline.py]
-    B --&gt; C[Normalize to&lt;br/&gt;LEAN CSV Format]
-    C --&gt; D[infrastructure/pipelines/&lt;br/&gt;&amp;lt;name&amp;gt;/data/]
-    D --&gt; E[Research&lt;br/&gt;Notebook]
-    D --&gt; F[LEAN&lt;br/&gt;Backtest]</code></pre>
-<ol>
-<li>A <code>run_pipeline.py</code> script pulls from the upstream source</li>
-<li>Data is normalized to LEAN's expected CSV schema</li>
-<li>Output lands in <code>infrastructure/pipelines/&lt;name&gt;/data/</code></li>
-<li>Notebooks and backtests read from that directory</li>
-</ol>
-<p>Pipeline data is <strong>gitignored</strong> — the scripts are committed, the data is not. Every collaborator regenerates local data by running the pipeline.</p>
-<hr />
-<h2 id="lean-csv-format">LEAN CSV format<a class="headerlink" href="#lean-csv-format" title="Permanent link">&para;</a></h2>
-<p>LEAN expects daily equity data in this format:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Date,Open,High,Low,Close,Volume
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>20240101,17543200,17612300,17498700,17589400,1234567890
+<p>Never <code>docker commit</code> a running container that has credentials mounted —
+that's how secrets leak into a published image. If you need a credentialed
+image for a closed environment, build it in that environment, don't push it
+to a public registry.</p>
+<h2 id="building-locally">Building locally<a class="headerlink" href="#building-locally" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>q-agent:dev<span class="w"> </span>.
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c1"># Bump LEAN to a different version:</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>q-agent:dev<span class="w"> </span>--build-arg<span class="w"> </span><span class="nv">LEAN_VERSION</span><span class="o">=</span><span class="m">1</span>.0.226<span class="w"> </span>.
 </code></pre></div>
-<ul>
-<li>Dates: <code>YYYYMMDD</code></li>
-<li>Prices: multiplied by 10,000 (LEAN's internal representation)</li>
-<li>Volume: integer shares</li>
-</ul>
-<p>Pipelines handle this normalization automatically.</p>
-<hr />
-<h2 id="adding-a-new-pipeline">Adding a new pipeline<a class="headerlink" href="#adding-a-new-pipeline" title="Permanent link">&para;</a></h2>
-<p>Use the <code>new-pipeline-coder</code> agent to scaffold a new pipeline from any data source:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>claude<span class="w"> </span><span class="s2">&quot;Create a new pipeline for [data source] following the conventions</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="s2">in infrastructure/pipelines/crypto/&quot;</span>
+<p>Local smoke tests (mirrors CI):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>q-agent:dev<span class="w"> </span>lean<span class="w"> </span>--help
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>q-agent:dev<span class="w"> </span>pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;not integration&quot;</span><span class="w"> </span>--ignore<span class="o">=</span>tests/hygiene<span class="w"> </span>-p<span class="w"> </span>no:cacheprovider<span class="w"> </span>-q
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>q-agent:dev<span class="w"> </span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import marimo, ccxt, pandas, numpy, yfinance&quot;</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>q-agent:dev<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-d<span class="w"> </span>/workspace/MyProjects/ElectionIndustryBeta
 </code></pre></div>
-<p>Or follow the pattern manually:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>infrastructure/pipelines/&lt;name&gt;/
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>├── scripts/
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>│   └── run_pipeline.py     ← entry point
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>├── src/
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>│   └── &lt;name&gt;_lean/        ← package
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>│       ├── fetch.py
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>│       ├── transform.py
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>│       └── write.py
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>├── data/                   ← gitignored output
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>├── requirements.txt
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>└── README.md
-</code></pre></div>
-<hr />
-<h2 id="infrastructure-venv">Infrastructure venv<a class="headerlink" href="#infrastructure-venv" title="Permanent link">&para;</a></h2>
-<p>All pipelines share a single virtual environment:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">cd</span><span class="w"> </span>~/Documents/Q-agent/infrastructure
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>bash<span class="w"> </span>setup.sh<span class="w">                  </span><span class="c1"># one-time bootstrap</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate<span class="w">      </span><span class="c1"># activate before running any pipeline</span>
-</code></pre></div>
+<p>Hygiene tests (<code>tests/hygiene/</code>) are skipped inside the container because
+they shell out to <code>git</code> against the working tree, and the image deliberately
+excludes <code>.git/</code>. They still run in <code>.github/workflows/tests.yml</code> where a
+fresh checkout is available.</p>
+<h2 id="image-size">Image size<a class="headerlink" href="#image-size" title="Permanent link">&para;</a></h2>
+<p>Around 1 GB compressed; ~3 GB on disk after pull. This is dominated by
+SciPy, plotly, and the LEAN CLI's transitive deps. Slimming to per-tool tags
+(<code>q-agent-lean</code>, <code>q-agent-marimo</code>) is a possible follow-up if size becomes a
+pain point — open an issue on
+<a href="https://github.com/WolfpackOfOne/Q-agent/issues">GitHub</a>.</p>
 
 
 
