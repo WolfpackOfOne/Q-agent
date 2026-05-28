@@ -1,6 +1,6 @@
 ccxt>=4.4.0
 requests>=2.32.0
-pandas>=2.2.0
+pandas>=3.0.3
 numpy>=1.26.0
 python-dotenv>=1.0.0
 tenacity>=8.5.0
