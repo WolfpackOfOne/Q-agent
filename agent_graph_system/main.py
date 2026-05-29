@@ -2,9 +2,11 @@
 main.py — Agentic Graph Ontology System
 
 Entry point with subcommands:
-  init        Create Neo4j indexes and seed the graph from ontology schema
-  ingest      Parse a local repo and write to the graph
-  query       Run a named Cypher query or GraphRAG search
+  init            Create Neo4j indexes and seed the graph from ontology schema
+  ingest          Parse a local repo and write to the graph
+  ingest-project  Ingest one MyProjects/ QuantConnect project into the graph
+  context-pack    Build a project context pack for an agent (md | json)
+  query           Run a named Cypher query or GraphRAG search
   agent       Run a named agent (coding | monitoring | orchestration | research)
   api         Start the FastAPI server
   status      Show graph node/relationship counts
@@ -82,6 +84,46 @@ def cmd_ingest(args: argparse.Namespace) -> None:
         sys.exit(1)
     result = CodingAgent().run(repo_path=repo_path, repo_url=args.url or "")
     log.info("Ingested %d notebooks from '%s'", result["total"], result["repo"])
+
+
+def cmd_ingest_project(args: argparse.Namespace) -> None:
+    """Ingest a single MyProjects/ QuantConnect project into the graph."""
+    from agent_graph_system.ingestion.quantconnect.graph_writer import ingest_project
+    project_path = Path(args.project).expanduser().resolve()
+    if not project_path.is_dir():
+        log.error("Project path not found: %s", project_path)
+        sys.exit(1)
+    result = ingest_project(project_path)
+    log.info("Ingested project '%s': %s", result["project"], result["counts"])
+    print(json.dumps(result, indent=2, default=str))
+
+
+def cmd_context_pack(args: argparse.Namespace) -> None:
+    """Build a project context pack for an agent (markdown or JSON)."""
+    from agent_graph_system.graph import context_pack as cp
+    from agent_graph_system.ingestion.quantconnect.graph_writer import ingest_project
+
+    path = Path(args.project).expanduser()
+    project_name = path.name if (path.exists() or "/" in args.project) else args.project
+
+    # By default, (re)ingest from the path so the pack reflects the files on disk.
+    if not args.no_ingest:
+        if not path.is_dir():
+            log.error("Project path not found: %s (use --no-ingest to read the graph as-is)", path)
+            sys.exit(1)
+        ingest_project(path.resolve())
+        project_name = path.name
+
+    try:
+        pack = cp.build_context_pack(project_name)
+    except cp.ProjectNotInGraph as exc:
+        log.error("%s", exc)
+        sys.exit(1)
+
+    if args.format == "json":
+        print(json.dumps(pack, indent=2, default=str))
+    else:
+        print(cp.render_markdown(pack))
 
 
 def cmd_query(args: argparse.Namespace) -> None:
@@ -191,6 +233,17 @@ def build_parser() -> argparse.ArgumentParser:
     ingest_p.add_argument("--repo", default=str(Path.cwd()), help="Path to repo root")
     ingest_p.add_argument("--url", default="", help="Remote URL for the repo")
 
+    # ingest-project
+    ip = sub.add_parser("ingest-project", help="Ingest one MyProjects/ project into the graph")
+    ip.add_argument("project", help="Path to the project directory (e.g. MyProjects/ElectionIndustryBeta)")
+
+    # context-pack
+    cp = sub.add_parser("context-pack", help="Build a project context pack for an agent")
+    cp.add_argument("project", help="Project path (or name, with --no-ingest)")
+    cp.add_argument("--format", choices=["md", "json"], default="md", help="Output format")
+    cp.add_argument("--no-ingest", action="store_true",
+                    help="Read the graph as-is instead of (re)ingesting from disk first")
+
     # query
     query_p = sub.add_parser("query", help="Run a named Cypher query or GraphRAG search")
     query_p.add_argument("query_name", help=(
@@ -222,6 +275,8 @@ def main() -> None:
     handlers = {
         "init":    cmd_init,
         "ingest":  cmd_ingest,
+        "ingest-project": cmd_ingest_project,
+        "context-pack":   cmd_context_pack,
         "query":   cmd_query,
         "agent":   cmd_agent,
         "api":     cmd_api,

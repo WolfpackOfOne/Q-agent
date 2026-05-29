@@ -1,3 +1,19 @@
+# Provenance is a shared block any node or relationship may carry, stamped by
+# ingestion/extraction via agent_graph_system.ontology.provenance.Provenance.
+# Stored flat under the `prov_` prefix so it never collides with the domain
+# properties below. Absence of provenance means a legacy/manually-declared fact.
+provenance_fields:
+  description: "Where a fact came from and how much to trust it (prov_* keys)."
+  properties:
+    - prov_extractor: string          # component that asserted the fact
+    - prov_assertion_type: enum[declared, extracted, inferred, learned]
+    - prov_source_file: string        # optional — file the fact was read from
+    - prov_line: int                  # optional — line within that file
+    - prov_confidence: float          # 0.0–1.0 trust score
+    - prov_source_hash: string        # optional — hash of the source span
+    - prov_observed_at: datetime      # first time the fact was seen
+    - prov_last_seen: datetime        # most recent re-observation
+
 entities:
   Agent:
     description: "An AI agent in the system"
