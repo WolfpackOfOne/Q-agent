@@ -185,6 +185,44 @@ has real Python content (`cat` it) rather than a one-line path string.
 
 ---
 
+## Knowledge-graph subsystem — `agent_graph_system/`
+
+A separate, optional layer that ingests repos and QuantConnect projects into a
+typed knowledge graph, enforces a few write-time safety rules, tracks provenance
+on every fact, and assembles per-project **context packs** for coding agents. It
+is independent of the LEAN strategy workflow above and has its own dependencies
+and tests.
+
+```mermaid
+graph LR
+    PROJ["MyProjects/<br/><small>atomic project</small>"]
+    ING["ingestion/quantconnect<br/><small>pure AST parser</small>"]
+    G["graph<br/><small>networkx (local) | Neo4j</small>"]
+    GATE["ontology<br/><small>rules · deployment_gate · provenance</small>"]
+    PACK["context_pack<br/><small>agent briefing</small>"]
+    AGENT["Coding agent"]
+
+    PROJ --> ING --> G
+    GATE -. enforces / stamps .-> G
+    G --> PACK --> AGENT
+```
+
+Its core principle is **honesty over enforcement**: graph metadata must never
+imply a safety guarantee the code does not actually provide. A rule is a hard
+gate only when it is both `enforced` and `blocking`; the `deployment_gate` that
+guards live `DEPLOYS_TO` edges is fail-closed; and low-confidence extracted
+facts are surfaced separately from authoritative ones.
+
+```bash
+python -m agent_graph_system.main ingest-project MyProjects/ElectionIndustryBeta
+python -m agent_graph_system.main context-pack MyProjects/ElectionIndustryBeta --format md
+```
+
+Full reference and CLI:
+[`agent_graph_system/README.md`](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/README.md).
+
+---
+
 ## Runtime artifact: the workspace Docker image
 
 The workspace publishes a single runtime image to GitHub Container Registry
