@@ -6,7 +6,7 @@ import pandas as pd
 import requests
 
 BASE_URL = (
-    "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/"
+    "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v2/"
     "accounting/od/avg_interest_rates"
 )
 
