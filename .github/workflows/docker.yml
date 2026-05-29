@@ -58,7 +58,7 @@ jobs:
           echo "Computed tags: $tags"
 
       - name: Build image (load locally for smoke tests)
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           platforms: linux/amd64
@@ -99,7 +99,7 @@ jobs:
 
       - name: Push image
         if: github.event_name != 'pull_request' && steps.tags.outputs.tags != ''
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           # Multi-arch: native amd64 + emulated arm64 so Apple Silicon can pull
