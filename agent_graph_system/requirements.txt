@@ -8,4 +8,4 @@ pyyaml>=6.0
 networkx>=3.0
 sqlalchemy>=2.0
 watchdog>=4.0
-python-dotenv>=1.0
+python-dotenv>=1.2.2
