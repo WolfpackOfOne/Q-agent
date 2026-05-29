@@ -1333,6 +1333,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#engineering-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Engineering Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#final-review" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1393,6 +1404,28 @@
 <li>Notebook workflows documented</li>
 <li>Clear project structure</li>
 <li>Research examples documented</li>
+</ul>
+<h2 id="engineering-validation">Engineering Validation<a class="headerlink" href="#engineering-validation" title="Permanent link">&para;</a></h2>
+<p>These map to the CI workflows under <code>.github/workflows/</code> — confirm each is
+green on the release commit:</p>
+<ul>
+<li>Tests pass — <code>tests.yml</code> (<code>pytest -m "not integration"</code>, plus the
+  <code>tests/hygiene/</code> checks that shell out to git)</li>
+<li>Docs build clean — <code>docs.yml</code> runs <code>mkdocs build --strict</code> (fails on missing
+  nav pages or broken internal refs)</li>
+<li>Docs links resolve — <code>docs.yml</code> runs the <code>lychee</code> link-checker (<code>fail: true</code>)
+  over <code>docs/**/*.md</code> and root markdown</li>
+<li>Docker image builds and smoke-tests pass — <code>docker.yml</code> (lean CLI loads,
+  infrastructure/marimo imports, in-image pytest, demo project present,
+  no secrets in layers)</li>
+<li>No secrets committed — <code>secret-scan.yml</code></li>
+<li>Dependencies resolve from a clean environment — <code>pip install</code> of
+  <code>requirements-dev.txt</code>, <code>infrastructure/requirements.txt</code>, and
+  <code>infrastructure/marimo/requirements.txt</code></li>
+<li>LEAN compatibility — <code>LEAN_VERSION</code> build arg pins the CLI; confirm the
+  pinned version still pushes/backtests in the cloud</li>
+<li>Example notebook executes headless — run the marimo <code>.py</code> as a script and
+  confirm no cell raises</li>
 </ul>
 <h2 id="final-review">Final Review<a class="headerlink" href="#final-review" title="Permanent link">&para;</a></h2>
 <ul>

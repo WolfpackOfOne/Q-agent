@@ -890,6 +890,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="LEAN: cloud backtest in the container, local backtest on the host">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-local-lean-backtest-is-not-run-inside-the-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why local lean backtest is not run inside the container
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommended-run-local-backtests-on-the-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recommended: run local backtests on the host
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1509,6 +1537,34 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="LEAN: cloud backtest in the container, local backtest on the host">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-local-lean-backtest-is-not-run-inside-the-container" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why local lean backtest is not run inside the container
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommended-run-local-backtests-on-the-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recommended: run local backtests on the host
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1579,7 +1635,9 @@ marimo. The image is built and published to GitHub Container Registry by
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>ghcr.io/wolfpackofone/q-agent:latest<span class="w"> </span>lean<span class="w"> </span>--help
 <a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>ghcr.io/wolfpackofone/q-agent:latest<span class="w"> </span>marimo<span class="w"> </span>--help
 </code></pre></div>
-<p>The image is built for <code>linux/amd64</code>. The <code>latest</code> tag tracks <code>main</code>;
+<p>The image is published as a multi-arch manifest for <code>linux/amd64</code> and
+<code>linux/arm64</code>, so <code>docker pull</code> works natively on both x86 servers and Apple
+Silicon Macs (no <code>--platform</code> flag needed). The <code>latest</code> tag tracks <code>main</code>;
 short-SHA tags (<code>sha-abc1234</code>) and version tags (<code>v1.2.3</code>) are also published.</p>
 <h2 id="whats-inside">What's inside<a class="headerlink" href="#whats-inside" title="Permanent link">&para;</a></h2>
 <ul>
@@ -1631,10 +1689,35 @@ prompt (only safe on a local-only port).</p>
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span>ghcr.io/wolfpackofone/q-agent:latest<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span>bash<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;cd MyProjects &amp;&amp; lean cloud push --project ElectionIndustryBeta --force &amp;&amp; lean cloud backtest ElectionIndustryBeta&quot;</span>
 </code></pre></div>
-<p>It does <strong>not</strong> support <code>lean backtest</code> (local). <code>lean backtest</code> spawns its
-own <code>quantconnect/lean</code> Docker container, which would require either the
-Docker socket (privilege escalation) or Docker-in-Docker (complex). Run
-<code>lean backtest</code> on the host instead.</p>
+<h3 id="why-local-lean-backtest-is-not-run-inside-the-container">Why local <code>lean backtest</code> is not run <em>inside</em> the container<a class="headerlink" href="#why-local-lean-backtest-is-not-run-inside-the-container" title="Permanent link">&para;</a></h3>
+<p><code>lean backtest</code> (local) does not run the engine in-process — it asks a Docker
+daemon to spawn a separate <code>quantconnect/lean</code> container. From inside our
+image there is no daemon to talk to, so you would have to either:</p>
+<ul>
+<li><strong>Bind-mount the host Docker socket</strong> (<code>-v /var/run/docker.sock:...</code>) — a
+  privilege escalation (the container can launch arbitrary host containers),
+  <em>and</em> the spawned engine container's volume mounts are resolved by the
+  <strong>host</strong> daemon against the <strong>host</strong> filesystem, not our container's
+  <code>/workspace</code>. So the mounts only line up if your project sits at an
+  identical path on the host, and the non-root <code>qagent</code> user also needs the
+  host's <code>docker</code> group GID to read the socket. Fragile.</li>
+<li><strong>Docker-in-Docker</strong> — run a second daemon inside the container. Heavier
+  image, more moving parts.</li>
+</ul>
+<p>Neither is enabled by default, so <code>:latest</code> stays minimal-privilege. Tracking
+issue: <a href="https://github.com/WolfpackOfOne/Q-agent/issues/27">#27</a> (deferred
+until there is real demand).</p>
+<h3 id="recommended-run-local-backtests-on-the-host">Recommended: run local backtests on the host<a class="headerlink" href="#recommended-run-local-backtests-on-the-host" title="Permanent link">&para;</a></h3>
+<p>The host already has Docker set up (that is what runs this image), so run
+local backtests there with the host's LEAN CLI — no socket gymnastics:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># On the host, with the lean CLI installed (pip install lean)</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nb">cd</span><span class="w"> </span>MyProjects/ElectionIndustryBeta
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>lean<span class="w"> </span>backtest<span class="w"> </span><span class="s2">&quot;ElectionIndustryBeta&quot;</span>
+</code></pre></div>
+<p><code>lean backtest</code> will pull and run the <code>quantconnect/lean</code> engine container via
+the host daemon directly, and the volume paths resolve correctly because they
+are already host paths. Use the container for <code>lean cloud backtest</code>, pipelines,
+notebooks, and tests; use the host for local <code>lean backtest</code>.</p>
 <h2 id="credentials">Credentials<a class="headerlink" href="#credentials" title="Permanent link">&para;</a></h2>
 <p>The image is deliberately built <strong>without</strong> any credentials. Provide them at
 runtime via read-only mounts or <code>--env-file</code>:</p>
@@ -1665,16 +1748,16 @@ that's how secrets leak into a published image. If you need a credentialed
 image for a closed environment, build it in that environment, don't push it
 to a public registry.</p>
 <h2 id="building-locally">Building locally<a class="headerlink" href="#building-locally" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>q-agent:dev<span class="w"> </span>.
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="c1"># Bump LEAN to a different version:</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>q-agent:dev<span class="w"> </span>--build-arg<span class="w"> </span><span class="nv">LEAN_VERSION</span><span class="o">=</span><span class="m">1</span>.0.226<span class="w"> </span>.
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>q-agent:dev<span class="w"> </span>.
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1"># Bump LEAN to a different version:</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>q-agent:dev<span class="w"> </span>--build-arg<span class="w"> </span><span class="nv">LEAN_VERSION</span><span class="o">=</span><span class="m">1</span>.0.226<span class="w"> </span>.
 </code></pre></div>
 <p>Local smoke tests (mirrors CI):</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>q-agent:dev<span class="w"> </span>lean<span class="w"> </span>--help
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>q-agent:dev<span class="w"> </span>pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;not integration&quot;</span><span class="w"> </span>--ignore<span class="o">=</span>tests/hygiene<span class="w"> </span>-p<span class="w"> </span>no:cacheprovider<span class="w"> </span>-q
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>q-agent:dev<span class="w"> </span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import marimo, ccxt, pandas, numpy, yfinance&quot;</span>
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>q-agent:dev<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-d<span class="w"> </span>/workspace/MyProjects/ElectionIndustryBeta
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>q-agent:dev<span class="w"> </span>lean<span class="w"> </span>--help
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>q-agent:dev<span class="w"> </span>pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;not integration&quot;</span><span class="w"> </span>--ignore<span class="o">=</span>tests/hygiene<span class="w"> </span>-p<span class="w"> </span>no:cacheprovider<span class="w"> </span>-q
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>q-agent:dev<span class="w"> </span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import marimo, ccxt, pandas, numpy, yfinance&quot;</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>q-agent:dev<span class="w"> </span><span class="nb">test</span><span class="w"> </span>-d<span class="w"> </span>/workspace/MyProjects/ElectionIndustryBeta
 </code></pre></div>
 <p>Hygiene tests (<code>tests/hygiene/</code>) are skipped inside the container because
 they shell out to <code>git</code> against the working tree, and the image deliberately

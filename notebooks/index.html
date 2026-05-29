@@ -821,15 +821,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#notebook-1-election-industry-returns" class="md-nav__link">
+  <a href="#election-industry-returns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Notebook 1: Election &amp; Industry Returns
+        Election &amp; Industry Returns
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Notebook 1: Election &amp; Industry Returns">
+    <nav class="md-nav" aria-label="Election &amp; Industry Returns">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -845,28 +845,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#notebook-2-crypto-polymarket-correlation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Notebook 2: Crypto &amp; Polymarket Correlation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#running-both-notebooks-simultaneously" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Running both notebooks simultaneously
-      
-    </span>
-  </a>
   
 </li>
       
@@ -1441,15 +1419,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#notebook-1-election-industry-returns" class="md-nav__link">
+  <a href="#election-industry-returns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Notebook 1: Election &amp; Industry Returns
+        Election &amp; Industry Returns
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Notebook 1: Election &amp; Industry Returns">
+    <nav class="md-nav" aria-label="Election &amp; Industry Returns">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1465,28 +1443,6 @@
         
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#notebook-2-crypto-polymarket-correlation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Notebook 2: Crypto &amp; Polymarket Correlation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#running-both-notebooks-simultaneously" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Running both notebooks simultaneously
-      
-    </span>
-  </a>
   
 </li>
       
@@ -1511,7 +1467,7 @@
 
 
 <h1 id="running-the-example-notebooks">Running the Example Notebooks<a class="headerlink" href="#running-the-example-notebooks" title="Permanent link">&para;</a></h1>
-<p>Two runnable Marimo notebooks are included in the repo. No QuantConnect account is required for either.</p>
+<p>One runnable Marimo notebook is included in the repo. No QuantConnect account is required.</p>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Python 3.11+</li>
@@ -1526,9 +1482,9 @@
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>infrastructure/marimo/requirements.txt
 </code></pre></div>
 <hr />
-<h2 id="notebook-1-election-industry-returns">Notebook 1: Election &amp; Industry Returns<a class="headerlink" href="#notebook-1-election-industry-returns" title="Permanent link">&para;</a></h2>
+<h2 id="election-industry-returns">Election &amp; Industry Returns<a class="headerlink" href="#election-industry-returns" title="Permanent link">&para;</a></h2>
 <p>Explores the relationship between Trump 2024 election probability (Polymarket) and US sector/industry ETF returns (yfinance: XLE, XLF, XLV, XLI, XLK, XLP, XLY, XLU, XLB, XLRE, XLC, plus Trump-themed slices XOP, ITA, KBE, IBB, ICLN, TAN, GDX, ITB).</p>
-<p><strong>All data is fetched live from public APIs — no local data required.</strong></p>
+<p><strong>No setup beyond the venv is required.</strong> The Trump-probability series is read from the committed <code>MyProjects/ElectionIndustryBeta/data/trump_prob.csv</code>, and the ETF prices are fetched live from yfinance.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">source</span><span class="w"> </span>infrastructure/marimo/venv/bin/activate
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>marimo<span class="w"> </span>run<span class="w"> </span>infrastructure/marimo/notebooks/election_industry_returns.py<span class="w"> </span>--port<span class="w"> </span><span class="m">2719</span>
 </code></pre></div>
@@ -1541,56 +1497,6 @@
 <p><strong>Factor ETF Sensitivity to ΔP(Trump Win)</strong></p>
 <p>Monthly betas for 8 US equity factor ETFs. Faded bars have p &gt; 0.10. Scatter insets show the top-3 ETFs by absolute t-stat.</p>
 <p><img alt="Factor ETF betas" src="../assets/plots/factor_betas.png" /></p>
-<hr />
-<h2 id="notebook-2-crypto-polymarket-correlation">Notebook 2: Crypto &amp; Polymarket Correlation<a class="headerlink" href="#notebook-2-crypto-polymarket-correlation" title="Permanent link">&para;</a></h2>
-<p>Explores correlations between BTC/ETH/SOL prices (Coinbase, Kraken) plus COIN (yfinance) and Polymarket prediction market prices.</p>
-<p><strong>This notebook reads from local pipeline data.</strong> Run the setup script and both pipelines before launching:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># One-time pipeline venv setup</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>bash<span class="w"> </span>infrastructure/setup.sh
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nb">source</span><span class="w"> </span>infrastructure/.venv/bin/activate
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># Crypto OHLCV (Coinbase for BTC/ETH; Kraken for SOL)</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>python<span class="w"> </span>infrastructure/pipelines/crypto/scripts/run_pipeline.py<span class="w"> </span>--exchange<span class="w"> </span>coinbase
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>python<span class="w"> </span>infrastructure/pipelines/crypto/scripts/run_pipeline.py<span class="w"> </span>--exchange<span class="w"> </span>kraken<span class="w"> </span>--pairs<span class="w"> </span>SOL/USD<span class="w"> </span>SOL/USDT<span class="w"> </span>SOL/USDC
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1"># Polymarket: snapshot market metadata, then pull YES-token price series</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>python<span class="w"> </span>infrastructure/pipelines/polymarket/scripts/run_markets_pipeline.py
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>python<span class="w"> </span>infrastructure/pipelines/polymarket/scripts/run_prices_pipeline.py<span class="w"> </span>--skip-existing
-</code></pre></div>
-<p>The Polymarket prices pull is incremental and resumable. For a fast smoke test, add <code>--limit 10</code> to the prices command.</p>
-<p>Then launch the notebook:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">source</span><span class="w"> </span>infrastructure/marimo/venv/bin/activate
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>marimo<span class="w"> </span>run<span class="w"> </span>infrastructure/marimo/notebooks/crypto_polymarket_correlation.py<span class="w"> </span>--port<span class="w"> </span><span class="m">2720</span>
-</code></pre></div>
-<p>Open: <a href="http://localhost:2720">http://localhost:2720</a></p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Charts for any exchange or market where local data is missing will render empty with a note — the notebook will not crash.</p>
-</div>
-<hr />
-<h2 id="running-both-notebooks-simultaneously">Running both notebooks simultaneously<a class="headerlink" href="#running-both-notebooks-simultaneously" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">source</span><span class="w"> </span>infrastructure/marimo/venv/bin/activate
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>marimo<span class="w"> </span>run<span class="w"> </span>infrastructure/marimo/notebooks/election_industry_returns.py<span class="w"> </span>--port<span class="w"> </span><span class="m">2719</span><span class="w"> </span><span class="p">&amp;</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>marimo<span class="w"> </span>run<span class="w"> </span>infrastructure/marimo/notebooks/crypto_polymarket_correlation.py<span class="w"> </span>--port<span class="w"> </span><span class="m">2720</span><span class="w"> </span><span class="p">&amp;</span>
-</code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Notebook</th>
-<th>URL</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Election &amp; Industry Returns</td>
-<td><a href="http://localhost:2719">http://localhost:2719</a></td>
-</tr>
-<tr>
-<td>Crypto &amp; Polymarket Correlation</td>
-<td><a href="http://localhost:2720">http://localhost:2720</a></td>
-</tr>
-</tbody>
-</table>
 
 
 
