@@ -218,8 +218,8 @@ python -m agent_graph_system.main ingest-project MyProjects/ElectionIndustryBeta
 python -m agent_graph_system.main context-pack MyProjects/ElectionIndustryBeta --format md
 ```
 
-Full reference and CLI:
-[`agent_graph_system/README.md`](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/README.md).
+Full reference and CLI: see `agent_graph_system/README.md` and
+`agent_graph_system/claude.md` in the repository root.
 
 ---
 
