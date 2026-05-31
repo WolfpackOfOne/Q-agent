@@ -220,7 +220,7 @@ def _(mo, pd):
     mo.callout(
         mo.md(f"Universe: **{len(SP500)} tickers** (S&P 500, {_source}). "
               "The pipeline downloads full history and writes LEAN-format zips. "
-              "First run takes ~15–25 minutes."),
+              "First run takes ~7–10 minutes."),
         kind="info",
     )
     return (SP500,)
