@@ -65,6 +65,7 @@ nav:
   - Agent Workflows: agent-workflows.md
 
   - Architecture: architecture.md
+  - Graph Architecture: architecture-hybrid-graph.md
 
   - Roadmap: roadmap.md
 

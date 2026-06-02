@@ -118,3 +118,167 @@ entities:
       - steps: list[string]
       - status: enum[active, paused, completed, failed]
       - trigger: enum[schedule, event, manual]
+
+# ── Hybrid property-graph-first architecture (issue #54) ──────────────────────
+# These labels extend the operational workspace graph with fine-grained
+# workspace objects, extracted facts, and policy records.  The split between
+# coarse legacy types (Agent, Dataset, Notebook …) and these richer types is
+# intentional: the legacy types remain valid; the new types are preferred for
+# any new ingestion or extraction work.
+
+  Project:
+    description: "A QuantConnect / research project under MyProjects/"
+    properties:
+      - name: string
+      - path: string
+      - project_type: enum[lean_strategy, research, template, shared]
+      - status: enum[active, archived, experimental]
+      - lean_project_id: string
+
+  File:
+    description: "A source file tracked in the workspace graph"
+    properties:
+      - path: string
+      - extension: string
+      - size_bytes: int
+      - last_modified: datetime
+      - content_hash: string
+
+  Module:
+    description: "A Python module (importable unit)"
+    properties:
+      - name: string
+      - path: string
+      - package: string
+
+  Function:
+    description: "A Python function or method"
+    properties:
+      - name: string
+      - qualified_name: string
+      - path: string
+      - line_start: int
+      - line_end: int
+      - is_async: bool
+
+  Class:
+    description: "A Python class definition"
+    properties:
+      - name: string
+      - qualified_name: string
+      - path: string
+      - line_start: int
+      - base_classes: list[string]
+
+  ResearchNotebook:
+    description: "A marimo or Jupyter research notebook"
+    properties:
+      - name: string
+      - path: string
+      - notebook_format: enum[marimo, jupyter]
+      - last_run: datetime
+      - status: enum[passing, failing, untested, stale]
+
+  LeanBacktest:
+    description: "A completed QuantConnect cloud or local backtest run"
+    properties:
+      - run_id: string
+      - project_name: string
+      - sharpe: float
+      - max_drawdown: float
+      - cagr: float
+      - total_trades: int
+      - start_date: string
+      - end_date: string
+      - run_date: datetime
+      - status: enum[completed, failed, running]
+
+  ObjectStoreKey:
+    description: "A key in the QuantConnect ObjectStore for a project"
+    properties:
+      - key: string
+      - project_name: string
+      - content_type: string
+      - size_bytes: int
+      - last_written: datetime
+
+  ConfigParam:
+    description: "A named configuration parameter within a project or pipeline"
+    properties:
+      - name: string
+      - value: string
+      - param_type: enum[strategy, pipeline, notebook, global]
+      - source_file: string
+
+  AgentTask:
+    description: "A task issued to or completed by an AI agent"
+    properties:
+      - task_id: string
+      - description: string
+      - status: enum[pending, in_progress, completed, failed, cancelled]
+      - issued_at: datetime
+      - completed_at: datetime
+      - issuer: string
+
+  Doc:
+    description: "A documentation file (markdown, RST, or inline docstring)"
+    properties:
+      - path: string
+      - title: string
+      - doc_type: enum[readme, architecture, strategy, api, recipe, reference]
+      - word_count: int
+      - last_modified: datetime
+
+  Signal:
+    description: "A named trading or research signal computed from data"
+    properties:
+      - name: string
+      - path: string
+      - signal_type: enum[alpha, risk_overlay, factor, diagnostic]
+      - frequency: enum[daily, weekly, monthly, intraday]
+
+  RiskFlag:
+    description: "A risk or data-quality flag raised during validation"
+    properties:
+      - flag_id: string
+      - flag_type: enum[data_quality, model_risk, staleness, compliance]
+      - severity: enum[info, warning, blocking]
+      - message: string
+      - raised_at: datetime
+      - resolved_at: datetime
+
+  PolicyDecision:
+    description: "A recorded result from the policy engine (allowed or denied)"
+    properties:
+      - decision_id: string
+      - rule_name: string
+      - allowed: bool
+      - code: string
+      - message: string
+      - evidence: list[string]
+      - decided_at: datetime
+
+  ExtractionRun:
+    description: "A single run of an extractor pipeline over a source"
+    properties:
+      - run_id: string
+      - extractor: string
+      - source_file: string
+      - started_at: datetime
+      - completed_at: datetime
+      - facts_extracted: int
+      - status: enum[completed, failed, partial]
+
+  Observation:
+    description: "A single fact extracted by an ExtractionRun, with confidence and provenance"
+    properties:
+      - observation_id: string
+      - subject_type: string
+      - subject_id: string
+      - predicate: string
+      - value: string
+      - confidence: float
+      - fact_status: enum[authoritative, extracted, inferred, learned, policy_decision]
+      - observed_at: datetime
+      - last_seen: datetime
+      - deprecated: bool
