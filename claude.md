@@ -302,6 +302,7 @@ Automatic extraction writes candidates to `.claude/memory/pending.md`. Review th
 - **Worked example project**: `MyProjects/ElectionIndustryBeta/` (bundled data + shared signal + teaching pattern)
 - **New project bootstrap**: `.claude/agents/new_strategy_coder.md`
 - **New data pipeline**: `.claude/agents/new-pipeline-coder.md`
+- **Knowledge-graph subsystem**: `agent_graph_system/README.md` (ontology rules, provenance, MyProjects ingestion, context packs) and `agent_graph_system/claude.md`
 - **Docker / GHCR workflow**: `.claude/skills/docker-workflow/SKILL.md` (skill) and `docs/docker.md` (user docs)
 - **LEAN CLI guide**: `MyProjects/.claude/agents/lean-cli.md`
 - **GitHub sync**: `MyProjects/.claude/agents/github-sync.md`
