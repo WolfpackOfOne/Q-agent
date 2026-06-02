@@ -52,7 +52,7 @@ If you add a "rule", do not wire enforcement unless you also set its status to
 ```bash
 pip install -r requirements-dev.txt        # from repo root
 python -m pytest tests/agent_graph_system/ -q
-python -m py_compile agent_graph_system/**/*.py
+find agent_graph_system -name "*.py" | xargs python -m py_compile
 ```
 
 Golden fixture for ingestion/context-pack tests: `MyProjects/ElectionIndustryBeta`.
