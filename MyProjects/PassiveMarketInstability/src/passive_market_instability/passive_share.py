@@ -102,10 +102,15 @@ def threshold_crossing_year(df, threshold, scenario_col="scenario"):
     if missing:
         raise ValueError(f"missing required columns: {sorted(missing)}")
 
+    if "t" in df.columns:
+        time_col = "t"
+    elif "year" in df.columns:
+        time_col = "year"
+    else:
+        raise ValueError("expected a 't' or 'year' column for sort order")
+
     records = []
-    for scenario, group in df.sort_values(["t" if "t" in df.columns else df.index.name or df.columns[0]]).groupby(
-        scenario_col
-    ):
+    for scenario, group in df.sort_values(time_col).groupby(scenario_col):
         crossed = group[group["passive_share"] >= threshold]
         if crossed.empty:
             records.append(
