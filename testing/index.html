@@ -1556,7 +1556,7 @@
 <a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>│   └── template/
 <a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>│       └── test_template_structure.py
 </code></pre></div>
-<p>The existing <code>agent_graph_system/tests/</code> directory remains separate — it covers that module's internals and uses its own configuration.</p>
+<p>The <code>agent_graph_system/</code> knowledge-graph subsystem is tested separately under <code>tests/agent_graph_system/</code> (ontology rules, deployment gate, provenance, QuantConnect ingestion, context packs). It uses its own fixtures (<code>conftest.py</code>) and an isolated in-memory graph. See <code>agent_graph_system/README.md</code>.</p>
 <h2 id="continuous-integration">Continuous integration<a class="headerlink" href="#continuous-integration" title="Permanent link">&para;</a></h2>
 <p>A GitHub Actions workflow at <code>.github/workflows/tests.yml</code> runs the default (non-integration) test suite on every pull request.</p>
 <ul>
