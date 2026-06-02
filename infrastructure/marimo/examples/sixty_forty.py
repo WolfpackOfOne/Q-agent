@@ -22,9 +22,9 @@ def _(mo):
     - **AGG** (US Aggregate Bond ETF) — bond leg, sourced from yfinance
     - **Rebalance**: first trading day of each quarter (Jan, Apr, Jul, Oct)
 
-    Data paths:
-    - `./infrastructure/pipelines/wrds/lean-data/equity/usa/daily/spy.zip`
-    - `./infrastructure/pipelines/yfinance/lean-data/equity/usa/daily/agg.zip`
+    Data paths (resolved relative to this notebook's location):
+    - `infrastructure/pipelines/wrds/lean-data/equity/usa/daily/spy.zip`
+    - `infrastructure/pipelines/yfinance/lean-data/equity/usa/daily/agg.zip`
     """)
     return
 
@@ -59,15 +59,17 @@ def _():
         'savefig.edgecolor': '#0d1117',
     })
 
-    WRDS_DAILY  = pathlib.Path("./infrastructure/pipelines/wrds/lean-data/equity/usa/daily")
-    YF_DAILY    = pathlib.Path("./infrastructure/pipelines/yfinance/lean-data/equity/usa/daily")
+    _nb = pathlib.Path(__file__).resolve()
+    _repo = _nb.parent.parent.parent.parent  # examples/ -> marimo/ -> infrastructure/ -> repo root
+    WRDS_DAILY  = _repo / "infrastructure" / "pipelines" / "wrds" / "lean-data" / "equity" / "usa" / "daily"
+    YF_DAILY    = _repo / "infrastructure" / "pipelines" / "yfinance" / "lean-data" / "equity" / "usa" / "daily"
     COLS        = ["datetime", "open", "high", "low", "close", "volume"]
     SCALE       = 10_000
     return COLS, SCALE, WRDS_DAILY, YF_DAILY, np, pd, plt, zipfile
 
 
 @app.cell
-def _(COLS, SCALE, WRDS_DAILY, YF_DAILY, pd, zipfile):
+def _(COLS, SCALE, WRDS_DAILY, YF_DAILY, mo, pd, zipfile):
     def load_lean_zip(zpath, ticker):
         with zipfile.ZipFile(zpath) as z:
             csv_name = z.namelist()[0]
@@ -79,8 +81,8 @@ def _(COLS, SCALE, WRDS_DAILY, YF_DAILY, pd, zipfile):
     spy_path = WRDS_DAILY / "spy.zip"
     agg_path = YF_DAILY   / "agg.zip"
 
-    assert spy_path.exists(), f"SPY not found: {spy_path}"
-    assert agg_path.exists(), f"AGG not found: {agg_path}"
+    mo.stop(not spy_path.exists(), mo.callout(mo.md(f"SPY not found at `{spy_path}` — run the WRDS pipeline first."), kind="warn"))
+    mo.stop(not agg_path.exists(), mo.callout(mo.md(f"AGG not found at `{agg_path}` — run the yfinance pipeline first."), kind="warn"))
 
     spy = load_lean_zip(spy_path, "SPY")
     agg = load_lean_zip(agg_path, "AGG")
@@ -132,7 +134,7 @@ def _(pd, prices):
         nav = sum(shares[t] * row[t] for t in ["SPY", "AGG"])
         nav_series.append(nav)
 
-        total = sum(shares[t] * row[t] for t in ["SPY", "AGG"]) or 1
+        total = nav or 1
         weight_spy.append(shares["SPY"] * row["SPY"] / total)
         weight_agg.append(shares["AGG"] * row["AGG"] / total)
 

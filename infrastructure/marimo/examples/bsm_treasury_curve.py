@@ -114,7 +114,7 @@ def _(TREASURY_DATA, mo, pull_treasury_btn):
     _raw = fetch_rates()
 
     TREASURY_DATA.mkdir(parents=True, exist_ok=True)
-    _today = _dt.datetime.utcnow().strftime("%Y%m%d")
+    _today = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%d")
     _raw_path = TREASURY_DATA / f"treasury_rates_raw_{_today}.csv"
     _curve_path = TREASURY_DATA / f"treasury_curve_matrix_{_today}.csv"
 
@@ -491,6 +491,7 @@ def _(
         return S * norm.cdf(d1) - S * np.exp(-r * T) * norm.cdf(d2)
 
     _rows = []
+    _skipped = []
     for _zp in _zips:
         _tk = _zp.stem.upper()
         try:
@@ -524,7 +525,7 @@ def _(
                 "spread_%":  abs(_p_bills - _p_bonds) / _p_bills * 100 if _p_bills > 0 else np.nan,
             })
         except Exception:
-            continue
+            _skipped.append(_tk)
 
     if not _rows:
         mo.stop(True, mo.callout(mo.md("Could not compute ATM prices — check zip data."), kind="warn"))
@@ -561,7 +562,11 @@ def _(
     plt.tight_layout()
     plt.show()
 
-    sens_df.head(15)
+    _extra = (
+        [mo.callout(mo.md(f"Skipped {len(_skipped)} ticker(s) due to read errors: {_skipped}"), kind="warn")]
+        if _skipped else []
+    )
+    mo.vstack([sens_df.head(15), *_extra])
     return
 
 
