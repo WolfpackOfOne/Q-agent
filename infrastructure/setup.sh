@@ -15,10 +15,11 @@ source "$VENV/bin/activate"
 pip install --upgrade pip
 pip install -r "$HERE/requirements.txt"
 
-# Editable installs so scripts can `from crypto_lean...` / `from polymarket_lean...` / `from yfinance_lean...`
+# Editable installs so scripts can `from crypto_lean...` / `from polymarket_lean...` / `from yfinance_lean...` / `from massive_lean...`
 pip install -e "$HERE/pipelines/crypto"
 pip install -e "$HERE/pipelines/polymarket"
 pip install -e "$HERE/pipelines/yfinance"
+pip install -e "$HERE/pipelines/massive"
 
 echo
 echo "Shared infrastructure venv ready at $VENV"

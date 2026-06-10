@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "massive-lean"
+version = "0.1.0"
+description = "Massive.com EOD US futures and options pipeline that writes LEAN-format output."
+requires-python = ">=3.11"
+dependencies = [
+    "massive>=0.1.0",
+    "pandas>=2.2.0",
+    "python-dotenv>=1.0.0",
+    "tenacity>=8.5.0",
+    "tqdm>=4.66.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

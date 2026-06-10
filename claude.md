@@ -267,6 +267,7 @@ Then join freely against any calendar-date-indexed CSV. Pure-Python signal atoms
 
 - **Local (yfinance)**: Any ticker Yahoo Finance covers — free, no credentials. See `infrastructure/pipelines/yfinance/`. Run `python scripts/run_pipeline.py --tickers AAPL SPY` from that directory.
 - **Local (WRDS/CRSP)**: Full 30-stock equity universe + SPY + SGOV daily data (1998-present). See `infrastructure/pipelines/wrds/claude.md`.
+- **Local (Massive.com)**: EOD US futures (ES, NQ, CL, GC, ZN daily bars) and options (SPY, QQQ chain snapshots + per-contract daily aggregates) — scaffolded but requires a `MASSIVE_API_KEY` (Advanced tier, ~$199/mo for options) that has not been purchased yet, so it is UNTESTED against the live API. See `infrastructure/pipelines/massive/claude.md`.
 - **Local WRDS (additional entitlements)**: Broader access via `--profile <additional>` — adds OptionMetrics European options (full, 2002–2023, daily + tick) and IBES analyst earnings estimates (1980–2026, 35M rows). US options, RavenPack, 13F ownership, and short interest are denied. No extraction pipelines built yet for additional-entitlement sources.
 - **Cloud**: Authoritative. Full equity history, options chains, alternative data. Use for final results.
 - **New pipeline**: Use the `new-pipeline-coder` agent to add any new data source. It always outputs LEAN-format files.

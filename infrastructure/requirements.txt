@@ -6,3 +6,5 @@ python-dotenv>=1.0.0
 tenacity>=8.5.0
 tqdm>=4.66.0
 yfinance>=0.2.0
+massive>=0.1.0
+pytest>=8.0.0
