@@ -3,8 +3,6 @@ from .config import (
     DEFAULT_FUTURES_ROOTS,
     DEFAULT_OPTIONS_UNDERLYINGS,
     FUTURES_ROOT_MARKET,
-    FUTURES_TICKER_PREFIX,
-    OPTION_TICKER_PREFIX,
 )
 from .transform import (
     transform_futures_contracts,
@@ -27,8 +25,6 @@ __all__ = [
     "DEFAULT_FUTURES_ROOTS",
     "DEFAULT_OPTIONS_UNDERLYINGS",
     "FUTURES_ROOT_MARKET",
-    "FUTURES_TICKER_PREFIX",
-    "OPTION_TICKER_PREFIX",
     "transform_futures_contracts",
     "transform_futures_daily_bars",
     "transform_option_daily_bars",

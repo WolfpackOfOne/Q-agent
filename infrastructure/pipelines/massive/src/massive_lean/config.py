@@ -44,9 +44,3 @@ DEFAULT_OPTIONS_UNDERLYINGS: list[str] = [
     "SPY",
     "QQQ",
 ]
-
-# Massive (Polygon-style) options ticker prefix.
-OPTION_TICKER_PREFIX = "O:"
-
-# Massive (Polygon-style) futures ticker prefix used by some endpoints.
-FUTURES_TICKER_PREFIX = "F:"

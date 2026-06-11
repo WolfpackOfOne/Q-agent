@@ -127,6 +127,11 @@ data layer. Two files per underlying:
   expiration_date, strike_price, contract_type, bid, ask, last_price,
   volume, open_interest, implied_volatility, delta, gamma, theta, vega`.
   Run this daily (cron / scheduled task) to build a historical panel.
+  `--strike-range LOW HIGH` (default `0.9 1.1`) fetches the underlying's
+  most recent daily close via `list_aggs` and adds `strike_price.gte`/
+  `strike_price.lte` = `close * LOW`/`close * HIGH` to the snapshot params,
+  so only near-the-money contracts are pulled. If the underlying's price
+  can't be fetched, the chain is pulled unfiltered.
 
 - **`aggregates/<contract_ticker>.csv`** — true historical EOD OHLCV bars
   per contract via `list_aggs("O:...", 1, "day", from, to)`. Columns:

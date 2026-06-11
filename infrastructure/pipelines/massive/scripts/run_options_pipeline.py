@@ -73,6 +73,22 @@ def parse_args() -> argparse.Namespace:
     return p.parse_args()
 
 
+def _underlying_close_price(client, ticker: str, as_of: str) -> float | None:
+    """Best-effort fetch of `ticker`'s most recent daily close on/before `as_of`.
+
+    Used to convert `--strike-range` (a fraction of underlying price) into
+    absolute `strike_price.gte`/`strike_price.lte` bounds. Returns None if no
+    bars are returned (e.g. ticker not found, market holiday lookback miss).
+    """
+    start = (dt.date.fromisoformat(as_of) - dt.timedelta(days=10)).isoformat()
+    aggs = iter_to_list(client.list_aggs(ticker, multiplier=1, timespan="day", from_=start, to=as_of, limit=10))
+    if not aggs:
+        return None
+    last = aggs[-1]
+    close = last.get("close") if isinstance(last, dict) else getattr(last, "close", None)
+    return float(close) if close is not None else None
+
+
 def main() -> int:
     load_dotenv(os.path.join(ROOT, ".env"))
     args = parse_args()
@@ -99,6 +115,13 @@ def main() -> int:
                 params = {
                     "expiration_date.gte": today,
                 }
+                low_frac, high_frac = args.strike_range
+                price = _underlying_close_price(client, underlying, today)
+                if price is not None:
+                    params["strike_price.gte"] = round(price * low_frac, 2)
+                    params["strike_price.lte"] = round(price * high_frac, 2)
+                else:
+                    print(f"  could not fetch {underlying} price for --strike-range; pulling unfiltered chain")
                 chain_raw = iter_to_list(client.list_snapshot_options_chain(underlying, params=params))
                 chain_df = transform_options_chain_snapshot(underlying, today, chain_raw)
                 if chain_df.empty:
