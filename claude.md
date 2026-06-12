@@ -150,6 +150,7 @@ cd ~/Documents/Q-agent/agent_graph_system
 docker compose up -d                                   # start Neo4j + ChromaDB
 python -m agent_graph_system.main init                 # bootstrap graph indexes
 python -m agent_graph_system.main ingest --repo <path> # parse a repo into the graph
+python -m agent_graph_system.main ingest-paper <arxiv_id>  # fetch + write an arXiv paper
 python -m agent_graph_system.main query rag "<question>"
 python -m agent_graph_system.main agent <coding|monitoring|orchestration|research>
 python -m agent_graph_system.main api                  # FastAPI on :8080
