@@ -1,6 +1,6 @@
 # Data Pipelines
 
-Q-agent ships with ready-made pipelines for the most common quantitative research data sources. Each pipeline pulls data from its source, normalizes it to LEAN-compatible CSV format, and writes it to a local directory.
+Q-agent ships with ready-made pipelines for common quantitative research data sources. Each pipeline pulls data from its source, normalizes it into a documented local format, and makes the result available to notebooks and, where appropriate, LEAN backtests.
 
 ---
 
@@ -14,10 +14,22 @@ Q-agent ships with ready-made pipelines for the most common quantitative researc
 
 ---
 
+## Output directory convention
+
+Q-agent uses two local output conventions:
+
+| Directory | Meaning |
+|---|---|
+| `data/` | Pipeline-specific raw, intermediate, or research CSV outputs |
+| `lean-data/` | LEAN-ready data folders that can be pointed to from `lean.json` |
+
+Not every pipeline writes both. For example, the crypto and yfinance pipelines write LEAN-ready zips under `lean-data/`, while the Polymarket pipeline writes research CSVs under `data/` that notebooks or strategy refresh tools can consume.
+
+---
+
 ## Fully documented pipelines
 
-These five pipelines have dedicated docs pages, end-to-end examples, and are the
-recommended starting points for new research.
+These five pipelines have dedicated docs pages, end-to-end examples, and are the recommended starting points for new research.
 
 | Pipeline | Data | Credentials | Maturity |
 |---|---|---|---|
@@ -31,9 +43,7 @@ recommended starting points for new research.
 
 ## Committed-data pipelines
 
-These pipelines have processed snapshots committed to the repository under
-`infrastructure/pipelines/<name>/data/processed/`. The notebooks that use them
-work offline without re-running the scripts. Re-run the scripts to refresh.
+These pipelines have processed snapshots committed to the repository under `infrastructure/pipelines/<name>/data/processed/`. The notebooks that use them work offline without re-running the scripts. Re-run the scripts to refresh.
 
 | Pipeline | Data committed | Scripts at |
 |---|---|---|
@@ -47,9 +57,7 @@ These pipelines feed the [Passive Market Instability](../research-recipes/passiv
 
 ## Experimental pipelines
 
-These pipelines exist in `infrastructure/pipelines/` but documentation, schema
-stability, and test coverage are still evolving. Use with caution and expect
-breaking changes.
+These pipelines exist in `infrastructure/pipelines/` but documentation, schema stability, and test coverage are still evolving. Use with caution and expect breaking changes.
 
 | Pipeline | Data | Notes |
 |---|---|---|
@@ -66,24 +74,24 @@ All pipelines follow the same pattern:
 ```mermaid
 graph LR
     A[Data Source<br/>API / File] --> B[run_pipeline.py]
-    B --> C[Normalize to<br/>LEAN CSV Format]
-    C --> D[infrastructure/pipelines/<br/>&lt;name&gt;/data/]
+    B --> C[Normalize to<br/>documented local schema]
+    C --> D[data/<br/>or lean-data/]
     D --> E[Research<br/>Notebook]
     D --> F[LEAN<br/>Backtest]
 ```
 
 1. A `run_pipeline.py` script pulls from the upstream source
-2. Data is normalized to LEAN's expected CSV schema
-3. Output lands in `infrastructure/pipelines/<name>/data/`
-4. Notebooks and backtests read from that directory
+2. Data is normalized into the pipeline's documented output schema
+3. Output lands in `data/`, `lean-data/`, or both depending on the pipeline
+4. Notebooks and backtests read from those directories
 
-Pipeline data is **gitignored** — the scripts are committed, the data is not. Every collaborator regenerates local data by running the pipeline.
+Pipeline data is generally **gitignored** — the scripts are committed, the generated data is usually not. Committed-data pipelines are the exception and are called out explicitly above.
 
 ---
 
-## LEAN CSV format
+## LEAN CSV and ZIP output
 
-LEAN expects daily equity data in this format:
+LEAN-ready daily equity and crypto bars use LEAN's local data conventions. Daily equity rows look like this inside the zip files:
 
 ```
 Date,Open,High,Low,Close,Volume
@@ -91,10 +99,11 @@ Date,Open,High,Low,Close,Volume
 ```
 
 - Dates: `YYYYMMDD`
-- Prices: multiplied by 10,000 (LEAN's internal representation)
-- Volume: integer shares
+- Prices: multiplied by 10,000 for asset classes that use LEAN's scaled-price convention
+- Volume: integer shares or contracts, depending on the asset class
+- Location: usually `infrastructure/pipelines/<name>/lean-data/...`
 
-Pipelines handle this normalization automatically.
+Pipelines handle this normalization automatically. Always check the individual pipeline page for the exact path and schema.
 
 ---
 
@@ -118,7 +127,8 @@ infrastructure/pipelines/<name>/
 │       ├── fetch.py
 │       ├── transform.py
 │       └── write.py
-├── data/                   ← gitignored output
+├── data/                   ← raw/intermediate/research output, usually gitignored
+├── lean-data/              ← LEAN-ready output, if the pipeline writes LEAN data
 ├── requirements.txt
 └── README.md
 ```
