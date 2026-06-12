@@ -1,233 +1,176 @@
 # Canonical Workflow: ElectionIndustryBeta
 
-## Overview
+`ElectionIndustryBeta` is Q-agent's flagship end-to-end workflow. The authoritative worked walkthrough is the [Golden Path](../golden-path.md); this page is the project reference that points to the files and commands used by that walkthrough.
 
-`ElectionIndustryBeta` is the flagship end-to-end workflow inside Q-agent.
-
-This workflow demonstrates:
+The workflow demonstrates the full research lifecycle:
 
 ```text
-Polymarket pipeline
+committed Polymarket probability series
     ->
 research notebook
     ->
-signal generation
+shared signal
     ->
 LEAN strategy
     ->
 ObjectStore diagnostics
     ->
-post-analysis
+post-analysis notebook
 ```
 
-The project showcases:
-
-- reproducible research
-- atomic architecture
-- reusable signals
-- LEAN integration
-- notebook-driven workflows
-- AI-compatible quantitative development
+It is intentionally educational. The goal is to show how a hypothesis moves from data to notebook research to strategy code and diagnostics, not to claim a profitable trading signal.
 
 ---
 
-# Workflow Stages
+## What runs today
 
-## 1. Pull Polymarket Data
+| Stage | Status | Credentials needed |
+|---|---|---|
+| Research notebook | Runs as-is | None |
+| Signal code | Implemented | None |
+| LEAN strategy | Implemented | QuantConnect account for cloud backtest |
+| Diagnostics notebook | Implemented | ObjectStore output from a backtest |
 
-The workflow begins with historical election probability data from Polymarket.
-
-Example pipeline location:
-
-```text
-infrastructure/pipelines/polymarket/
-```
-
-Example command:
-
-```bash
-python infrastructure/pipelines/polymarket/pull_markets.py
-```
+The project uses a committed election probability file so the strategy does not need a live Polymarket API call during backtests.
 
 ---
 
-## 2. Run the Research Notebook
-
-Current notebook:
+## Key files
 
 ```text
-infrastructure/marimo/notebooks/election_industry_returns.py
+MyProjects/ElectionIndustryBeta/
+├── main.py
+├── data/trump_prob.csv
+├── domain/
+│   ├── config.py
+│   └── signals/election_beta.py
+├── models/
+│   ├── alpha.py
+│   ├── portfolio.py
+│   ├── execution.py
+│   └── logger.py
+├── research/pl_attribution.py
+└── tools/refresh_trump_prob.py
 ```
 
-The notebook:
-
-- loads ETF returns
-- loads election probabilities
-- computes rolling election betas
-- ranks industry sensitivity
-- validates signal behavior
-
----
-
-## 3. Generate trump_prob.csv
-
-The workflow generates:
-
-```text
-data/trump_prob.csv
-```
-
-This file becomes the deterministic signal input for LEAN.
-
-Benefits:
-
-- reproducible backtests
-- environment-independent execution
-- notebook/strategy separation
-- no live API dependency during backtests
-
----
-
-## 4. Run the LEAN Strategy
-
-Main strategy:
-
-```text
-MyProjects/ElectionIndustryBeta/main.py
-```
-
-The strategy:
-
-1. Pulls ETF return history
-2. Computes rolling election betas
-3. Ranks industries
-4. Longs top-K industries
-5. Shorts bottom-K industries
-6. Logs diagnostics to ObjectStore
-
----
-
-# Architecture
-
-## Composition Root
-
-```text
-main.py
-```
-
-## Organisms
-
-```text
-models/
-```
-
-Examples:
-
-- ElectionBetaAlpha
-- ElectionBetaPortfolio
-- MarketOrderExecutor
-- PortfolioLogger
-
-## Molecules and Atoms
-
-```text
-domain/
-```
-
-Examples:
-
-- signals/
-- config/
-- models/
-
-The signal logic lives in:
-
-```text
-domain/signals/election_beta.py
-```
-
-which links to:
+Shared signal source:
 
 ```text
 MyProjects/shared/signals/election_beta.py
 ```
 
-This demonstrates reusable pure-Python signal architecture.
-
----
-
-# Example LEAN Commands
-
-## Local Backtest
-
-```bash
-lean backtest "ElectionIndustryBeta"
-```
-
-## Cloud Backtest
-
-```bash
-lean cloud backtest "ElectionIndustryBeta"
-```
-
-## Generate Report
-
-```bash
-lean report
-```
-
----
-
-# 5. Analyze ObjectStore Outputs
-
-The strategy logs structured diagnostics including:
-
-- trades
-- positions
-- exposures
-- portfolio snapshots
-- signal diagnostics
-
-This enables notebook-driven post-analysis.
-
----
-
-# 6. Review Diagnostics Notebook
-
-Potential notebook locations:
+Research notebook:
 
 ```text
-research/
-infrastructure/marimo/notebooks/
+infrastructure/marimo/notebooks/election_industry_returns.py
 ```
-
-Potential analyses:
-
-- rolling Sharpe
-- drawdowns
-- sector concentration
-- election sensitivity
-- exposure diagnostics
-- signal persistence
 
 ---
 
-# Why This Workflow Matters
+## 1. Refresh or inspect the Polymarket input
 
-Most quantitative finance repositories fail to demonstrate a complete research lifecycle.
-
-`ElectionIndustryBeta` connects:
+The committed strategy input is:
 
 ```text
-pipeline
-    ->
-research notebook
-    ->
-signal generation
-    ->
-LEAN strategy
-    ->
-ObjectStore diagnostics
+MyProjects/ElectionIndustryBeta/data/trump_prob.csv
 ```
 
-This is the canonical Q-agent workflow.
+It contains daily YES-token prices for the 2024 Trump election market. Because the 2024 election is over, the file is stable and committed for reproducibility.
+
+To refresh it from the project tool:
+
+```bash
+cd MyProjects/ElectionIndustryBeta
+python tools/refresh_trump_prob.py
+```
+
+For broader Polymarket research, use the full [Polymarket pipeline](../pipelines/polymarket.md), which has separate market-metadata and price-history steps.
+
+---
+
+## 2. Run the research notebook
+
+```bash
+python -m venv infrastructure/marimo/venv
+source infrastructure/marimo/venv/bin/activate
+pip install -r infrastructure/marimo/requirements.txt
+marimo run infrastructure/marimo/notebooks/election_industry_returns.py --port 2719
+```
+
+The notebook loads `trump_prob.csv`, fetches ETF prices from yfinance, estimates each ETF's sensitivity to changes in election probability, and helps decide whether the effect is worth turning into a signal.
+
+---
+
+## 3. Review the shared signal
+
+Signal logic lives in pure Python, outside LEAN:
+
+```text
+MyProjects/shared/signals/election_beta.py
+```
+
+The project consumes that signal from:
+
+```text
+MyProjects/ElectionIndustryBeta/domain/signals/election_beta.py
+```
+
+This demonstrates the Q-agent architecture rule: signal math belongs in the `domain/` layer and should be testable without a LEAN algorithm instance.
+
+---
+
+## 4. Run the LEAN strategy
+
+```bash
+cd MyProjects
+lean cloud push --project "ElectionIndustryBeta" --force
+lean cloud backtest "ElectionIndustryBeta" --name "baseline"
+```
+
+The strategy:
+
+1. Loads the election probability series
+2. Pulls ETF return history
+3. Computes rolling election betas
+4. Longs the top-K positive-beta industries
+5. Shorts the bottom-K negative-beta industries
+6. Logs diagnostics to ObjectStore
+
+---
+
+## 5. Analyze ObjectStore outputs
+
+After a backtest, run the diagnostics notebook:
+
+```bash
+marimo run MyProjects/ElectionIndustryBeta/research/pl_attribution.py
+```
+
+The diagnostics workflow is where you evaluate whether the backtest behavior matches the original hypothesis: P&L attribution, exposure, concentration, and realized performance.
+
+---
+
+## Architecture map
+
+```text
+main.py                     # composition root — wires the pieces
+models/                     # orchestration: alpha, portfolio, execution, logging
+domain/                     # pure signal/config logic
+research/                   # diagnostics and post-analysis
+data/                       # committed deterministic input for this project
+tools/                      # refresh/maintenance scripts
+```
+
+See [Architecture](../architecture.md) for the general layer rules and [Golden Path](../golden-path.md) for the full narrative walkthrough.
+
+---
+
+## Why this workflow matters
+
+Most quantitative finance repositories show only one piece of the research lifecycle. `ElectionIndustryBeta` connects the pieces:
+
+```text
+data -> notebook -> signal -> LEAN strategy -> backtest -> diagnostics
+```
+
+That is the canonical Q-agent workflow pattern.
