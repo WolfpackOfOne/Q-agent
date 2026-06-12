@@ -15,10 +15,20 @@ class ResearchAgent(BaseAgent):
     name = "ResearchAgent"
     role = "research"
 
-    def run(self, question: str = "", **kwargs) -> Any:
-        log.info("[ResearchAgent] running query: %s", question or "<stale impact>")
+    def run(
+        self, question: str = "", mode: str = "rag", arxiv_id: str = "", **kwargs
+    ) -> Any:
+        log.info(
+            "[ResearchAgent] mode=%s running query: %s",
+            mode, question or arxiv_id or "<stale impact>",
+        )
         try:
-            if question:
+            if mode == "ingest_paper":
+                if not arxiv_id:
+                    raise ValueError("mode='ingest_paper' requires arxiv_id")
+                from agent_graph_system.ingestion.papers.graph_writer import ingest_paper
+                result = ingest_paper(arxiv_id)
+            elif question:
                 result = graphrag_query(question)
             else:
                 result = stale_impact_report()

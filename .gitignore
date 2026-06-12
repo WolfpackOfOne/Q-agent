@@ -43,6 +43,8 @@ MyProjects/*/
 !MyProjects/shared/
 # ElectionIndustryBeta is tracked as a reference example for onboarding
 !MyProjects/ElectionIndustryBeta/
+# Research package for the passive market instability extension notebook
+!MyProjects/PassiveMarketInstability/
 
 # Exclude data/storage entirely — populate locally via `lean init` after cloning.
 # QC sample data (AlgoSeek-sourced) is not redistributed in this repo.
