@@ -18,7 +18,9 @@ docker run --rm -it ghcr.io/wolfpackofone/q-agent:latest lean --help
 docker run --rm -it ghcr.io/wolfpackofone/q-agent:latest marimo --help
 ```
 
-The image is built for `linux/amd64`. The `latest` tag tracks `main`;
+The image is published as a multi-arch manifest for `linux/amd64` and
+`linux/arm64`, so `docker pull` works natively on both x86 servers and Apple
+Silicon Macs (no `--platform` flag needed). The `latest` tag tracks `main`;
 short-SHA tags (`sha-abc1234`) and version tags (`v1.2.3`) are also published.
 
 ## What's inside
@@ -88,10 +90,41 @@ docker run --rm -it \
   bash -c "cd MyProjects && lean cloud push --project ElectionIndustryBeta --force && lean cloud backtest ElectionIndustryBeta"
 ```
 
-It does **not** support `lean backtest` (local). `lean backtest` spawns its
-own `quantconnect/lean` Docker container, which would require either the
-Docker socket (privilege escalation) or Docker-in-Docker (complex). Run
-`lean backtest` on the host instead.
+### Why local `lean backtest` is not run *inside* the container
+
+`lean backtest` (local) does not run the engine in-process — it asks a Docker
+daemon to spawn a separate `quantconnect/lean` container. From inside our
+image there is no daemon to talk to, so you would have to either:
+
+- **Bind-mount the host Docker socket** (`-v /var/run/docker.sock:...`) — a
+  privilege escalation (the container can launch arbitrary host containers),
+  *and* the spawned engine container's volume mounts are resolved by the
+  **host** daemon against the **host** filesystem, not our container's
+  `/workspace`. So the mounts only line up if your project sits at an
+  identical path on the host, and the non-root `qagent` user also needs the
+  host's `docker` group GID to read the socket. Fragile.
+- **Docker-in-Docker** — run a second daemon inside the container. Heavier
+  image, more moving parts.
+
+Neither is enabled by default, so `:latest` stays minimal-privilege. Tracking
+issue: [#27](https://github.com/WolfpackOfOne/Q-agent/issues/27) (deferred
+until there is real demand).
+
+### Recommended: run local backtests on the host
+
+The host already has Docker set up (that is what runs this image), so run
+local backtests there with the host's LEAN CLI — no socket gymnastics:
+
+```bash
+# On the host, with the lean CLI installed (pip install lean)
+cd MyProjects/ElectionIndustryBeta
+lean backtest "ElectionIndustryBeta"
+```
+
+`lean backtest` will pull and run the `quantconnect/lean` engine container via
+the host daemon directly, and the volume paths resolve correctly because they
+are already host paths. Use the container for `lean cloud backtest`, pipelines,
+notebooks, and tests; use the host for local `lean backtest`.
 
 ## Credentials
 

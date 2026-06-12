@@ -76,7 +76,7 @@ infrastructure/
   - Output: `infrastructure/pipelines/polymarket/lean-data/alternative/polymarket/prices/<slug>.csv`
 
 ### Example research notebooks
-- Crypto × Polymarket correlation: `infrastructure/marimo/notebooks/crypto_polymarket_correlation.py` (marimo)
+- Election & industry returns: `infrastructure/marimo/notebooks/election_industry_returns.py` (marimo)
 
 ### Correct pipeline sequencing for new research
 1. Probe API with one raw request — inspect actual field names before building anything

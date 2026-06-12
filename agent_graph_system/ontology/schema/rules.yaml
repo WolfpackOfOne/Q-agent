@@ -1,37 +1,63 @@
+# Ontology rules.
+#
+# Each rule carries an explicit `status` so the YAML cannot imply a safety
+# guarantee the code does not actually provide:
+#
+#   proposed   - an idea only; never enforced by code.
+#   documented - describes current behaviour / guidance; not a hard gate.
+#   enforced   - code MUST enforce this rule (see ontology/policy.py).
+#   disabled   - explicitly turned off; ignored everywhere.
+#
+# A rule acts as a hard, write-blocking gate ONLY when:
+#     status: enforced  AND  severity: blocking
+#
+# A `blocking` severity on a non-enforced rule is a warning/documentation
+# signal, never a silent guarantee. See ontology/rules.py for the loader and
+# validation semantics.
+
 rules:
   staleness:
     description: "A Strategy is stale if any of its DEPENDS_ON datasets are stale"
     trigger: "Dataset.status = stale"
     propagate_to: "Strategy via DEPENDS_ON"
     action: "set Strategy.status = stale, notify MonitoringAgent"
+    severity: warning
+    status: documented
 
   backtest_lineage:
     description: "Every Backtest must trace back to at least one Dataset"
     constraint: "Backtest -[GENERATES]- Notebook -[USES]- Dataset"
     severity: warning
+    status: documented
 
   deployment_gate:
-    description: "A Strategy can only DEPLOY_TO live if last Backtest.sharpe >= 0.5"
+    description: "A Strategy can only DEPLOY_TO a live environment if its latest completed Backtest.sharpe >= 0.5"
     condition: "Backtest.sharpe >= 0.5"
     severity: blocking
+    status: enforced
 
   circular_dependency:
     description: "DEPENDS_ON relationships must be acyclic"
     constraint: "no cycles in DEPENDS_ON graph"
     severity: error
+    status: documented
 
   temporal_validity:
     description: "Relationships with valid_from/valid_to must be filtered at query time"
     applies_to: [HOLDS, BELONGS_TO, FEEDS, DEPENDS_ON]
     enforce_at: query
+    status: documented
 
   agent_ownership:
     description: "Each Pipeline must be MONITORS-ed by at least one Agent"
     constraint: "Pipeline <- [MONITORS] - Agent"
     severity: warning
+    status: documented
 
   data_freshness_sla:
     description: "Datasets from WRDS/Bloomberg older than 1 day are stale"
     condition: "Dataset.last_updated < now() - 1 day"
     applies_to: [WRDS, Bloomberg]
     action: "set Dataset.status = stale"
+    severity: warning
+    status: documented

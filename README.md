@@ -117,14 +117,13 @@ lean cloud backtest "<ProjectName>" --name "Description"
 
 ## Research Examples
 
-Two runnable notebooks are included:
+One runnable notebook is included:
 
 | Notebook | Data sources | Local data required |
 |---|---|---|
-| [Election & Industry Returns](infrastructure/marimo/notebooks/election_industry_returns.py) | Polymarket CLOB API, yfinance sector ETFs (XLE, XLF, XLV, XLI, XLK, XLP, XLY, XLU, XLB, XLRE, XLC, XOP, ITA, KBE, IBB, ICLN, TAN, GDX, ITB) | No — all data fetched live. |
-| [Crypto & Polymarket Correlation](infrastructure/marimo/notebooks/crypto_polymarket_correlation.py) | Coinbase, Kraken, Polymarket prices, yfinance (COIN) | Yes — run the crypto and Polymarket pipelines first. |
+| [Election & Industry Returns](infrastructure/marimo/notebooks/election_industry_returns.py) | Committed `trump_prob.csv` (Polymarket CLOB), yfinance sector ETFs (XLE, XLF, XLV, XLI, XLK, XLP, XLY, XLU, XLB, XLRE, XLC, XOP, ITA, KBE, IBB, ICLN, TAN, GDX, ITB) | No — committed CSV plus live yfinance. |
 
-See [GETTING_STARTED.md](GETTING_STARTED.md) for how to run them. For broader research directions see [docs/research-examples.md](docs/research-examples.md).
+See [GETTING_STARTED.md](GETTING_STARTED.md) for how to run it. For broader research directions see [docs/research-examples.md](docs/research-examples.md).
 
 ## Documentation
 

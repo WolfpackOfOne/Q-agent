@@ -46,7 +46,7 @@ A recipe is a focused, reproducible research task: a hypothesis, the data needed
 - Does the correlation change sign between primary and general election periods?
 - Is COIN (Coinbase stock) a better proxy than BTC for political sensitivity?
 
-**Status:** Example notebook included — see [Crypto & Polymarket Correlation](notebooks.md)
+**Status:** Recipe — build it with the [Crypto](pipelines/crypto.md) and [Polymarket](pipelines/polymarket.md) pipelines. (A worked election × ETF example ships as the [example notebook](notebooks.md) and the [golden path](golden-path.md).)
 
 ---
 

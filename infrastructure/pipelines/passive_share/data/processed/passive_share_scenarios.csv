@@ -1,0 +1,306 @@
+year,t,scenario,alpha,source,passive_share
+1994.0,0.0,no_passive,0.0,zero-net-flow reference case,0.0
+1995.0,1.0,no_passive,0.0,zero-net-flow reference case,0.0
+1996.0,2.0,no_passive,0.0,zero-net-flow reference case,0.0
+1997.0,3.0,no_passive,0.0,zero-net-flow reference case,0.0
+1998.0,4.0,no_passive,0.0,zero-net-flow reference case,0.0
+1999.0,5.0,no_passive,0.0,zero-net-flow reference case,0.0
+2000.0,6.0,no_passive,0.0,zero-net-flow reference case,0.0
+2001.0,7.0,no_passive,0.0,zero-net-flow reference case,0.0
+2002.0,8.0,no_passive,0.0,zero-net-flow reference case,0.0
+2003.0,9.0,no_passive,0.0,zero-net-flow reference case,0.0
+2004.0,10.0,no_passive,0.0,zero-net-flow reference case,0.0
+2005.0,11.0,no_passive,0.0,zero-net-flow reference case,0.0
+2006.0,12.0,no_passive,0.0,zero-net-flow reference case,0.0
+2007.0,13.0,no_passive,0.0,zero-net-flow reference case,0.0
+2008.0,14.0,no_passive,0.0,zero-net-flow reference case,0.0
+2009.0,15.0,no_passive,0.0,zero-net-flow reference case,0.0
+2010.0,16.0,no_passive,0.0,zero-net-flow reference case,0.0
+2011.0,17.0,no_passive,0.0,zero-net-flow reference case,0.0
+2012.0,18.0,no_passive,0.0,zero-net-flow reference case,0.0
+2013.0,19.0,no_passive,0.0,zero-net-flow reference case,0.0
+2014.0,20.0,no_passive,0.0,zero-net-flow reference case,0.0
+2015.0,21.0,no_passive,0.0,zero-net-flow reference case,0.0
+2016.0,22.0,no_passive,0.0,zero-net-flow reference case,0.0
+2017.0,23.0,no_passive,0.0,zero-net-flow reference case,0.0
+2018.0,24.0,no_passive,0.0,zero-net-flow reference case,0.0
+2019.0,25.0,no_passive,0.0,zero-net-flow reference case,0.0
+2020.0,26.0,no_passive,0.0,zero-net-flow reference case,0.0
+2021.0,27.0,no_passive,0.0,zero-net-flow reference case,0.0
+2022.0,28.0,no_passive,0.0,zero-net-flow reference case,0.0
+2023.0,29.0,no_passive,0.0,zero-net-flow reference case,0.0
+2024.0,30.0,no_passive,0.0,zero-net-flow reference case,0.0
+2025.0,31.0,no_passive,0.0,zero-net-flow reference case,0.0
+2026.0,32.0,no_passive,0.0,zero-net-flow reference case,0.0
+2027.0,33.0,no_passive,0.0,zero-net-flow reference case,0.0
+2028.0,34.0,no_passive,0.0,zero-net-flow reference case,0.0
+2029.0,35.0,no_passive,0.0,zero-net-flow reference case,0.0
+2030.0,36.0,no_passive,0.0,zero-net-flow reference case,0.0
+2031.0,37.0,no_passive,0.0,zero-net-flow reference case,0.0
+2032.0,38.0,no_passive,0.0,zero-net-flow reference case,0.0
+2033.0,39.0,no_passive,0.0,zero-net-flow reference case,0.0
+2034.0,40.0,no_passive,0.0,zero-net-flow reference case,0.0
+2035.0,41.0,no_passive,0.0,zero-net-flow reference case,0.0
+2036.0,42.0,no_passive,0.0,zero-net-flow reference case,0.0
+2037.0,43.0,no_passive,0.0,zero-net-flow reference case,0.0
+2038.0,44.0,no_passive,0.0,zero-net-flow reference case,0.0
+2039.0,45.0,no_passive,0.0,zero-net-flow reference case,0.0
+2040.0,46.0,no_passive,0.0,zero-net-flow reference case,0.0
+2041.0,47.0,no_passive,0.0,zero-net-flow reference case,0.0
+2042.0,48.0,no_passive,0.0,zero-net-flow reference case,0.0
+2043.0,49.0,no_passive,0.0,zero-net-flow reference case,0.0
+2044.0,50.0,no_passive,0.0,zero-net-flow reference case,0.0
+2045.0,51.0,no_passive,0.0,zero-net-flow reference case,0.0
+2046.0,52.0,no_passive,0.0,zero-net-flow reference case,0.0
+2047.0,53.0,no_passive,0.0,zero-net-flow reference case,0.0
+2048.0,54.0,no_passive,0.0,zero-net-flow reference case,0.0
+2049.0,55.0,no_passive,0.0,zero-net-flow reference case,0.0
+2050.0,56.0,no_passive,0.0,zero-net-flow reference case,0.0
+2051.0,57.0,no_passive,0.0,zero-net-flow reference case,0.0
+2052.0,58.0,no_passive,0.0,zero-net-flow reference case,0.0
+2053.0,59.0,no_passive,0.0,zero-net-flow reference case,0.0
+2054.0,60.0,no_passive,0.0,zero-net-flow reference case,0.0
+1994.0,0.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.0399253339528138
+1995.0,1.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.04419256088895654
+1996.0,2.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.04889264343935163
+1997.0,3.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.05406432646077497
+1998.0,4.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.059748685770348614
+1999.0,5.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.06598900949121879
+2000.0,6.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.07283060623492708
+2001.0,7.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.08032052650124792
+2002.0,8.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.08850718308944182
+2003.0,9.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.09743985629988042
+2004.0,10.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.10716807048652817
+2005.0,11.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.11774083035052899
+2006.0,12.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.12920570850716617
+2007.0,13.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.1416077805650597
+2008.0,14.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.15498841043343178
+2009.0,15.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.16938389693401873
+2010.0,16.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.18482400300454419
+2011.0,17.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.20133040059885765
+2012.0,18.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.21891507730911577
+2013.0,19.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.2375787639469523
+2014.0,20.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.2573094546973142
+2015.0,21.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.27808110159567306
+2016.0,22.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.299852571390463
+2017.0,23.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.32256695373510436
+2018.0,24.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.34615130371468894
+2019.0,25.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.3705168880326052
+2020.0,26.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.39555998258063735
+2021.0,27.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.42116324035475167
+2022.0,28.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.44719761455530627
+2023.0,29.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.4735247849852963
+2024.0,30.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.5
+2025.0,31.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.5264752150147037
+2026.0,32.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.5528023854446937
+2027.0,33.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.5788367596452483
+2028.0,34.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.6044400174193626
+2029.0,35.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.6294831119673949
+2030.0,36.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.653848696285311
+2031.0,37.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.6774330462648956
+2032.0,38.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.700147428609537
+2033.0,39.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.7219188984043269
+2034.0,40.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.7426905453026857
+2035.0,41.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.7624212360530477
+2036.0,42.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.7810849226908843
+2037.0,43.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.7986695994011423
+2038.0,44.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.8151759969954558
+2039.0,45.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.8306161030659813
+2040.0,46.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.8450115895665683
+2041.0,47.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.8583922194349403
+2042.0,48.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.8707942914928338
+2043.0,49.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.8822591696494712
+2044.0,50.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.8928319295134719
+2045.0,51.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.9025601437001195
+2046.0,52.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.9114928169105582
+2047.0,53.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.919679473498752
+2048.0,54.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.9271693937650729
+2049.0,55.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.9340109905087812
+2050.0,56.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.9402513142296515
+2051.0,57.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.945935673539225
+2052.0,58.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.9511073565606484
+2053.0,59.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.9558074391110434
+2054.0,60.0,haddad_baseline,0.106,"Haddad, Huebner, and Loualiche 2025 fit",0.960074666047186
+1994.0,0.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.04742587317756678
+1995.0,1.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.05215356307841772
+1996.0,2.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.05732417589886873
+1997.0,3.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.06297335605699649
+1998.0,4.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.06913842034334682
+1999.0,5.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.07585818002124355
+2000.0,6.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.08317269649392235
+2001.0,7.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.09112296101485612
+2002.0,8.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.09975048911968513
+2003.0,9.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.10909682119561293
+2004.0,10.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.11920292202211755
+2005.0,11.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.13010847436299783
+2006.0,12.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.14185106490048777
+2007.0,13.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.15446526508353467
+2008.0,14.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.16798161486607552
+2009.0,15.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.18242552380635635
+2010.0,16.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.19781611144141822
+2011.0,17.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.2141650169574414
+2012.0,18.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.23147521650098232
+2013.0,19.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.24973989440488234
+2014.0,20.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.2689414213699951
+2015.0,21.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.289050497374996
+2016.0,22.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.31002551887238755
+2017.0,23.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.3318122278318339
+2018.0,24.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.35434369377420455
+2019.0,25.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.3775406687981454
+2020.0,26.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.401312339887548
+2021.0,27.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.425557483188341
+2022.0,28.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.45016600268752216
+2023.0,29.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.47502081252106
+2024.0,30.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.5
+2025.0,31.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.52497918747894
+2026.0,32.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.549833997312478
+2027.0,33.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.574442516811659
+2028.0,34.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.598687660112452
+2029.0,35.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.6224593312018546
+2030.0,36.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.6456563062257954
+2031.0,37.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.6681877721681662
+2032.0,38.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.6899744811276125
+2033.0,39.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.7109495026250039
+2034.0,40.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.7310585786300049
+2035.0,41.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.7502601055951177
+2036.0,42.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.7685247834990178
+2037.0,43.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.7858349830425586
+2038.0,44.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.8021838885585818
+2039.0,45.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.8175744761936437
+2040.0,46.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.8320183851339245
+2041.0,47.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.8455347349164652
+2042.0,48.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.8581489350995123
+2043.0,49.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.8698915256370021
+2044.0,50.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.8807970779778823
+2045.0,51.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.8909031788043871
+2046.0,52.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.9002495108803148
+2047.0,53.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.9088770389851438
+2048.0,54.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.9168273035060777
+2049.0,55.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.9241418199787566
+2050.0,56.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.9308615796566533
+2051.0,57.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.9370266439430035
+2052.0,58.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.9426758241011313
+2053.0,59.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.9478464369215823
+2054.0,60.0,brightman_harvey,0.1,Brightman and Harvey 2025 sensitivity fit,0.9525741268224334
+1994.0,0.0,conservative,0.0795,slower-than-baseline sensitivity,0.08432369642147448
+1995.0,1.0,conservative,0.0795,slower-than-baseline sensitivity,0.09066847659742172
+1996.0,2.0,conservative,0.0795,slower-than-baseline sensitivity,0.09743985629988042
+1997.0,3.0,conservative,0.0795,slower-than-baseline sensitivity,0.10465873810726023
+1998.0,4.0,conservative,0.0795,slower-than-baseline sensitivity,0.11234586362220132
+1999.0,5.0,conservative,0.0795,slower-than-baseline sensitivity,0.12052160153571954
+2000.0,6.0,conservative,0.0795,slower-than-baseline sensitivity,0.12920570850716617
+2001.0,7.0,conservative,0.0795,slower-than-baseline sensitivity,0.13841706283736202
+2002.0,8.0,conservative,0.0795,slower-than-baseline sensitivity,0.1481733716535214
+2003.0,9.0,conservative,0.0795,slower-than-baseline sensitivity,0.15849085320994338
+2004.0,10.0,conservative,0.0795,slower-than-baseline sensitivity,0.1693838969340187
+2005.0,11.0,conservative,0.0795,slower-than-baseline sensitivity,0.18086470499987076
+2006.0,12.0,conservative,0.0795,slower-than-baseline sensitivity,0.19294292046792064
+2007.0,13.0,conservative,0.0795,slower-than-baseline sensitivity,0.20562524835128843
+2008.0,14.0,conservative,0.0795,slower-than-baseline sensitivity,0.21891507730911577
+2009.0,15.0,conservative,0.0795,slower-than-baseline sensitivity,0.23281211095885798
+2010.0,16.0,conservative,0.0795,slower-than-baseline sensitivity,0.24731201896796914
+2011.0,17.0,conservative,0.0795,slower-than-baseline sensitivity,0.26240611904371897
+2012.0,18.0,conservative,0.0795,slower-than-baseline sensitivity,0.27808110159567306
+2013.0,19.0,conservative,0.0795,slower-than-baseline sensitivity,0.29431880910602864
+2014.0,20.0,conservative,0.0795,slower-than-baseline sensitivity,0.31109608202304534
+2015.0,21.0,conservative,0.0795,slower-than-baseline sensitivity,0.3283846822223663
+2016.0,22.0,conservative,0.0795,slower-than-baseline sensitivity,0.34615130371468894
+2017.0,23.0,conservative,0.0795,slower-than-baseline sensitivity,0.3643576783035576
+2018.0,24.0,conservative,0.0795,slower-than-baseline sensitivity,0.38296078134147393
+2019.0,25.0,conservative,0.0795,slower-than-baseline sensitivity,0.40191313966779657
+2020.0,26.0,conservative,0.0795,slower-than-baseline sensitivity,0.42116324035475167
+2021.0,27.0,conservative,0.0795,slower-than-baseline sensitivity,0.4406560351964406
+2022.0,28.0,conservative,0.0795,slower-than-baseline sensitivity,0.4603335321412476
+2023.0,29.0,conservative,0.0795,slower-than-baseline sensitivity,0.48013546130230766
+2024.0,30.0,conservative,0.0795,slower-than-baseline sensitivity,0.5
+2025.0,31.0,conservative,0.0795,slower-than-baseline sensitivity,0.5198645386976923
+2026.0,32.0,conservative,0.0795,slower-than-baseline sensitivity,0.5396664678587524
+2027.0,33.0,conservative,0.0795,slower-than-baseline sensitivity,0.5593439648035594
+2028.0,34.0,conservative,0.0795,slower-than-baseline sensitivity,0.5788367596452483
+2029.0,35.0,conservative,0.0795,slower-than-baseline sensitivity,0.5980868603322034
+2030.0,36.0,conservative,0.0795,slower-than-baseline sensitivity,0.6170392186585261
+2031.0,37.0,conservative,0.0795,slower-than-baseline sensitivity,0.6356423216964424
+2032.0,38.0,conservative,0.0795,slower-than-baseline sensitivity,0.653848696285311
+2033.0,39.0,conservative,0.0795,slower-than-baseline sensitivity,0.6716153177776337
+2034.0,40.0,conservative,0.0795,slower-than-baseline sensitivity,0.6889039179769546
+2035.0,41.0,conservative,0.0795,slower-than-baseline sensitivity,0.7056811908939713
+2036.0,42.0,conservative,0.0795,slower-than-baseline sensitivity,0.7219188984043269
+2037.0,43.0,conservative,0.0795,slower-than-baseline sensitivity,0.737593880956281
+2038.0,44.0,conservative,0.0795,slower-than-baseline sensitivity,0.7526879810320308
+2039.0,45.0,conservative,0.0795,slower-than-baseline sensitivity,0.7671878890411421
+2040.0,46.0,conservative,0.0795,slower-than-baseline sensitivity,0.7810849226908843
+2041.0,47.0,conservative,0.0795,slower-than-baseline sensitivity,0.7943747516487116
+2042.0,48.0,conservative,0.0795,slower-than-baseline sensitivity,0.8070570795320793
+2043.0,49.0,conservative,0.0795,slower-than-baseline sensitivity,0.8191352950001292
+2044.0,50.0,conservative,0.0795,slower-than-baseline sensitivity,0.8306161030659813
+2045.0,51.0,conservative,0.0795,slower-than-baseline sensitivity,0.8415091467900566
+2046.0,52.0,conservative,0.0795,slower-than-baseline sensitivity,0.8518266283464786
+2047.0,53.0,conservative,0.0795,slower-than-baseline sensitivity,0.8615829371626379
+2048.0,54.0,conservative,0.0795,slower-than-baseline sensitivity,0.8707942914928338
+2049.0,55.0,conservative,0.0795,slower-than-baseline sensitivity,0.8794783984642804
+2050.0,56.0,conservative,0.0795,slower-than-baseline sensitivity,0.8876541363777987
+2051.0,57.0,conservative,0.0795,slower-than-baseline sensitivity,0.8953412618927398
+2052.0,58.0,conservative,0.0795,slower-than-baseline sensitivity,0.9025601437001195
+2053.0,59.0,conservative,0.0795,slower-than-baseline sensitivity,0.9093315234025783
+2054.0,60.0,conservative,0.0795,slower-than-baseline sensitivity,0.9156763035785255
+1994.0,0.0,aggressive,0.1325,faster-than-baseline sensitivity,0.01843314000110983
+1995.0,1.0,aggressive,0.1325,faster-than-baseline sensitivity,0.020989912113401715
+1996.0,2.0,aggressive,0.1325,faster-than-baseline sensitivity,0.02389268941058276
+1997.0,3.0,aggressive,0.1325,faster-than-baseline sensitivity,0.02718575583363686
+1998.0,4.0,aggressive,0.1325,faster-than-baseline sensitivity,0.030918320387875675
+1999.0,5.0,aggressive,0.1325,faster-than-baseline sensitivity,0.03514484640079327
+2000.0,6.0,aggressive,0.1325,faster-than-baseline sensitivity,0.03992533395281379
+2001.0,7.0,aggressive,0.1325,faster-than-baseline sensitivity,0.04532552841468331
+2002.0,8.0,aggressive,0.1325,faster-than-baseline sensitivity,0.05141702121918567
+2003.0,9.0,aggressive,0.1325,faster-than-baseline sensitivity,0.058277201509680805
+2004.0,10.0,aggressive,0.1325,faster-than-baseline sensitivity,0.06598900949121876
+2005.0,11.0,aggressive,0.1325,faster-than-baseline sensitivity,0.07464043475158114
+2006.0,12.0,aggressive,0.1325,faster-than-baseline sensitivity,0.08432369642147448
+2007.0,13.0,aggressive,0.1325,faster-than-baseline sensitivity,0.09513403808164694
+2008.0,14.0,aggressive,0.1325,faster-than-baseline sensitivity,0.10716807048652817
+2009.0,15.0,aggressive,0.1325,faster-than-baseline sensitivity,0.12052160153571954
+2010.0,16.0,aggressive,0.1325,faster-than-baseline sensitivity,0.13528690783826308
+2011.0,17.0,aggressive,0.1325,faster-than-baseline sensitivity,0.15154942805456623
+2012.0,18.0,aggressive,0.1325,faster-than-baseline sensitivity,0.1693838969340187
+2013.0,19.0,aggressive,0.1325,faster-than-baseline sensitivity,0.18884999152851695
+2014.0,20.0,aggressive,0.1325,faster-than-baseline sensitivity,0.2099876265736025
+2015.0,21.0,aggressive,0.1325,faster-than-baseline sensitivity,0.23281211095885798
+2016.0,22.0,aggressive,0.1325,faster-than-baseline sensitivity,0.2573094546973142
+2017.0,23.0,aggressive,0.1325,faster-than-baseline sensitivity,0.28343218544228543
+2018.0,24.0,aggressive,0.1325,faster-than-baseline sensitivity,0.31109608202304534
+2019.0,25.0,aggressive,0.1325,faster-than-baseline sensitivity,0.34017824502794247
+2020.0,26.0,aggressive,0.1325,faster-than-baseline sensitivity,0.3705168880326052
+2021.0,27.0,aggressive,0.1325,faster-than-baseline sensitivity,0.40191313966779657
+2022.0,28.0,aggressive,0.1325,faster-than-baseline sensitivity,0.4341349971045183
+2023.0,29.0,aggressive,0.1325,faster-than-baseline sensitivity,0.46692337763389535
+2024.0,30.0,aggressive,0.1325,faster-than-baseline sensitivity,0.5
+2025.0,31.0,aggressive,0.1325,faster-than-baseline sensitivity,0.5330766223661046
+2026.0,32.0,aggressive,0.1325,faster-than-baseline sensitivity,0.5658650028954817
+2027.0,33.0,aggressive,0.1325,faster-than-baseline sensitivity,0.5980868603322034
+2028.0,34.0,aggressive,0.1325,faster-than-baseline sensitivity,0.6294831119673949
+2029.0,35.0,aggressive,0.1325,faster-than-baseline sensitivity,0.6598217549720575
+2030.0,36.0,aggressive,0.1325,faster-than-baseline sensitivity,0.6889039179769546
+2031.0,37.0,aggressive,0.1325,faster-than-baseline sensitivity,0.7165678145577145
+2032.0,38.0,aggressive,0.1325,faster-than-baseline sensitivity,0.7426905453026857
+2033.0,39.0,aggressive,0.1325,faster-than-baseline sensitivity,0.7671878890411421
+2034.0,40.0,aggressive,0.1325,faster-than-baseline sensitivity,0.7900123734263975
+2035.0,41.0,aggressive,0.1325,faster-than-baseline sensitivity,0.8111500084714831
+2036.0,42.0,aggressive,0.1325,faster-than-baseline sensitivity,0.8306161030659813
+2037.0,43.0,aggressive,0.1325,faster-than-baseline sensitivity,0.8484505719454338
+2038.0,44.0,aggressive,0.1325,faster-than-baseline sensitivity,0.8647130921617369
+2039.0,45.0,aggressive,0.1325,faster-than-baseline sensitivity,0.8794783984642804
+2040.0,46.0,aggressive,0.1325,faster-than-baseline sensitivity,0.8928319295134719
+2041.0,47.0,aggressive,0.1325,faster-than-baseline sensitivity,0.904865961918353
+2042.0,48.0,aggressive,0.1325,faster-than-baseline sensitivity,0.9156763035785255
+2043.0,49.0,aggressive,0.1325,faster-than-baseline sensitivity,0.9253595652484189
+2044.0,50.0,aggressive,0.1325,faster-than-baseline sensitivity,0.9340109905087812
+2045.0,51.0,aggressive,0.1325,faster-than-baseline sensitivity,0.9417227984903191
+2046.0,52.0,aggressive,0.1325,faster-than-baseline sensitivity,0.9485829787808143
+2047.0,53.0,aggressive,0.1325,faster-than-baseline sensitivity,0.9546744715853167
+2048.0,54.0,aggressive,0.1325,faster-than-baseline sensitivity,0.9600746660471863
+2049.0,55.0,aggressive,0.1325,faster-than-baseline sensitivity,0.9648551535992067
+2050.0,56.0,aggressive,0.1325,faster-than-baseline sensitivity,0.9690816796121242
+2051.0,57.0,aggressive,0.1325,faster-than-baseline sensitivity,0.9728142441663632
+2052.0,58.0,aggressive,0.1325,faster-than-baseline sensitivity,0.9761073105894171
+2053.0,59.0,aggressive,0.1325,faster-than-baseline sensitivity,0.9790100878865984
+2054.0,60.0,aggressive,0.1325,faster-than-baseline sensitivity,0.9815668599988902

@@ -17,10 +17,11 @@ if _backend == "neo4j":
         )
         from agent_graph_system.graph.local.engine import (  # noqa: F401
             merge_node, merge_relationship, query, create_indexes, graph_stats,
+            latest_backtest_for_strategy,
         )
     else:
         from agent_graph_system.graph.neo4j.graph_models import (  # noqa: F401
-            merge_node, merge_relationship,
+            merge_node, merge_relationship, latest_backtest_for_strategy,
         )
         from agent_graph_system.graph.neo4j.driver import query  # noqa: F401
         from agent_graph_system.graph.cypher.queries import create_indexes  # noqa: F401
@@ -36,4 +37,5 @@ if _backend == "neo4j":
 else:
     from agent_graph_system.graph.local.engine import (  # noqa: F401
         merge_node, merge_relationship, query, create_indexes, graph_stats,
+        latest_backtest_for_strategy,
     )
