@@ -1,0 +1,20 @@
+{
+  "generated_at_utc": "2026-05-28T04:11:01.112187+00:00",
+  "source_polymarket_root": "/Users/graham/Documents/Q-agent/infrastructure/pipelines/polymarket/lean-data/alternative/polymarket",
+  "start": "2026-04-01",
+  "end": null,
+  "as_of_for_contract_selection": "2026-05-28",
+  "markets": [
+    "will-bitcoin-reach-90000-by-december-31-2026-113-862-581",
+    "will-bitcoin-reach-100000-by-december-31-2026-571-361-361",
+    "will-bitcoin-reach-110000-by-december-31-2026-658-339-969",
+    "will-bitcoin-reach-120000-by-december-31-2026-625-425-562",
+    "will-bitcoin-dip-to-50000-by-december-31-2026-454-325-222-878-949-487-451"
+  ],
+  "files": [
+    "btc_polymarket_markets.csv",
+    "btc_polymarket_prices.csv",
+    "btc_spot_futures.csv",
+    "btc_futures_contracts.csv"
+  ]
+}
