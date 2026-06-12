@@ -136,6 +136,43 @@ MyFirstStrategy/
         └── mean_reversion.py → ../../shared/signals/mean_reversion.py
 ```
 
+Create a link from inside the project's `domain/signals/` directory:
+
+```bash
+cd MyProjects/MyFirstStrategy/domain/signals
+ln -s ../../../shared/signals/momentum.py momentum.py
+```
+
+### Windows / no-symlink fallback
+
+Symlinks are not guaranteed everywhere: on Windows they need Developer Mode or
+admin rights, and a repo unzipped from a GitHub ZIP (rather than cloned) can
+materialise links as plain text files. Two reliable options:
+
+- **Git symlinks on Windows** — clone with symlink support and the links in
+  this repo resolve normally:
+
+  ```powershell
+  git config --global core.symlinks true
+  git clone https://github.com/WolfpackOfOne/Q-agent.git
+  ```
+
+- **Copy instead of link** — if symlinks are unavailable, copy the signal in
+  and keep it in sync manually. The trade-off is you must re-copy when the
+  shared atom changes:
+
+  ```powershell
+  copy ..\..\..\shared\signals\momentum.py momentum.py   # Windows
+  ```
+  ```bash
+  cp ../../../shared/signals/momentum.py momentum.py       # macOS / Linux
+  ```
+
+`lean cloud push` follows symlinks, so the linked form is preferred when it
+works; the copy fallback only exists so onboarding never hard-blocks on
+symlink support. To check whether a link resolved correctly, confirm the file
+has real Python content (`cat` it) rather than a one-line path string.
+
 ---
 
 ## Goals
@@ -145,6 +182,50 @@ MyFirstStrategy/
 - **Reusable research**: signals live in `shared/`, not inside projects
 - **Readability for students**: each layer has a single clear responsibility
 - **Safe AI-assisted development**: the structure gives agents a predictable target
+
+---
+
+## Knowledge-graph subsystem — `agent_graph_system/`
+
+A separate, optional layer that ingests repos and QuantConnect projects into a
+typed knowledge graph, enforces a few write-time safety rules, tracks provenance
+on every fact, and assembles per-project **context packs** for coding agents. It
+is independent of the LEAN strategy workflow above and has its own dependencies
+and tests.
+
+```mermaid
+graph LR
+    PROJ["MyProjects/<br/><small>atomic project</small>"]
+    ING["ingestion/quantconnect<br/><small>pure AST parser</small>"]
+    G["graph<br/><small>networkx (local) | Neo4j</small>"]
+    GATE["ontology<br/><small>rules · deployment_gate · provenance</small>"]
+    PACK["context_pack<br/><small>agent briefing</small>"]
+    AGENT["Coding agent"]
+
+    PROJ --> ING --> G
+    GATE -. enforces / stamps .-> G
+    G --> PACK --> AGENT
+```
+
+Its core principle is **honesty over enforcement**: graph metadata must never
+imply a safety guarantee the code does not actually provide. A rule is a hard
+gate only when it is both `enforced` and `blocking`; the `deployment_gate` that
+guards live `DEPLOYS_TO` edges is fail-closed; and low-confidence extracted
+facts are surfaced separately from authoritative ones.
+
+```bash
+python -m agent_graph_system.main ingest-project MyProjects/ElectionIndustryBeta
+python -m agent_graph_system.main context-pack MyProjects/ElectionIndustryBeta --format md
+python -m agent_graph_system.main ingest-paper 2401.12345
+```
+
+A separate `ingestion/papers/` module fetches and parses arXiv papers into
+`Paper`/`PaperSection` nodes (and `Strategy -[CITES]-> Paper` edges), using the
+same provenance scheme extended with document-anchored fields (`source_kind`,
+`page`, `quote`, ...).
+
+Full reference and CLI: see `agent_graph_system/README.md` and
+`agent_graph_system/claude.md` in the repository root.
 
 ---
 

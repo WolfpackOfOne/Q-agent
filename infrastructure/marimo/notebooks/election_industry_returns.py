@@ -64,7 +64,7 @@ def _():
             "savefig.edgecolor": "#0d1117",
         }
     )
-    return np, pd, plt, requests, stats
+    return np, pathlib, pd, plt, requests, stats
 
 
 @app.cell(hide_code=True)
@@ -87,34 +87,49 @@ def _(mo):
     mo.md(r"""
     ## 1. Polymarket — Trump Win Probability (2024)
 
-    Pull daily YES-token price history for "Will Donald Trump win the 2024 US Presidential Election?"
-    from the Polymarket CLOB API. The price represents the market-implied probability of a Trump win.
+    Daily YES-token price history for "Will Donald Trump win the 2024 US Presidential Election?"
+    The price represents the market-implied probability of a Trump win.
+
+    This loads the committed `MyProjects/ElectionIndustryBeta/data/trump_prob.csv` (same token,
+    same API, same transformation) so the notebook works offline, and falls back to the live
+    Polymarket CLOB API only if that file is missing.
     """)
     return
 
 
 @app.cell
-def _(pd, requests):
+def _(pathlib, pd, requests):
     # Trump YES token from the 2024 Presidential Election Winner event
     TRUMP_TOKEN = "21742633143463906290569050155826241533067272736897614950488156847949938836455"
 
-    r = requests.get(
-        "https://clob.polymarket.com/prices-history",
-        params={"market": TRUMP_TOKEN, "interval": "max", "fidelity": 1440},
-        timeout=30,
+    # Prefer the committed CSV so the notebook runs offline (the 2024 election is
+    # over, so the series is fixed); fall back to the live CLOB API if it's missing.
+    _csv_path = (
+        pathlib.Path(__file__).resolve().parents[3]
+        / "MyProjects/ElectionIndustryBeta/data/trump_prob.csv"
     )
-    history = r.json().get("history", [])
 
-    trump_prob = pd.DataFrame(history)
-    trump_prob["date"] = pd.to_datetime(trump_prob["t"], unit="s").dt.normalize()
-    trump_prob["prob_trump"] = trump_prob["p"].astype(float)
-    trump_prob = trump_prob.set_index("date")[["prob_trump"]].sort_index()
+    if _csv_path.exists():
+        trump_prob = pd.read_csv(_csv_path, index_col="date", parse_dates=True)
+        _source = f"committed CSV ({_csv_path.name})"
+    else:
+        r = requests.get(
+            "https://clob.polymarket.com/prices-history",
+            params={"market": TRUMP_TOKEN, "interval": "max", "fidelity": 1440},
+            timeout=30,
+        )
+        history = r.json().get("history", [])
+        trump_prob = pd.DataFrame(history)
+        trump_prob["date"] = pd.to_datetime(trump_prob["t"], unit="s").dt.normalize()
+        trump_prob["prob_trump"] = trump_prob["p"].astype(float)
+        trump_prob = trump_prob.set_index("date")[["prob_trump"]].sort_index()
+        _source = "live Polymarket CLOB API"
 
     # Compute daily change in probability
     trump_prob["delta_prob"] = trump_prob["prob_trump"].diff()
     trump_prob = trump_prob.dropna()
 
-    print(f"Trump probability: {len(trump_prob)} trading days")
+    print(f"Trump probability: {len(trump_prob)} trading days  [source: {_source}]")
     print(f"  Range: {trump_prob.index[0].date()} to {trump_prob.index[-1].date()}")
     print(f"  Prob range: {trump_prob['prob_trump'].min():.3f} – {trump_prob['prob_trump'].max():.3f}")
     print(f"  Mean daily ΔP: {trump_prob['delta_prob'].mean():.5f}")

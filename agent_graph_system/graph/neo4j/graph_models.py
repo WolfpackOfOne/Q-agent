@@ -69,10 +69,64 @@ def notebook_generates_backtest(notebook: str, run_id: str, **props) -> None:
     merge_relationship("Notebook", "name", notebook, "GENERATES", "Backtest", "run_id", run_id, props)
 
 
-def strategy_deploys_to(strategy: str, api_name: str, environment: str = "paper", **props) -> None:
+def strategy_has_backtest(strategy: str, run_id: str, **props) -> None:
+    """Link a Strategy to one of its Backtest runs (lineage for the gate)."""
+    merge_relationship("Strategy", "name", strategy, "HAS_BACKTEST", "Backtest", "run_id", run_id, props)
+
+
+def strategy_deploys_to(
+    strategy: str,
+    api_name: str,
+    environment: str = "paper",
+    *,
+    enforce_gate: bool = True,
+    **props,
+) -> None:
+    """Write a Strategy -[DEPLOYS_TO]-> API edge.
+
+    For live environments this is gated by the enforced ``deployment_gate``
+    rule and is fail-closed: if the gate denies the write a
+    :class:`~agent_graph_system.ontology.policy.PolicyViolation` is raised and
+    no edge is written. Pass ``enforce_gate=False`` only for trusted backfills.
+    """
+    if enforce_gate:
+        from agent_graph_system.ontology.policy import PolicyViolation, check_deployment_gate
+
+        decision = check_deployment_gate(strategy, environment)
+        if not decision.allowed:
+            log.warning(
+                "Blocked DEPLOYS_TO %s->%s (%s): %s",
+                strategy, api_name, decision.code, decision.message,
+            )
+            raise PolicyViolation(decision)
+
     merge_relationship("Strategy", "name", strategy, "DEPLOYS_TO", "API", "name", api_name, {
         "environment": environment, **props
     })
+
+
+def latest_backtest_for_strategy(strategy: str) -> dict[str, Any] | None:
+    """Neo4j implementation of the latest-valid-backtest lookup.
+
+    Mirrors the local engine: linked via ``HAS_BACKTEST`` or a ``strategy``
+    property, excluding failed/running runs, ordered by recency.
+    """
+    from agent_graph_system.graph.neo4j.driver import session
+
+    cypher = """
+        MATCH (b:Backtest)
+        WHERE (
+            EXISTS { MATCH (:Strategy {name: $name})-[:HAS_BACKTEST]->(b) }
+            OR b.strategy = $name
+        )
+        AND coalesce(b.status, 'completed') NOT IN ['failed', 'running']
+        RETURN b AS bt
+        ORDER BY coalesce(b.completed_at, b.run_date, b.created_at, b.updated_at, '') DESC
+        LIMIT 1
+    """
+    with session() as s:
+        record = s.run(cypher, name=strategy).single()
+        return dict(record["bt"]) if record else None
 
 
 def repository_contains_notebook(repo: str, notebook: str, **props) -> None:
