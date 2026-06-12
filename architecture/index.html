@@ -1822,7 +1822,12 @@ guards live <code>DEPLOYS_TO</code> edges is fail-closed; and low-confidence ext
 facts are surfaced separately from authoritative ones.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>-m<span class="w"> </span>agent_graph_system.main<span class="w"> </span>ingest-project<span class="w"> </span>MyProjects/ElectionIndustryBeta
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>python<span class="w"> </span>-m<span class="w"> </span>agent_graph_system.main<span class="w"> </span>context-pack<span class="w"> </span>MyProjects/ElectionIndustryBeta<span class="w"> </span>--format<span class="w"> </span>md
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>python<span class="w"> </span>-m<span class="w"> </span>agent_graph_system.main<span class="w"> </span>ingest-paper<span class="w"> </span><span class="m">2401</span>.12345
 </code></pre></div>
+<p>A separate <code>ingestion/papers/</code> module fetches and parses arXiv papers into
+<code>Paper</code>/<code>PaperSection</code> nodes (and <code>Strategy -[CITES]-&gt; Paper</code> edges), using the
+same provenance scheme extended with document-anchored fields (<code>source_kind</code>,
+<code>page</code>, <code>quote</code>, ...).</p>
 <p>Full reference and CLI: see <code>agent_graph_system/README.md</code> and
 <code>agent_graph_system/claude.md</code> in the repository root.</p>
 <hr />
