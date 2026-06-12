@@ -27,7 +27,7 @@ entities:
     description: "A data source or derived dataset"
     properties:
       - name: string
-      - source: enum[WRDS, EDGAR, Bloomberg, Polymarket, Crypto, SQL, QuantConnect, GitHub]
+      - source: enum[WRDS, EDGAR, Bloomberg, Polymarket, Crypto, SQL, QuantConnect, GitHub, bundled]
       - status: enum[fresh, stale, unavailable]
       - last_updated: datetime
       - schema_version: string
@@ -118,3 +118,80 @@ entities:
       - steps: list[string]
       - status: enum[active, paused, completed, failed]
       - trigger: enum[schedule, event, manual]
+
+  # --- ingestion/quantconnect/ -----------------------------------------------
+  # Written by graph_writer.ingest_project; see agent_graph_system/README.md
+  # "MyProjects ingestion". Strategy/Dataset above are shared with this writer.
+
+  Project:
+    description: "An atomic MyProjects/ QuantConnect project (container of files/docs)"
+    properties:
+      - name: string             # key
+      - root: string             # absolute path to the project directory
+      - last_ingest_run: datetime
+
+  File:
+    description: "A file within an ingested project"
+    properties:
+      - path: string             # key, project-qualified: "{project}/{rel_path}"
+      - kind: enum[doc, notebook, python, data, other]
+      - project: string
+      - rel_path: string         # bare path, for display
+
+  ResearchNotebook:
+    description: "A research notebook (.ipynb or research/*.py marimo) within a project"
+    properties:
+      - path: string             # key, project-qualified: "{project}/{rel_path}"
+      - project: string
+      - rel_path: string
+
+  Module:
+    description: "A class defined within a project file"
+    properties:
+      - name: string             # key: "{project}.{class_name}"
+      - class_name: string
+      - project: string
+
+  Signal:
+    description: "A signal-producing function (domain/signals/), shared by name across projects"
+    properties:
+      - name: string             # key: function name
+      - project: string
+
+  ConfigParam:
+    description: "A configuration parameter declared in a project"
+    properties:
+      - name: string             # key: "{project}.{param}"
+      - param: string
+      - value: string
+      - project: string
+
+  ObjectStoreKey:
+    description: "An ObjectStore key read/written by a strategy or notebook"
+    properties:
+      - key: string              # key; "<dynamic:{file}:{line}>" when computed at runtime
+      - resolved: bool
+
+  # --- ingestion/papers/ ------------------------------------------------------
+  # Written by graph_writer.ingest_paper; see agent_graph_system/README.md
+  # "arXiv paper ingestion" (#63).
+
+  Paper:
+    description: "An arXiv research paper"
+    properties:
+      - arxiv_id: string         # key
+      - title: string
+      - authors: list[string]
+      - abstract: string
+      - published_at: datetime
+      - categories: list[string]
+
+  PaperSection:
+    description: "A section of an ingested paper"
+    properties:
+      - section_id: string       # key: "{arxiv_id}_s{index}"
+      - title: string
+      - summary: string
+      - content: string
+      - kind: enum[section, methodology, limitations]
+      - index: int
