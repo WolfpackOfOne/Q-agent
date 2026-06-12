@@ -204,8 +204,24 @@ contain `main.py` never collapse onto one node.
 **Re-ingest semantics.** Each run shares one `run_ts`, stamped as provenance
 `last_seen` and recorded on the Project node as `last_ingest_run`. Re-ingest is
 merge-only (nothing is deleted), but stale facts keep their older `last_seen`,
-so the context pack filters them out and reflects the project *as it is on disk
-now*.
+so read paths filter them out with `ontology.provenance.is_current` and reflect
+the project *as it is on disk now*. The Paper node carries the same
+`last_ingest_run` marker for `ingest-paper` re-runs.
+
+**Pruning stale facts.** Filtering keeps reads honest, but stale nodes/edges
+otherwise accumulate in the graph forever. The `prune` CLI command is the one
+explicit deletion path (never called from ingest, local backend only):
+
+```bash
+python -m agent_graph_system.main prune project ElectionIndustryBeta   # dry-run report
+python -m agent_graph_system.main prune paper 2401.12345 --apply       # actually delete
+```
+
+`engine.prune_stale` removes only facts whose `prov_last_seen` predates the
+parent's current `last_ingest_run`, considers only edges *originating* from
+the parent's scope, and deletes a node only when it is scoped to the parent
+and left fully orphaned — shared nodes (`Signal`, `Dataset`,
+`ObjectStoreKey`) still referenced by another project always survive.
 
 ## arXiv paper ingestion (`ingestion/papers/`)
 
@@ -230,6 +246,9 @@ signature is kept stable so an LLM-driven pass can be swapped in later.
   - `strategy_cites_paper(strategy, arxiv_id, quote=..., page=...)` writes a
     `Strategy -[CITES]-> Paper` edge anchored to a page/quote — what
     `context_pack.py` can use to answer "what research backs this strategy".
+  - `paper_sections(arxiv_id)` reads back the paper's *current* sections,
+    filtering out ones a re-fetched revision dropped (same run-marker
+    filtering as the project context pack).
 
 ```python
 from agent_graph_system.ingestion.papers.graph_writer import ingest_paper
@@ -268,6 +287,7 @@ python -m agent_graph_system.main <command>
 | `ingest-project <path>` | Ingest one MyProjects/ QuantConnect project. |
 | `ingest-paper <arxiv_id>` | Fetch an arXiv paper and write its sections into the graph. |
 | `context-pack <path> [--format md\|json] [--no-ingest]` | Build a project context pack (re-ingests from disk first unless `--no-ingest`). |
+| `prune <project\|paper> <name> [--apply]` | Report (or with `--apply`, delete) facts left behind by older ingest runs. |
 | `query <name> [question]` | Named Cypher query or `rag` GraphRAG search. |
 | `agent <name>` | Run an agent (coding / monitoring / orchestration / research). |
 | `api` | Start the FastAPI server. |

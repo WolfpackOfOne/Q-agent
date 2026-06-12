@@ -266,6 +266,23 @@ def merge_provenance_props(
     return merged
 
 
+def is_current(props: dict[str, Any], run_marker: str | None) -> bool:
+    """True unless the fact was last seen by an older ingest run.
+
+    ``run_marker`` is the parent's current run stamp — ``last_ingest_run`` on a
+    ``Project`` or ``Paper`` node. Read paths use this to filter out facts left
+    behind by earlier ingest runs (a deleted file, a dropped paper section).
+
+    Staleness is only asserted positively: a missing ``run_marker`` (legacy
+    parent) or a fact with no ``prov_last_seen`` disables filtering rather than
+    hiding facts whose provenance was never stamped.
+    """
+    if run_marker is None:
+        return True
+    last_seen = props.get(f"{PROV_PREFIX}last_seen")
+    return last_seen is None or last_seen == run_marker
+
+
 def is_low_confidence(
     props: dict[str, Any], threshold: float = DEFAULT_CONFIDENCE_THRESHOLD
 ) -> bool:

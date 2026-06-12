@@ -7,6 +7,7 @@ Entry point with subcommands:
   ingest-project  Ingest one MyProjects/ QuantConnect project into the graph
   ingest-paper    Fetch an arXiv paper and write its sections into the graph
   context-pack    Build a project context pack for an agent (md | json)
+  prune           Remove facts left behind by older ingest runs (dry-run by default)
   query           Run a named Cypher query or GraphRAG search
   agent       Run a named agent (coding | monitoring | orchestration | research)
   api         Start the FastAPI server
@@ -136,6 +137,48 @@ def cmd_context_pack(args: argparse.Namespace) -> None:
         print(cp.render_markdown(pack))
 
 
+def cmd_prune(args: argparse.Namespace) -> None:
+    """Report (or with --apply, delete) facts from older ingest runs.
+
+    Ingest itself never deletes; this is the one, explicitly-invoked deletion
+    path. Local backend only.
+    """
+    from agent_graph_system.graph.local import engine
+
+    if args.kind == "project":
+        parent_id = f"Project::{args.name}"
+        root_ids = [parent_id, f"Strategy::{args.name}"]
+        scope_prop = "project"
+    else:  # paper
+        parent_id = f"Paper::{args.name}"
+        root_ids = [parent_id]
+        scope_prop = "paper"
+
+    parent = engine.get_node(parent_id)
+    if parent is None:
+        log.error("%s is not in the graph — ingest it first.", parent_id)
+        sys.exit(1)
+    run_marker = parent.get("last_ingest_run")
+    if not run_marker:
+        log.error(
+            "%s has no last_ingest_run marker (legacy ingest) — re-ingest it "
+            "before pruning so current facts are stamped.", parent_id,
+        )
+        sys.exit(1)
+
+    report = engine.prune_stale(
+        root_ids, run_marker,
+        scope_prop=scope_prop, scope_value=args.name,
+        apply=args.apply,
+    )
+    if report["dry_run"]:
+        log.info(
+            "Dry run — %d stale edge(s), %d stale node(s); pass --apply to delete.",
+            len(report["edges"]), len(report["nodes"]),
+        )
+    print(json.dumps(report, indent=2, default=str))
+
+
 def cmd_query(args: argparse.Namespace) -> None:
     """Run a named query or GraphRAG search."""
     from agent_graph_system.graph.cypher import queries as cq
@@ -258,6 +301,18 @@ def build_parser() -> argparse.ArgumentParser:
     cp.add_argument("--no-ingest", action="store_true",
                     help="Read the graph as-is instead of (re)ingesting from disk first")
 
+    # prune
+    prune_p = sub.add_parser(
+        "prune",
+        help="Remove facts not refreshed by the latest ingest run "
+             "(dry-run by default; local backend only)",
+    )
+    prune_p.add_argument("kind", choices=["project", "paper"],
+                         help="Parent type to prune under")
+    prune_p.add_argument("name", help="Project name or arXiv id")
+    prune_p.add_argument("--apply", action="store_true",
+                         help="Actually delete; without this, print a dry-run report")
+
     # query
     query_p = sub.add_parser("query", help="Run a named Cypher query or GraphRAG search")
     query_p.add_argument("query_name", help=(
@@ -292,6 +347,7 @@ def main() -> None:
         "ingest-project": cmd_ingest_project,
         "ingest-paper": cmd_ingest_paper,
         "context-pack":   cmd_context_pack,
+        "prune":   cmd_prune,
         "query":   cmd_query,
         "agent":   cmd_agent,
         "api":     cmd_api,
