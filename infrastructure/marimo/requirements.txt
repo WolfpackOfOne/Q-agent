@@ -1,4 +1,4 @@
-marimo>=0.23.8
+marimo>=0.23.9
 nbformat>=5.10.4
 pandas>=3.0.3
 numpy>=1.26.0
