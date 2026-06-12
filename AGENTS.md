@@ -26,6 +26,7 @@ Q-agent/
 │   └── pipelines/
 │       ├── crypto/              # CCXT crypto OHLCV pipeline
 │       ├── edgar/               # SEC EDGAR fundamentals (edgartools)
+│       ├── massive/             # Massive.com (ex-Polygon.io) EOD US futures + options pipeline
 │       ├── openbb/              # OpenBB Platform notes (interactive use)
 │       ├── polymarket/          # Polymarket metadata and prices pipeline
 │       ├── wrds/                # WRDS/CRSP pipeline

@@ -4,6 +4,7 @@ testpaths = ["tests"]
 pythonpath = [
     ".",
     "infrastructure/pipelines/yfinance/src",
+    "infrastructure/pipelines/massive/src",
 ]
 addopts = [
     "-ra",
