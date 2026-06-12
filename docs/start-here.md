@@ -59,8 +59,7 @@ lean cloud push --project "MyFirstStrategy" --force
 lean cloud backtest "MyFirstStrategy" --name "baseline"
 ```
 
-Prefer a containerised LEAN CLI? Mount your QuantConnect credentials read-only
-into the Docker image:
+Prefer a containerised LEAN CLI? Mount your QuantConnect credentials read-only into the Docker image:
 
 ```bash
 docker run --rm -it \
@@ -71,8 +70,7 @@ docker run --rm -it \
                        && lean cloud backtest MyFirstStrategy --name baseline"
 ```
 
-Note: `lean backtest` (local) is host-only — the container does not bundle a
-nested LEAN engine container. See [Docker](docker.md) for the full workflow.
+Note: `lean backtest` (local) is host-only — the container does not bundle a nested LEAN engine container. See [Docker](docker.md) for the full workflow.
 
 ---
 
@@ -82,8 +80,8 @@ You have a data source — an API, a CSV feed, a database — and want to make i
 
 **Start with:**
 
-1. [Data Pipelines Overview](pipelines/index.md) — understand the existing pipeline conventions and output format
-2. Look at an existing pipeline for reference: `infrastructure/pipelines/crypto/` is the cleanest example
+1. [Data Pipelines Overview](pipelines/index.md) — understand the existing pipeline conventions and output formats
+2. Look at an existing pipeline for reference: `infrastructure/pipelines/crypto/` is the cleanest LEAN-ready example
 3. The `new-pipeline-coder` agent in `.claude/agents/` will scaffold the full pipeline structure for you
 
 **First action:** Ask Claude Code to scaffold a new pipeline.
@@ -93,7 +91,7 @@ claude "Create a new pipeline for [your data source] following the pattern
 in infrastructure/pipelines/crypto/"
 ```
 
-**Output format:** All pipelines write LEAN-compatible CSV files to `infrastructure/pipelines/<name>/data/`. See [Pipelines Overview](pipelines/index.md) for the schema.
+**Output format:** Pipelines write to `data/` for raw/intermediate/research CSVs, `lean-data/` for LEAN-ready outputs, or both. See [Pipelines Overview](pipelines/index.md) for the conventions and schema notes.
 
 ---
 
