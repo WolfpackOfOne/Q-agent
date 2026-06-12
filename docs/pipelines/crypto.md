@@ -1,6 +1,6 @@
 # Crypto Pipeline
 
-OHLCV price data for BTC, ETH, and SOL from Coinbase and Kraken, written to LEAN-compatible CSV format.
+OHLCV price data for BTC, ETH, and SOL from Coinbase and Kraken, written to LEAN-compatible zip files.
 
 ## What it provides
 
@@ -35,29 +35,41 @@ python infrastructure/pipelines/crypto/scripts/run_pipeline.py --exchange coinba
 python infrastructure/pipelines/crypto/scripts/run_pipeline.py --exchange kraken --pairs SOL/USD SOL/USDT SOL/USDC
 ```
 
-Output lands in `infrastructure/pipelines/crypto/data/`.
+By default, output lands in:
+
+```text
+infrastructure/pipelines/crypto/lean-data/
+```
+
+Use `--lean-root` to write to a different LEAN data folder.
 
 ## Output schema
+
+Daily rows inside the generated LEAN zip files follow the pipeline's crypto data schema:
 
 ```
 Date,Open,High,Low,Close,Volume
 20240101,4301245000,4341230000,4289340000,4329870000,12847350000
 ```
 
-Prices are multiplied by 10,000 per LEAN's internal format. Dates are `YYYYMMDD`.
+Prices are multiplied by 10,000 per the pipeline's LEAN normalization. Dates are `YYYYMMDD`.
 
 ## Using in a notebook
 
 ```python
 import pandas as pd
 
+zip_path = "infrastructure/pipelines/crypto/lean-data/coinbase/daily/btcusd.zip"
 df = pd.read_csv(
-    "infrastructure/pipelines/crypto/data/coinbase/btcusd.csv",
+    zip_path,
     names=["date", "open", "high", "low", "close", "volume"],
-    parse_dates=["date"]
+    parse_dates=["date"],
 )
 df[["open", "high", "low", "close"]] /= 10_000
 ```
+
+!!! note
+    Check the exact generated path after running the pipeline. Exchange and resolution are part of the output path.
 
 ## Known issues
 
