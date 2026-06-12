@@ -41,6 +41,19 @@ def test_mixed_success_and_failure_with_skip():
     assert result.failures == result.errors
 
 
+def test_none_result_counts_as_success():
+    async def returns_none(_x: int) -> None:
+        return None
+
+    result = asyncio.run(batch_run(returns_none, [1, 2, 3]))
+
+    assert result.results == [None, None, None]
+    assert result.succeeded == [True, True, True]
+    assert result.success_count == 3
+    assert result.failure_count == 0
+    assert result.successes == [(0, None), (1, None), (2, None)]
+
+
 def test_on_error_raise_propagates_first_failure():
     async def maybe_fail(x: int) -> int:
         if x == 2:

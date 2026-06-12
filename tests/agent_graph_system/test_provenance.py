@@ -85,6 +85,34 @@ def test_merge_into_empty_keeps_new_observed_at():
     assert merged[f"{PROV_PREFIX}observed_at"] == "2026-05-01T00:00:00+00:00"
 
 
+def test_merge_clears_stale_optional_fields_not_in_new_provenance():
+    first = Provenance.from_document(
+        "x", source_kind=SourceKind.ARXIV, source_uri="arxiv:2401.12345",
+        page=3, quote="original quote",
+    )
+    existing = first.as_props()
+    assert f"{PROV_PREFIX}page" in existing
+    assert f"{PROV_PREFIX}quote" in existing
+
+    second = Provenance(extractor="x")  # no document fields this time
+    merged = merge_provenance_props(existing, second)
+
+    assert merged[f"{PROV_PREFIX}page"] is None
+    assert merged[f"{PROV_PREFIX}quote"] is None
+    restored = provenance_from_props({**existing, **merged})
+    assert restored is not None
+    assert restored.page is None
+    assert restored.quote is None
+
+
+def test_merge_does_not_add_optional_fields_absent_from_both():
+    existing = Provenance(extractor="x").as_props()
+    second = Provenance(extractor="x")
+    merged = merge_provenance_props(existing, second)
+    assert f"{PROV_PREFIX}quote" not in merged
+    assert f"{PROV_PREFIX}page" not in merged
+
+
 @pytest.mark.parametrize(
     "confidence,expected",
     [(0.5, True), (0.74, True), (0.75, False), (0.99, False), (1.0, False)],

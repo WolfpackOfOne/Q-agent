@@ -21,22 +21,24 @@ OutputT = TypeVar("OutputT")
 class BatchResult(Generic[OutputT]):
     """Aggregate result of running a flow over many inputs.
 
-    ``results[i]`` is the output for ``inputs[i]`` or ``None`` if that
-    input failed. ``errors`` carries ``(index, exception)`` for every
-    failure, sorted by index.
+    ``results[i]`` is the output for ``inputs[i]``, which may legitimately be
+    ``None`` on success — ``succeeded[i]`` disambiguates that from a failed
+    input. ``errors`` carries ``(index, exception)`` for every failure, sorted
+    by index.
     """
 
     total: int
     success_count: int
     failure_count: int
     results: list[OutputT | None]
+    succeeded: list[bool]
     errors: list[tuple[int, Exception]]
     duration_seconds: float
 
     @property
-    def successes(self) -> list[tuple[int, OutputT]]:
+    def successes(self) -> list[tuple[int, OutputT | None]]:
         """``(index, result)`` for every input that succeeded."""
-        return [(i, r) for i, r in enumerate(self.results) if r is not None]
+        return [(i, r) for i, (ok, r) in enumerate(zip(self.succeeded, self.results)) if ok]
 
     @property
     def failures(self) -> list[tuple[int, Exception]]:
@@ -88,12 +90,14 @@ async def batch_run(
             success_count=0,
             failure_count=0,
             results=[],
+            succeeded=[],
             errors=[],
             duration_seconds=0.0,
         )
 
     sem = asyncio.Semaphore(concurrency)
     results: list[OutputT | None] = [None] * len(inputs)
+    succeeded: list[bool] = [False] * len(inputs)
     errors: list[tuple[int, Exception]] = []
     started = time.monotonic()
     done_counter = 0
@@ -103,6 +107,7 @@ async def batch_run(
         async with sem:
             try:
                 results[i] = await fn(inp, **fn_kwargs)
+                succeeded[i] = True
             except Exception as exc:
                 errors.append((i, exc))
                 if on_error == "raise":
@@ -116,9 +121,10 @@ async def batch_run(
 
     return BatchResult(
         total=len(inputs),
-        success_count=sum(1 for r in results if r is not None),
+        success_count=sum(succeeded),
         failure_count=len(errors),
         results=results,
+        succeeded=succeeded,
         errors=sorted(errors, key=lambda t: t[0]),
         duration_seconds=time.monotonic() - started,
     )

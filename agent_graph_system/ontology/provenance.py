@@ -234,6 +234,16 @@ def provenance_from_props(props: dict[str, Any]) -> Provenance | None:
     )
 
 
+# Optional fields that as_props() omits when None. If a re-observed fact no
+# longer carries one of these (e.g. a citation losing its page/quote), the
+# stale value must be explicitly cleared rather than left behind by
+# existing.update(merged).
+_OPTIONAL_PROV_FIELDS = (
+    "source_file", "line", "source_hash",
+    "source_kind", "source_uri", "page", "char_offset", "quote",
+)
+
+
 def merge_provenance_props(
     existing: dict[str, Any], new_prov: Provenance
 ) -> dict[str, Any]:
@@ -241,12 +251,18 @@ def merge_provenance_props(
 
     Re-running an extractor should refresh ``last_seen`` while keeping the
     original ``observed_at`` (the fact was first seen earlier). Everything else
-    takes the new values.
+    takes the new values. Optional fields present on ``existing`` but absent
+    from ``new_prov`` are explicitly set to ``None`` so the merge clears them
+    instead of leaving the stale value in place.
     """
     merged = new_prov.as_props()
     prior_observed = existing.get(f"{PROV_PREFIX}observed_at")
     if prior_observed:
         merged[f"{PROV_PREFIX}observed_at"] = prior_observed
+    for field_name in _OPTIONAL_PROV_FIELDS:
+        prov_key = f"{PROV_PREFIX}{field_name}"
+        if prov_key not in merged and prov_key in existing:
+            merged[prov_key] = None
     return merged
 
 
