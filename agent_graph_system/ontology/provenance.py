@@ -14,6 +14,15 @@ carry a small, flat block of provenance metadata:
     observed_at     first time this fact was seen
     last_seen       most recent time this fact was re-observed
 
+Document-derived facts (e.g. paper ingestion) carry an additional, optional
+set of fields anchoring the fact to a span of an external source:
+
+    source_kind     SourceKind — code | arxiv | http | doi | local_doc | manual
+    source_uri      e.g. "arxiv:2401.12345"
+    page            page number within the source, if any
+    char_offset     character offset within the page/source, if any
+    quote           supporting quote, capped at MAX_QUOTE_LENGTH chars
+
 Provenance keys are stored on nodes/edges under the ``prov_`` prefix so they
 never collide with domain properties, and so a single helper
 (:func:`provenance_from_props`) can round-trip them back into a
@@ -41,6 +50,10 @@ PROV_PREFIX = "prov_"
 # surfaced separately (e.g. the context-pack's "low-confidence facts" section).
 DEFAULT_CONFIDENCE_THRESHOLD = 0.75
 
+# Quotes longer than this are truncated when stored as provenance, mirroring
+# QuantMind's `Citation.quote: str = Field(max_length=500)`.
+MAX_QUOTE_LENGTH = 500
+
 
 class AssertionType(str, Enum):
     """How a fact came to be — ordered loosely from most to least trusted."""
@@ -49,6 +62,17 @@ class AssertionType(str, Enum):
     EXTRACTED = "extracted"    # parsed from source code, notebooks, docs, or config
     INFERRED = "inferred"      # derived by a deterministic rule
     LEARNED = "learned"        # suggested by an LLM or statistical model
+
+
+class SourceKind(str, Enum):
+    """The kind of external source a document-derived fact was read from."""
+
+    CODE = "code"              # source_file/line — existing code-derived behavior
+    ARXIV = "arxiv"
+    HTTP = "http"
+    DOI = "doi"
+    LOCAL_DOC = "local_doc"
+    MANUAL = "manual"
 
 
 def _now_iso() -> str:
@@ -73,6 +97,20 @@ class Provenance:
     observed_at: str = field(default_factory=_now_iso)
     last_seen: str = field(default_factory=_now_iso)
 
+    # Document-derived provenance — all optional, additive (#64). These let a
+    # fact point at a span of an external source (an arXiv paper, a web page,
+    # ...) rather than a line in a source file.
+    source_kind: SourceKind | None = None
+    source_uri: str | None = None
+    page: int | None = None
+    char_offset: int | None = None
+    quote: str | None = None
+
+    def __post_init__(self) -> None:
+        if self.quote is not None and len(self.quote) > MAX_QUOTE_LENGTH:
+            # Frozen dataclass: bypass __setattr__ to truncate in place.
+            object.__setattr__(self, "quote", self.quote[:MAX_QUOTE_LENGTH])
+
     # -- convenience constructors -------------------------------------------
     @classmethod
     def declared(cls, extractor: str, **kw: Any) -> Provenance:
@@ -86,6 +124,35 @@ class Provenance:
     @classmethod
     def inferred(cls, extractor: str, **kw: Any) -> Provenance:
         return cls(extractor=extractor, assertion_type=AssertionType.INFERRED, **kw)
+
+    @classmethod
+    def from_document(
+        cls,
+        extractor: str,
+        *,
+        source_kind: SourceKind,
+        source_uri: str,
+        assertion_type: AssertionType = AssertionType.EXTRACTED,
+        page: int | None = None,
+        char_offset: int | None = None,
+        quote: str | None = None,
+        **kw: Any,
+    ) -> Provenance:
+        """Provenance for a fact extracted from an external document.
+
+        E.g. a ``CITES`` edge written by issue #63's paper ingestion,
+        anchored to a page/quote in an arXiv PDF.
+        """
+        return cls(
+            extractor=extractor,
+            assertion_type=assertion_type,
+            source_kind=source_kind,
+            source_uri=source_uri,
+            page=page,
+            char_offset=char_offset,
+            quote=quote,
+            **kw,
+        )
 
     # -- serialization ------------------------------------------------------
     def as_props(self) -> dict[str, Any]:
@@ -106,6 +173,16 @@ class Provenance:
             props[f"{PROV_PREFIX}line"] = int(self.line)
         if self.source_hash is not None:
             props[f"{PROV_PREFIX}source_hash"] = self.source_hash
+        if self.source_kind is not None:
+            props[f"{PROV_PREFIX}source_kind"] = self.source_kind.value
+        if self.source_uri is not None:
+            props[f"{PROV_PREFIX}source_uri"] = self.source_uri
+        if self.page is not None:
+            props[f"{PROV_PREFIX}page"] = int(self.page)
+        if self.char_offset is not None:
+            props[f"{PROV_PREFIX}char_offset"] = int(self.char_offset)
+        if self.quote is not None:
+            props[f"{PROV_PREFIX}quote"] = self.quote
         return props
 
 
@@ -127,7 +204,19 @@ def provenance_from_props(props: dict[str, Any]) -> Provenance | None:
     except ValueError:
         assertion = AssertionType.EXTRACTED
 
+    raw_kind = _get("source_kind")
+    source_kind: SourceKind | None
+    if raw_kind is None:
+        source_kind = None
+    else:
+        try:
+            source_kind = SourceKind(str(raw_kind))
+        except ValueError:
+            source_kind = None
+
     line = _get("line")
+    page = _get("page")
+    char_offset = _get("char_offset")
     return Provenance(
         extractor=str(_get("extractor", "unknown")),
         assertion_type=assertion,
@@ -137,7 +226,22 @@ def provenance_from_props(props: dict[str, Any]) -> Provenance | None:
         source_hash=_get("source_hash"),
         observed_at=str(_get("observed_at", _now_iso())),
         last_seen=str(_get("last_seen", _now_iso())),
+        source_kind=source_kind,
+        source_uri=_get("source_uri"),
+        page=int(page) if page is not None else None,
+        char_offset=int(char_offset) if char_offset is not None else None,
+        quote=_get("quote"),
     )
+
+
+# Optional fields that as_props() omits when None. If a re-observed fact no
+# longer carries one of these (e.g. a citation losing its page/quote), the
+# stale value must be explicitly cleared rather than left behind by
+# existing.update(merged).
+_OPTIONAL_PROV_FIELDS = (
+    "source_file", "line", "source_hash",
+    "source_kind", "source_uri", "page", "char_offset", "quote",
+)
 
 
 def merge_provenance_props(
@@ -147,12 +251,18 @@ def merge_provenance_props(
 
     Re-running an extractor should refresh ``last_seen`` while keeping the
     original ``observed_at`` (the fact was first seen earlier). Everything else
-    takes the new values.
+    takes the new values. Optional fields present on ``existing`` but absent
+    from ``new_prov`` are explicitly set to ``None`` so the merge clears them
+    instead of leaving the stale value in place.
     """
     merged = new_prov.as_props()
     prior_observed = existing.get(f"{PROV_PREFIX}observed_at")
     if prior_observed:
         merged[f"{PROV_PREFIX}observed_at"] = prior_observed
+    for field_name in _OPTIONAL_PROV_FIELDS:
+        prov_key = f"{PROV_PREFIX}{field_name}"
+        if prov_key not in merged and prov_key in existing:
+            merged[prov_key] = None
     return merged
 
 

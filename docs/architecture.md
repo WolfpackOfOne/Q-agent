@@ -216,7 +216,13 @@ facts are surfaced separately from authoritative ones.
 ```bash
 python -m agent_graph_system.main ingest-project MyProjects/ElectionIndustryBeta
 python -m agent_graph_system.main context-pack MyProjects/ElectionIndustryBeta --format md
+python -m agent_graph_system.main ingest-paper 2401.12345
 ```
+
+A separate `ingestion/papers/` module fetches and parses arXiv papers into
+`Paper`/`PaperSection` nodes (and `Strategy -[CITES]-> Paper` edges), using the
+same provenance scheme extended with document-anchored fields (`source_kind`,
+`page`, `quote`, ...).
 
 Full reference and CLI: see `agent_graph_system/README.md` and
 `agent_graph_system/claude.md` in the repository root.

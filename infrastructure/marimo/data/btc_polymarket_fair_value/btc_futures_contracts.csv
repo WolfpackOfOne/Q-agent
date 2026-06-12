@@ -1,0 +1,3 @@
+label,column,symbol,month_offset,contract_month_end
+1M,btc_1m_future,BTCM26.CME,1,2026-06-30
+3M,btc_3m_future,BTCQ26.CME,3,2026-08-31

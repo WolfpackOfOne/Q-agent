@@ -4,15 +4,58 @@ Q-agent ships with ready-made pipelines for the most common quantitative researc
 
 ---
 
-## Available pipelines
+## Pipeline maturity
 
-| Pipeline | Data | Credentials | Status |
+| Label | Meaning |
+|---|---|
+| **Stable** | Documented, actively used, tested end-to-end |
+| **Data-committed** | Processed snapshots committed to the repo; scripts available but re-running is optional |
+| **Experimental** | Scripts exist but coverage, schema, and documentation are still evolving |
+
+---
+
+## Fully documented pipelines
+
+These five pipelines have dedicated docs pages, end-to-end examples, and are the
+recommended starting points for new research.
+
+| Pipeline | Data | Credentials | Maturity |
 |---|---|---|---|
-| [Crypto](crypto.md) | BTC / ETH / SOL OHLCV (Coinbase, Kraken) | None | ✅ Available |
-| [Polymarket](polymarket.md) | Prediction market YES-token prices | None | ✅ Available |
-| [WRDS / CRSP](wrds.md) | 30-stock equity universe, daily 1998–present | WRDS institutional | ✅ Available |
-| [SEC EDGAR](edgar.md) | Income statements, balance sheets, cash flow | None | ✅ Available |
-| [yfinance](yfinance.md) | Any Yahoo Finance ticker, free | None | ✅ Available |
+| [Crypto](crypto.md) | BTC / ETH / SOL OHLCV (Coinbase, Kraken) | None | **Stable** |
+| [Polymarket](polymarket.md) | Prediction market YES-token prices | None | **Stable** |
+| [WRDS / CRSP](wrds.md) | 30-stock equity universe, daily 1998–present | WRDS institutional | **Stable** |
+| [SEC EDGAR](edgar.md) | Income statements, balance sheets, cash flow | None | **Stable** |
+| [yfinance](yfinance.md) | Any Yahoo Finance ticker, free | None | **Stable** |
+
+---
+
+## Committed-data pipelines
+
+These pipelines have processed snapshots committed to the repository under
+`infrastructure/pipelines/<name>/data/processed/`. The notebooks that use them
+work offline without re-running the scripts. Re-run the scripts to refresh.
+
+| Pipeline | Data committed | Scripts at |
+|---|---|---|
+| `passive_share` | Logistic passive-share scenarios and thresholds (Haddad et al. / Brightman–Harvey calibrations) | `infrastructure/pipelines/passive_share/` |
+| `etf_flows` | Broad-market ETF price/volume panel (SPY, IVV, VOO, VTI) | `infrastructure/pipelines/etf_flows/` |
+| `equity_liquidity` | Demo equity liquidity panel (10-stock universe, realized vol, ADV, drawdown) | `infrastructure/pipelines/equity_liquidity/` |
+
+These pipelines feed the [Passive Market Instability](../research-recipes/passive-market-instability-extension.md) research notebook directly.
+
+---
+
+## Experimental pipelines
+
+These pipelines exist in `infrastructure/pipelines/` but documentation, schema
+stability, and test coverage are still evolving. Use with caution and expect
+breaking changes.
+
+| Pipeline | Data | Notes |
+|---|---|---|
+| `treasury_gov_rates` | US Treasury par yield rates (treasury.gov) | Maturity: **Experimental** |
+| `fixed_income` | Fixed-income and bond data | Maturity: **Experimental** |
+| `macro_rates` | Macro rate series (Fed, TIPS, OIS) | Maturity: **Experimental** |
 
 ---
 

@@ -5,9 +5,11 @@ from __future__ import annotations
 import pytest
 
 from agent_graph_system.ontology.provenance import (
+    MAX_QUOTE_LENGTH,
     PROV_PREFIX,
     AssertionType,
     Provenance,
+    SourceKind,
     is_low_confidence,
     merge_provenance_props,
     provenance_from_props,
@@ -83,6 +85,34 @@ def test_merge_into_empty_keeps_new_observed_at():
     assert merged[f"{PROV_PREFIX}observed_at"] == "2026-05-01T00:00:00+00:00"
 
 
+def test_merge_clears_stale_optional_fields_not_in_new_provenance():
+    first = Provenance.from_document(
+        "x", source_kind=SourceKind.ARXIV, source_uri="arxiv:2401.12345",
+        page=3, quote="original quote",
+    )
+    existing = first.as_props()
+    assert f"{PROV_PREFIX}page" in existing
+    assert f"{PROV_PREFIX}quote" in existing
+
+    second = Provenance(extractor="x")  # no document fields this time
+    merged = merge_provenance_props(existing, second)
+
+    assert merged[f"{PROV_PREFIX}page"] is None
+    assert merged[f"{PROV_PREFIX}quote"] is None
+    restored = provenance_from_props({**existing, **merged})
+    assert restored is not None
+    assert restored.page is None
+    assert restored.quote is None
+
+
+def test_merge_does_not_add_optional_fields_absent_from_both():
+    existing = Provenance(extractor="x").as_props()
+    second = Provenance(extractor="x")
+    merged = merge_provenance_props(existing, second)
+    assert f"{PROV_PREFIX}quote" not in merged
+    assert f"{PROV_PREFIX}page" not in merged
+
+
 @pytest.mark.parametrize(
     "confidence,expected",
     [(0.5, True), (0.74, True), (0.75, False), (0.99, False), (1.0, False)],
@@ -103,6 +133,67 @@ def test_source_hash_is_stable_and_short():
     assert h1 == h2
     assert len(h1) == 12
     assert source_hash("different") != h1
+
+
+# --- document provenance: SourceKind / from_document (#64) -----------------
+
+def test_from_document_sets_source_kind_and_citation_fields():
+    prov = Provenance.from_document(
+        "arxiv_paper_extractor",
+        source_kind=SourceKind.ARXIV,
+        source_uri="arxiv:2401.12345",
+        page=4,
+        char_offset=1200,
+        quote="This is the supporting sentence.",
+    )
+    assert prov.assertion_type is AssertionType.EXTRACTED
+    assert prov.source_kind is SourceKind.ARXIV
+    assert prov.source_uri == "arxiv:2401.12345"
+    assert prov.page == 4
+    assert prov.char_offset == 1200
+    assert prov.quote == "This is the supporting sentence."
+
+    props = prov.as_props()
+    assert props[f"{PROV_PREFIX}source_kind"] == "arxiv"
+    assert props[f"{PROV_PREFIX}source_uri"] == "arxiv:2401.12345"
+    assert props[f"{PROV_PREFIX}page"] == 4
+    assert props[f"{PROV_PREFIX}char_offset"] == 1200
+    assert props[f"{PROV_PREFIX}quote"] == "This is the supporting sentence."
+
+    restored = provenance_from_props(props)
+    assert restored == prov
+
+
+def test_from_document_allows_overriding_assertion_type():
+    prov = Provenance.from_document(
+        "research_agent",
+        source_kind=SourceKind.MANUAL,
+        source_uri="manual:analyst-note",
+        assertion_type=AssertionType.LEARNED,
+    )
+    assert prov.assertion_type is AssertionType.LEARNED
+    assert prov.as_props()[f"{PROV_PREFIX}assertion_type"] == "learned"
+
+
+def test_quote_is_truncated_to_max_length():
+    long_quote = "x" * (MAX_QUOTE_LENGTH + 100)
+    prov = Provenance(extractor="x", quote=long_quote)
+    assert len(prov.quote) == MAX_QUOTE_LENGTH
+    assert prov.as_props()[f"{PROV_PREFIX}quote"] == "x" * MAX_QUOTE_LENGTH
+
+
+def test_unknown_source_kind_falls_back_to_none():
+    restored = provenance_from_props({f"{PROV_PREFIX}source_kind": "bogus"})
+    assert restored is not None
+    assert restored.source_kind is None
+
+
+def test_document_fields_omitted_when_none():
+    # Backward-compat: a Provenance built without document fields produces the
+    # exact same prop bag as before #64 — no new prov_* keys leak in as None.
+    props = Provenance(extractor="x").as_props()
+    for key in ("source_kind", "source_uri", "page", "char_offset", "quote"):
+        assert f"{PROV_PREFIX}{key}" not in props
 
 
 # --- engine write-path integration (uses autouse clean_graph fixture) -------

@@ -55,9 +55,11 @@ relationships:
       - version: string
 
   CONTAINS:
-    description: "Repository or workflow contains sub-entities"
-    from: [Repository, Workflow]
-    to: [Notebook, Pipeline, Strategy]
+    # Single definition for workspace containment — top-level YAML keys are
+    # last-wins, so never re-declare CONTAINS further down this file.
+    description: "Repository, workflow, or project contains sub-entities"
+    from: [Repository, Workflow, Project]
+    to: [Notebook, Pipeline, Strategy, File, ResearchNotebook, ConfigParam, Module, Doc, AgentTask]
 
   MONITORS:
     description: "Agent monitors a resource for changes"
@@ -116,3 +118,159 @@ relationships:
     to: [Repository, Dataset, API]
     properties:
       - trigger_type: enum[webhook, schedule, manual, event]
+
+# ── Workspace graph extensions ────────────────────────────────────────────────
+# Merged from the ingestion/quantconnect/ writer (shipped — see graph_writer.py)
+# and the hybrid property-graph-first design (issue #54 — planned). For edges
+# ingestion already writes, the shipped from/to pairs are noted in a comment;
+# additional endpoints and properties are planned and not yet written by any
+# extractor.
+
+  # ── Structural / code-graph edges ──────────────────────────────────────────
+
+  DEFINES:
+    description: "File or module defines a module, signal, function, class, or config param"
+    # ingestion writes: File → Module, File → Signal (no properties)
+    from: [File, Module]
+    to: [Module, Signal, Function, Class, ConfigParam]
+    properties:
+      - line: int                # planned (issue #54)
+
+  IMPORTS:
+    description: "File imports another file (direct Python dependency)"
+    # planned (issue #54). The design used Module → Module, but ingestion uses
+    # Module for classes — File is the importable unit in the current schema.
+    from: [File]
+    to: [File]
+    properties:
+      - alias: string
+      - import_style: enum[direct, from, star]
+
+  HAS_DOC:
+    description: "Node has an associated documentation file or docstring"
+    # ingestion writes: Project → File (kind=doc); other endpoints are planned
+    from: [Project, Strategy, ResearchNotebook, Signal, Pipeline, File, Module, Function, Class]
+    to: [File, Doc]
+    properties:
+      - doc_scope: enum[readme, inline, architecture, strategy]   # planned (issue #54)
+
+  READS:
+    description: "Strategy, notebook, or pipeline reads a dataset, file, or ObjectStore key"
+    # ingestion writes: Strategy/ResearchNotebook → ObjectStoreKey (no properties)
+    from: [Strategy, ResearchNotebook, Notebook, Pipeline]
+    to: [ObjectStoreKey, Dataset, File]
+    properties:
+      - read_at: datetime        # planned (issue #54)
+      - path: string             # planned (issue #54)
+
+  WRITES:
+    description: "Strategy, notebook, pipeline, or backtest writes a dataset, file, or ObjectStore key"
+    # ingestion writes: Strategy/ResearchNotebook → ObjectStoreKey (no properties)
+    from: [Strategy, ResearchNotebook, Notebook, Pipeline, LeanBacktest]
+    to: [ObjectStoreKey, Dataset, File]
+    properties:
+      - written_at: datetime     # planned (issue #54)
+      - path: string             # planned (issue #54)
+
+  # ── Workspace hierarchy edges (issue #54) ──────────────────────────────────
+  # Workspace containment lives on the single CONTAINS definition above.
+
+  BELONGS_TO_PROJECT:
+    description: "Workspace object belongs to a specific project"
+    from: [ResearchNotebook, LeanBacktest, Signal, ObjectStoreKey, ConfigParam, File, AgentTask]
+    to: [Project]
+
+  # ── Provenance / extraction edges ───────────────────────────────────────────
+
+  DERIVED_FROM:
+    description: "Dataset or signal was derived from another dataset (data lineage)"
+    from: [Dataset, Signal]
+    to: [Dataset, Pipeline]
+    properties:
+      - transform: string
+      - derived_at: datetime
+
+  OBSERVED_BY:
+    description: "A node or fact was observed/extracted by an ExtractionRun"
+    from: [Observation, File, Function, Class, Module]
+    to: [ExtractionRun]
+    properties:
+      - first_seen: datetime
+
+  # ── Policy / enforcement edges ──────────────────────────────────────────────
+
+  VIOLATES:
+    description: "A node violates a policy rule (blocking or warning)"
+    from: [Strategy, LeanBacktest, Dataset, Pipeline]
+    to: [PolicyDecision]
+    properties:
+      - severity: enum[info, warning, blocking]
+      - detected_at: datetime
+
+  ALLOWED_BY:
+    description: "A node was explicitly allowed by a policy decision"
+    from: [Strategy, LeanBacktest]
+    to: [PolicyDecision]
+    properties:
+      - allowed_at: datetime
+
+  DENIED_BY:
+    description: "A node was explicitly denied by a policy decision"
+    from: [Strategy, LeanBacktest]
+    to: [PolicyDecision]
+    properties:
+      - denied_at: datetime
+
+  RAISES:
+    description: "Validation or extraction raised a risk flag"
+    from: [ExtractionRun, Pipeline, ResearchNotebook]
+    to: [RiskFlag]
+    properties:
+      - raised_at: datetime
+
+  # ── Suggestion / inference edges (non-authoritative) ───────────────────────
+
+  SUGGESTS:
+    description: "An extraction or LLM suggests a relationship (low-trust; never enforced directly)"
+    from: [ExtractionRun, Agent, Observation]
+    to: [Project, Strategy, Dataset, Signal, Function, Class]
+    properties:
+      - confidence: float
+      - suggestion_type: enum[dependency, usage, similarity, categorization]
+      - suggested_at: datetime
+
+  # ── Similarity / embedding edges (retrieval evidence only) ─────────────────
+  # IMPORTANT: SIMILAR_TO is retrieval evidence, not dependency truth.
+  # It must never be confused with DEPENDS_ON, IMPORTS, READS, or WRITES.
+  # Agents querying for hard dependencies must exclude SIMILAR_TO edges.
+
+  SIMILAR_TO:
+    description: "Two nodes are semantically similar (embedding-backed; retrieval evidence only)"
+    from: [Doc, File, ResearchNotebook, AgentTask, Signal]
+    to: [Doc, File, ResearchNotebook, AgentTask, Signal]
+    properties:
+      - similarity_score: float
+      - embedding_model: string
+      - embedding_dim: int
+      - computed_at: datetime
+      - source_hash_a: string
+      - source_hash_b: string
+    constraints:
+      - "similarity_score must be in [0.0, 1.0]"
+      - "self-similarity edges (a == b) are forbidden"
+      - "this edge type must never be used as a dependency or lineage source"
+
+  # --- ingestion/papers/ (#63) ------------------------------------------------
+
+  HAS_SECTION:
+    description: "Paper has a section"
+    from: [Paper]
+    to: [PaperSection]
+
+  CITES:
+    description: >
+      Strategy cites a paper as research backing. Anchoring details
+      (page, quote) are carried as provenance (prov_page, prov_quote) via
+      Provenance.from_document, not as domain properties.
+    from: [Strategy]
+    to: [Paper]
