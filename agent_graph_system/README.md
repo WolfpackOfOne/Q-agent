@@ -39,6 +39,7 @@ graph TD
     subgraph Ingestion["ingestion/"]
         GH["github/<br/><small>repo notebooks</small>"]
         QC["quantconnect/<br/><small>MyProjects parser + writer</small>"]
+        PAPERS["papers/<br/><small>arXiv fetch + parser + writer</small>"]
     end
 
     subgraph Ontology["ontology/"]
@@ -59,12 +60,15 @@ graph TD
     QC --> PROV
     QC --> BACKEND
     GH --> BACKEND
+    PAPERS --> PROV
+    PAPERS --> BACKEND
     BACKEND --> ENGINE
     POLICY --> RULES
     RULES --> SCHEMA
     BACKEND -. enforces .-> POLICY
     CP --> ENGINE
     CLI --> QC
+    CLI --> PAPERS
     CLI --> CP
 ```
 
@@ -73,13 +77,15 @@ graph TD
 | `config.py` | Env-driven config (Neo4j, Chroma, GitHub, API, `ontology_dir`). |
 | `ontology/rules.py` | Load `rules.yaml`; `Rule.is_hard_gate`; warn on inconsistent metadata. |
 | `ontology/policy.py` | Write-time enforcement (`check_deployment_gate`, `PolicyViolation`). |
-| `ontology/provenance.py` | `Provenance` value object + helpers. |
+| `ontology/provenance.py` | `Provenance` value object + helpers (code- and document-anchored). |
 | `ontology/schema/entities.yaml` | Entity properties + the shared `provenance_fields` block. |
 | `graph/backend.py` | Backend selector — `local` (default) or `neo4j`. |
 | `graph/local/engine.py` | In-process networkx graph; `merge_node`/`merge_relationship`. |
 | `graph/context_pack.py` | Build a per-project context pack (markdown / JSON). |
 | `ingestion/github/` | Generic repo → notebook/dataset graph. |
 | `ingestion/quantconnect/` | MyProjects atomic-project parser + graph writer. |
+| `ingestion/papers/` | arXiv paper fetch + parser + graph writer (Paper/PaperSection). |
+| `utils/batch.py` | `batch_run`/`BatchResult` — async bounded-concurrency fan-out helper. |
 | `rag/`, `agents/`, `api/` | GraphRAG retrieval, agents, FastAPI server. |
 | `main.py` | CLI entry point (see below). |
 
@@ -146,6 +152,33 @@ Re-running an extractor preserves the original `observed_at` and bumps
 from guesses; the context pack uses it to isolate a "low-confidence facts"
 section.
 
+**Document-derived facts** (e.g. paper ingestion) carry an additional,
+optional set of fields anchoring the fact to a span of an *external* source
+rather than a line in a source file:
+
+| field | meaning |
+|---|---|
+| `source_kind` | `SourceKind` — `code` · `arxiv` · `http` · `doi` · `local_doc` · `manual` |
+| `source_uri` | e.g. `"arxiv:2401.12345"` |
+| `page` | page number within the source, if any |
+| `char_offset` | character offset within the page/source, if any |
+| `quote` | supporting quote, truncated to `MAX_QUOTE_LENGTH` (500) chars |
+
+```python
+from agent_graph_system.ontology.provenance import Provenance, SourceKind
+
+prov = Provenance.from_document(
+    "arxiv_paper_extractor",
+    source_kind=SourceKind.ARXIV,
+    source_uri="arxiv:2401.12345",
+    page=4,
+    quote="This is the supporting sentence.",
+)
+```
+
+These fields are additive and omitted from `as_props()` when `None`, so
+code-derived facts produce the same property bag as before.
+
 ## MyProjects ingestion (`ingestion/quantconnect/`)
 
 `parser.parse_project` is **pure** (AST + path classification, no graph imports)
@@ -174,6 +207,41 @@ merge-only (nothing is deleted), but stale facts keep their older `last_seen`,
 so the context pack filters them out and reflects the project *as it is on disk
 now*.
 
+## arXiv paper ingestion (`ingestion/papers/`)
+
+Mirrors the `ingestion/quantconnect/` layout (`fetch.py` + `parser.py` +
+`graph_writer.py`). v1 is **deterministic** (no LLM) — `extract_paper()`'s
+signature is kept stable so an LLM-driven pass can be swapped in later.
+
+- **`fetch.py`** — `extract_arxiv_id` parses modern (`2401.12345`), versioned
+  (`2401.12345v3`), `arXiv:`-prefixed, full-URL, and legacy (`cs.AI/0102001`)
+  ids; `fetch_arxiv` downloads metadata + PDF bytes into a `RawPaper`. The
+  `arxiv`/`httpx` deps are imported lazily so the id-parsing logic stays
+  importable without them.
+- **`parser.py`** — `split_sections` detects numbered/roman/plain headings and
+  classifies each section as `"section"`, `"methodology"`, or `"limitations"`
+  by keyword matching on its title. `pdf_to_text` lazily imports `pypdf`.
+  `extract_paper(raw) -> PaperCard` ties it together.
+- **`graph_writer.py`** — `ingest_paper(arxiv_id)` fetches, parses, and writes:
+  - **Nodes:** `Paper` (keyed by `arxiv_id`), `PaperSection` (keyed by
+    `{arxiv_id}_s{index}`), each stamped with
+    `Provenance.from_document(source_kind=SourceKind.ARXIV, ...)`.
+  - **Edges:** `Paper -[HAS_SECTION]-> PaperSection`.
+  - `strategy_cites_paper(strategy, arxiv_id, quote=..., page=...)` writes a
+    `Strategy -[CITES]-> Paper` edge anchored to a page/quote — what
+    `context_pack.py` can use to answer "what research backs this strategy".
+
+```python
+from agent_graph_system.ingestion.papers.graph_writer import ingest_paper
+
+result = ingest_paper("2401.12345")
+# {"arxiv_id": ..., "title": ..., "section_count": ..., "methodology_count": ..., "limitations_count": ...}
+```
+
+`ResearchAgent.run(mode="ingest_paper", arxiv_id="2401.12345")` is the agent
+entry point; `python -m agent_graph_system.main ingest-paper 2401.12345` is
+the CLI entry point.
+
 ## Context packs (`graph/context_pack.py`)
 
 `build_context_pack(project)` reads the ingested graph and returns a structured
@@ -198,6 +266,7 @@ python -m agent_graph_system.main <command>
 | `init` | Bootstrap indexes and seed agents/pipelines/datasets. |
 | `ingest --repo <path> [--url <url>]` | Ingest a generic repo's notebooks. |
 | `ingest-project <path>` | Ingest one MyProjects/ QuantConnect project. |
+| `ingest-paper <arxiv_id>` | Fetch an arXiv paper and write its sections into the graph. |
 | `context-pack <path> [--format md\|json] [--no-ingest]` | Build a project context pack (re-ingests from disk first unless `--no-ingest`). |
 | `query <name> [question]` | Named Cypher query or `rag` GraphRAG search. |
 | `agent <name>` | Run an agent (coding / monitoring / orchestration / research). |

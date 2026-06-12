@@ -103,6 +103,16 @@ These are the preferred labels for new ingestion and extraction work.
 The legacy labels (`Agent`, `Dataset`, `Notebook`, `Backtest`) remain valid
 for backward compatibility.
 
+> **Schema reconciliation note.** The merged MyProjects ingestion pipeline
+> (`agent_graph_system/ingestion/quantconnect/`) already writes `Project`,
+> `File`, `Module`, `ResearchNotebook`, `Signal`, `ConfigParam`, and
+> `ObjectStoreKey` nodes with specific keys and properties. The schema files
+> (`ontology/schema/*.yaml`) keep those shipped definitions as the base and
+> mark this design's additions as *planned (issue #54)*. Two naming caveats:
+> ingestion uses `Module` for **classes** (keyed `{project}.{class_name}`),
+> so the "importable unit" concept from this design is represented by `File`,
+> and the planned `IMPORTS` edge is `File → File`.
+
 ### Workspace structure nodes
 
 | Label | Description |
@@ -110,9 +120,9 @@ for backward compatibility.
 | `Project` | QuantConnect / research project under `MyProjects/` |
 | `Repository` | A git repository |
 | `File` | A source file tracked in the workspace graph |
-| `Module` | A Python module (importable unit) |
+| `Module` | A class defined within a project file (current ingestion schema; key `{project}.{class_name}`) |
 | `Function` | A Python function or method |
-| `Class` | A Python class definition |
+| `Class` | A Python class definition (planned; ingestion currently writes classes as `Module`) |
 | `Doc` | A documentation file (markdown, RST, or inline docstring) |
 | `ConfigParam` | A named configuration parameter within a project or pipeline |
 | `ObjectStoreKey` | A key in the QuantConnect ObjectStore |
@@ -153,12 +163,12 @@ for backward compatibility.
 | Type | From → To | Meaning |
 |---|---|---|
 | `CONTAINS` | Repository, Project → files/notebooks/strategies | Workspace hierarchy |
-| `DEFINES` | File, Module → Function, Class, Signal | Code structure |
-| `IMPORTS` | Module → Module | Direct Python import |
+| `DEFINES` | File, Module → Module, Function, Class, Signal, ConfigParam | Code structure |
+| `IMPORTS` | File → File | Direct Python import |
 | `DEPENDS_ON` | Notebook, Strategy, Pipeline → Dataset, Pipeline, API | Hard data dependency |
-| `HAS_DOC` | Project, Strategy, Signal, … → Doc | Documentation link |
-| `READS` | ResearchNotebook, Pipeline → Dataset, File, ObjectStoreKey | Runtime data read |
-| `WRITES` | ResearchNotebook, Pipeline, LeanBacktest → Dataset, File | Runtime data write |
+| `HAS_DOC` | Project, Strategy, Signal, … → File, Doc | Documentation link |
+| `READS` | Strategy, ResearchNotebook, Pipeline → ObjectStoreKey, Dataset, File | Runtime data read |
+| `WRITES` | Strategy, ResearchNotebook, Pipeline, LeanBacktest → ObjectStoreKey, Dataset, File | Runtime data write |
 | `BELONGS_TO_PROJECT` | Notebook, Signal, LeanBacktest, … → Project | Project membership |
 
 ### Lineage / provenance (operational, directional)

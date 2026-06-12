@@ -1,11 +1,13 @@
 neo4j>=5.0
-chromadb>=0.4
+chromadb>=1.5.9
 sentence-transformers>=2.7
 fastapi>=0.110
 uvicorn[standard]>=0.29
 pydantic>=2.0
 pyyaml>=6.0
-networkx>=3.0
+networkx>=3.6.1
 sqlalchemy>=2.0
 watchdog>=4.0
-python-dotenv>=1.0
+python-dotenv>=1.2.2
+arxiv>=2.1
+pypdf>=4.0

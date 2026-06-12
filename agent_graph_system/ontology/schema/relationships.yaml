@@ -55,9 +55,11 @@ relationships:
       - version: string
 
   CONTAINS:
-    description: "Repository or workflow contains sub-entities"
-    from: [Repository, Workflow]
-    to: [Notebook, Pipeline, Strategy]
+    # Single definition for workspace containment — top-level YAML keys are
+    # last-wins, so never re-declare CONTAINS further down this file.
+    description: "Repository, workflow, or project contains sub-entities"
+    from: [Repository, Workflow, Project]
+    to: [Notebook, Pipeline, Strategy, File, ResearchNotebook, ConfigParam, Module, Doc, AgentTask]
 
   MONITORS:
     description: "Agent monitors a resource for changes"
@@ -117,63 +119,68 @@ relationships:
     properties:
       - trigger_type: enum[webhook, schedule, manual, event]
 
-# ── Hybrid property-graph-first architecture (issue #54) ──────────────────────
-# Relationship types for the richer workspace graph.  Operational/dependency
-# edges are kept strictly separate from similarity, suggestion, and policy edges.
+# ── Workspace graph extensions ────────────────────────────────────────────────
+# Merged from the ingestion/quantconnect/ writer (shipped — see graph_writer.py)
+# and the hybrid property-graph-first design (issue #54 — planned). For edges
+# ingestion already writes, the shipped from/to pairs are noted in a comment;
+# additional endpoints and properties are planned and not yet written by any
+# extractor.
 
   # ── Structural / code-graph edges ──────────────────────────────────────────
 
   DEFINES:
-    description: "File or module defines a function or class"
+    description: "File or module defines a module, signal, function, class, or config param"
+    # ingestion writes: File → Module, File → Signal (no properties)
     from: [File, Module]
-    to: [Function, Class, Signal, ConfigParam]
+    to: [Module, Signal, Function, Class, ConfigParam]
     properties:
-      - line: int
+      - line: int                # planned (issue #54)
 
   IMPORTS:
-    description: "Module imports another module (direct dependency)"
-    from: [Module]
-    to: [Module]
+    description: "File imports another file (direct Python dependency)"
+    # planned (issue #54). The design used Module → Module, but ingestion uses
+    # Module for classes — File is the importable unit in the current schema.
+    from: [File]
+    to: [File]
     properties:
       - alias: string
       - import_style: enum[direct, from, star]
 
   HAS_DOC:
-    description: "Any node has an associated documentation file or docstring"
+    description: "Node has an associated documentation file or docstring"
+    # ingestion writes: Project → File (kind=doc); other endpoints are planned
     from: [Project, Strategy, ResearchNotebook, Signal, Pipeline, File, Module, Function, Class]
-    to: [Doc]
+    to: [File, Doc]
     properties:
-      - doc_scope: enum[readme, inline, architecture, strategy]
+      - doc_scope: enum[readme, inline, architecture, strategy]   # planned (issue #54)
 
   READS:
-    description: "Notebook or pipeline reads a dataset or file at runtime"
-    from: [ResearchNotebook, Notebook, Pipeline]
-    to: [Dataset, File, ObjectStoreKey]
+    description: "Strategy, notebook, or pipeline reads a dataset, file, or ObjectStore key"
+    # ingestion writes: Strategy/ResearchNotebook → ObjectStoreKey (no properties)
+    from: [Strategy, ResearchNotebook, Notebook, Pipeline]
+    to: [ObjectStoreKey, Dataset, File]
     properties:
-      - read_at: datetime
-      - path: string
+      - read_at: datetime        # planned (issue #54)
+      - path: string             # planned (issue #54)
 
   WRITES:
-    description: "Notebook or pipeline writes a dataset or file at runtime"
-    from: [ResearchNotebook, Notebook, Pipeline, LeanBacktest]
-    to: [Dataset, File, ObjectStoreKey]
+    description: "Strategy, notebook, pipeline, or backtest writes a dataset, file, or ObjectStore key"
+    # ingestion writes: Strategy/ResearchNotebook → ObjectStoreKey (no properties)
+    from: [Strategy, ResearchNotebook, Notebook, Pipeline, LeanBacktest]
+    to: [ObjectStoreKey, Dataset, File]
     properties:
-      - written_at: datetime
-      - path: string
+      - written_at: datetime     # planned (issue #54)
+      - path: string             # planned (issue #54)
 
-  # ── Workspace hierarchy edges ───────────────────────────────────────────────
-
-  CONTAINS:
-    description: "Container holds workspace objects"
-    from: [Repository, Workflow, Project]
-    to: [Notebook, ResearchNotebook, Pipeline, Strategy, File, Module, Doc, AgentTask]
+  # ── Workspace hierarchy edges (issue #54) ──────────────────────────────────
+  # Workspace containment lives on the single CONTAINS definition above.
 
   BELONGS_TO_PROJECT:
     description: "Workspace object belongs to a specific project"
     from: [ResearchNotebook, LeanBacktest, Signal, ObjectStoreKey, ConfigParam, File, AgentTask]
     to: [Project]
 
-  # ── Provenance / extraction edges ──────────────────────────────────────────
+  # ── Provenance / extraction edges ───────────────────────────────────────────
 
   DERIVED_FROM:
     description: "Dataset or signal was derived from another dataset (data lineage)"
@@ -252,3 +259,18 @@ relationships:
       - "similarity_score must be in [0.0, 1.0]"
       - "self-similarity edges (a == b) are forbidden"
       - "this edge type must never be used as a dependency or lineage source"
+
+  # --- ingestion/papers/ (#63) ------------------------------------------------
+
+  HAS_SECTION:
+    description: "Paper has a section"
+    from: [Paper]
+    to: [PaperSection]
+
+  CITES:
+    description: >
+      Strategy cites a paper as research backing. Anchoring details
+      (page, quote) are carried as provenance (prov_page, prov_quote) via
+      Provenance.from_document, not as domain properties.
+    from: [Strategy]
+    to: [Paper]
