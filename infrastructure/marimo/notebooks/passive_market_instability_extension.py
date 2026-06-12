@@ -116,6 +116,7 @@ def _():
         summarize_pressure_quintiles,
     )
     from passive_market_instability.simulation import (
+        compute_instantaneous_volatility,
         feller_threshold,
         lyapunov_threshold,
         simulate_market_paths,
@@ -182,6 +183,7 @@ def _():
         assign_pressure_quintiles,
         build_passive_share_scenarios,
         checks_to_frame,
+        compute_instantaneous_volatility,
         compute_passive_dollar_pressure,
         compute_passive_pressure,
         estimate_flow_pressure_proxy,
@@ -551,6 +553,109 @@ def _(FIGURES_DIR, low_growth_sim, mo, plot_first_hitting_times, plt, rising_pas
 
     mo.vstack([_fig_hitting, _fig])
     return baseline_20y, low_growth_20y
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## 4b. Instantaneous Volatility Amplification
+
+    The model's diffusion term reveals a self-reinforcing fragility mechanism.
+    The instantaneous volatility of $S(t)$ is not constant — it scales with the
+    ratio of fundamental value to market price:
+
+    $$
+    V(t) = \sigma \sqrt{\frac{F(t)}{S(t)}}
+    $$
+
+    When $S(t) < F(t)$ (market below fundamental value), $V(t) > \sigma$ — volatility
+    is amplified above the calibrated baseline.  When passive share is high, the
+    restoring force $\kappa (1 - p(t))$ is weak, so a dislocation is slower to
+    correct.  The market that dips below fundamental therefore experiences both
+    **reduced mean reversion** and **amplified volatility** simultaneously —
+    a self-reinforcing dynamic.
+
+    The Feller and Lyapunov thresholds mark where this mechanism can dominate.
+
+    - **Feller threshold** $p_F = 1 - \sigma^2 / (2\kappa)$: above this passive share,
+      the process can reach zero in finite time (the boundary becomes accessible).
+    - **Lyapunov threshold** $p_L = 1 - 3\sigma^2 / (4\kappa)$: above this passive share,
+      mean log growth of $S(t)$ turns negative even when $S(0) = F(0)$.
+
+    Both thresholds are fragility landmarks from the paper, not trading signals.
+    At the baseline calibration $(\kappa = 0.0909, \sigma = 0.1247)$:
+    $p_L \approx 0.87$ and $p_F \approx 0.91$.
+    The logistic passive-share curve (Haddad et al.) reaches these levels
+    between 2035 and 2045 in the baseline scenario.
+    """)
+    return
+
+
+@app.cell
+def _(
+    FIGURES_DIR,
+    PAPER_SIGMA,
+    mo,
+    np,
+    compute_instantaneous_volatility,
+    pd,
+    plt,
+    rising_passive_sim,
+    threshold_values,
+):
+    _paths = rising_passive_sim["paths"]
+    _state = rising_passive_sim["state"]
+    _path_cols = [col for col in _paths.columns if col.startswith("path_")]
+
+    _f_grid = _state["fundamental_value"].values
+    _t_grid = _state["t"].values
+    _year_grid = _state["year"].values
+
+    _median_s = _paths[_path_cols].median(axis=1).values
+    _p10_s = _paths[_path_cols].quantile(0.10, axis=1).values
+    _p90_s = _paths[_path_cols].quantile(0.90, axis=1).values
+
+    _vol_median = compute_instantaneous_volatility(_median_s, _f_grid, PAPER_SIGMA)
+    _vol_p10 = compute_instantaneous_volatility(np.maximum(_p10_s, 1e-6), _f_grid, PAPER_SIGMA)
+
+    _fig, (_ax1, _ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+
+    _ax1.plot(_year_grid, _f_grid, label="F(t) fundamental", color="#58a6ff", linewidth=1.5, linestyle="--")
+    _ax1.plot(_year_grid, _median_s, label="S(t) median path", color="#3fb950", linewidth=1.5)
+    _ax1.fill_between(_year_grid, _p10_s, _p90_s, alpha=0.18, color="#3fb950", label="p10–p90 band")
+    _ax1.axvline(x=1994 + threshold_values["lyapunov_threshold"] * 30 / 0.5, color="#d29922", linestyle=":", alpha=0.7, label=f"p_L ≈ {threshold_values['lyapunov_threshold']:.2f}")
+    _ax1.axvline(x=1994 + threshold_values["feller_threshold"] * 30 / 0.5, color="#f85149", linestyle=":", alpha=0.7, label=f"p_F ≈ {threshold_values['feller_threshold']:.2f}")
+    _ax1.set_ylabel("Market level S(t)")
+    _ax1.set_title("Figure 4b-1: Simulated Market Level vs Fundamental (Rising Passive)")
+    _ax1.legend(fontsize=9)
+
+    _baseline_vol = np.full_like(_t_grid, PAPER_SIGMA)
+    _ax2.plot(_year_grid, _vol_median * 100, label="V(t) at median S(t)", color="#3fb950", linewidth=1.5)
+    _ax2.plot(_year_grid, _vol_p10 * 100, label="V(t) at p10 S(t)", color="#f85149", linewidth=1.5, linestyle="--")
+    _ax2.axhline(y=PAPER_SIGMA * 100, color="#8b949e", linestyle="--", linewidth=1, label=f"σ = {PAPER_SIGMA * 100:.2f}%")
+    _ax2.set_ylabel("Instantaneous volatility V(t) [%]")
+    _ax2.set_xlabel("Year")
+    _ax2.set_title("Figure 4b-2: Instantaneous Volatility Amplification — V(t) = σ √(F(t)/S(t))")
+    _ax2.legend(fontsize=9)
+    _ax2.set_ylim(bottom=0)
+
+    plt.tight_layout()
+    _fig.savefig(FIGURES_DIR / "fig_4b_volatility_amplification.png", bbox_inches="tight")
+
+    vol_amplification_df = pd.DataFrame({
+        "year": _year_grid,
+        "t": _t_grid,
+        "fundamental": _f_grid,
+        "median_s": _median_s,
+        "vol_at_median": _vol_median,
+        "vol_at_p10": _vol_p10,
+    })
+    mo.vstack([_fig, mo.callout(
+        mo.md("V(t) above the baseline σ line means the market's realized volatility exceeds the calibrated diffusion constant. "
+              "The divergence is largest for low-S(t) paths — exactly those paths where passive share has already weakened mean reversion."),
+        kind="warn",
+    )])
+    return (vol_amplification_df,)
 
 
 @app.cell(hide_code=True)

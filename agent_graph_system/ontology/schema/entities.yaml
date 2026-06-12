@@ -119,9 +119,18 @@ entities:
       - status: enum[active, paused, completed, failed]
       - trigger: enum[schedule, event, manual]
 
-  # --- ingestion/quantconnect/ -----------------------------------------------
-  # Written by graph_writer.ingest_project; see agent_graph_system/README.md
-  # "MyProjects ingestion". Strategy/Dataset above are shared with this writer.
+# ── Workspace graph extensions ────────────────────────────────────────────────
+# Two sources are merged below:
+#  1. ingestion/quantconnect/ — entities ALREADY WRITTEN by
+#     graph_writer.ingest_project (see agent_graph_system/README.md,
+#     "MyProjects ingestion"). Their keys and properties are load-bearing: do
+#     not change them without updating graph_writer.py and parser.py.
+#  2. The hybrid property-graph-first design (issue #54) — additional planned
+#     labels, and extra properties on the shipped labels, for future ingestion
+#     and extraction work. Anything marked "planned (issue #54)" is not yet
+#     written by any extractor.
+# The coarse legacy types above (Agent, Dataset, Notebook …) remain valid; the
+# richer types below are preferred for new ingestion or extraction work.
 
   Project:
     description: "An atomic MyProjects/ QuantConnect project (container of files/docs)"
@@ -129,6 +138,10 @@ entities:
       - name: string             # key
       - root: string             # absolute path to the project directory
       - last_ingest_run: datetime
+      # planned (issue #54) — not yet written by ingestion:
+      - project_type: enum[lean_strategy, research, template, shared]
+      - status: enum[active, archived, experimental]
+      - lean_project_id: string
 
   File:
     description: "A file within an ingested project"
@@ -137,6 +150,22 @@ entities:
       - kind: enum[doc, notebook, python, data, other]
       - project: string
       - rel_path: string         # bare path, for display
+      # planned (issue #54) — not yet written by ingestion:
+      - extension: string
+      - size_bytes: int
+      - last_modified: datetime
+      - content_hash: string
+
+  Module:
+    # NOTE: ingestion uses Module for classes, keyed "{project}.{class_name}".
+    # The issue #54 design's "importable unit" concept is represented by File
+    # in the current schema (see IMPORTS in relationships.yaml); Class below is
+    # the planned richer per-class label.
+    description: "A class defined within a project file"
+    properties:
+      - name: string             # key: "{project}.{class_name}"
+      - class_name: string
+      - project: string
 
   ResearchNotebook:
     description: "A research notebook (.ipynb or research/*.py marimo) within a project"
@@ -144,19 +173,20 @@ entities:
       - path: string             # key, project-qualified: "{project}/{rel_path}"
       - project: string
       - rel_path: string
-
-  Module:
-    description: "A class defined within a project file"
-    properties:
-      - name: string             # key: "{project}.{class_name}"
-      - class_name: string
-      - project: string
+      # planned (issue #54) — not yet written by ingestion:
+      - notebook_format: enum[marimo, jupyter]
+      - last_run: datetime
+      - status: enum[passing, failing, untested, stale]
 
   Signal:
     description: "A signal-producing function (domain/signals/), shared by name across projects"
     properties:
       - name: string             # key: function name
       - project: string
+      # planned (issue #54) — not yet written by ingestion:
+      - path: string
+      - signal_type: enum[alpha, risk_overlay, factor, diagnostic]
+      - frequency: enum[daily, weekly, monthly, intraday]
 
   ConfigParam:
     description: "A configuration parameter declared in a project"
@@ -165,12 +195,121 @@ entities:
       - param: string
       - value: string
       - project: string
+      # planned (issue #54) — not yet written by ingestion:
+      - param_type: enum[strategy, pipeline, notebook, global]
+      - source_file: string
 
   ObjectStoreKey:
     description: "An ObjectStore key read/written by a strategy or notebook"
     properties:
       - key: string              # key; "<dynamic:{file}:{line}>" when computed at runtime
       - resolved: bool
+      # planned (issue #54) — not yet written by ingestion:
+      - project_name: string
+      - content_type: string
+      - size_bytes: int
+      - last_written: datetime
+
+  # --- hybrid property-graph design (issue #54) — planned labels --------------
+  # No extractor writes these yet; they document the target architecture.
+
+  Function:
+    description: "A Python function or method"
+    properties:
+      - name: string
+      - qualified_name: string
+      - path: string
+      - line_start: int
+      - line_end: int
+      - is_async: bool
+
+  Class:
+    description: "A Python class definition (planned richer label; ingestion currently writes classes as Module)"
+    properties:
+      - name: string
+      - qualified_name: string
+      - path: string
+      - line_start: int
+      - base_classes: list[string]
+
+  LeanBacktest:
+    description: "A completed QuantConnect cloud or local backtest run"
+    properties:
+      - run_id: string
+      - project_name: string
+      - sharpe: float
+      - max_drawdown: float
+      - cagr: float
+      - total_trades: int
+      - start_date: string
+      - end_date: string
+      - run_date: datetime
+      - status: enum[completed, failed, running]
+
+  AgentTask:
+    description: "A task issued to or completed by an AI agent"
+    properties:
+      - task_id: string
+      - description: string
+      - status: enum[pending, in_progress, completed, failed, cancelled]
+      - issued_at: datetime
+      - completed_at: datetime
+      - issuer: string
+
+  Doc:
+    description: "A documentation file (markdown, RST, or inline docstring)"
+    properties:
+      - path: string
+      - title: string
+      - doc_type: enum[readme, architecture, strategy, api, recipe, reference]
+      - word_count: int
+      - last_modified: datetime
+
+  RiskFlag:
+    description: "A risk or data-quality flag raised during validation"
+    properties:
+      - flag_id: string
+      - flag_type: enum[data_quality, model_risk, staleness, compliance]
+      - severity: enum[info, warning, blocking]
+      - message: string
+      - raised_at: datetime
+      - resolved_at: datetime
+
+  PolicyDecision:
+    description: "A recorded result from the policy engine (allowed or denied)"
+    properties:
+      - decision_id: string
+      - rule_name: string
+      - allowed: bool
+      - code: string
+      - message: string
+      - evidence: list[string]
+      - decided_at: datetime
+
+  ExtractionRun:
+    description: "A single run of an extractor pipeline over a source"
+    properties:
+      - run_id: string
+      - extractor: string
+      - source_file: string
+      - started_at: datetime
+      - completed_at: datetime
+      - facts_extracted: int
+      - status: enum[completed, failed, partial]
+
+  Observation:
+    description: "A single fact extracted by an ExtractionRun, with confidence and provenance"
+    properties:
+      - observation_id: string
+      - subject_type: string
+      - subject_id: string
+      - predicate: string
+      - value: string
+      - confidence: float
+      - fact_status: enum[authoritative, extracted, inferred, learned, policy_decision]
+      - observed_at: datetime
+      - last_seen: datetime
+      - deprecated: bool
 
   # --- ingestion/papers/ ------------------------------------------------------
   # Written by graph_writer.ingest_paper; see agent_graph_system/README.md
