@@ -18,7 +18,7 @@ This guide explains how to set up the Q-agent workspace locally.
 
 Install the following:
 
-- Python 3.8+
+- Python 3.11+
 - Git
 - Docker Desktop
 - QuantConnect account
@@ -33,9 +33,11 @@ cd Q-agent
 ## Create a Virtual Environment
 
 ```bash
-python3 -m venv venv
+python3.11 -m venv venv
 source venv/bin/activate
 ```
+
+If your system exposes Python 3.11 as `python` or `python3`, use that command instead.
 
 ## Install LEAN CLI
 
