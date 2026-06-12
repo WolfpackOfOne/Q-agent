@@ -1,0 +1,16 @@
+{
+  "created_at_utc": "2026-05-28T04:19:55.298207+00:00",
+  "purpose": "committed processed snapshots for the passive market instability extension notebook",
+  "data_quality_note": "ETF volume times return is a flow-pressure proxy, not official ETF flow. Estimated market-cap weights are not official S&P 500 weights.",
+  "passive_share_source": "paper calibration constants for Haddad baseline and Brightman-Harvey sensitivity",
+  "etf_snapshot_source": "yfinance price-volume snapshot",
+  "equity_snapshot_source": "yfinance price-volume snapshot; latest yfinance market caps where available; synthetic placeholders for missing names",
+  "files": [
+    "infrastructure/pipelines/passive_share/data/processed/passive_share_scenarios.csv",
+    "infrastructure/pipelines/passive_share/data/processed/passive_share_threshold_crossings.csv",
+    "infrastructure/pipelines/etf_flows/data/processed/broad_market_etf_prices.csv",
+    "infrastructure/pipelines/etf_flows/data/processed/broad_market_etf_flow_pressure_proxy.csv",
+    "infrastructure/pipelines/equity_liquidity/data/processed/demo_equity_liquidity_panel.csv",
+    "infrastructure/pipelines/equity_liquidity/data/processed/demo_passive_pressure_panel.csv"
+  ]
+}

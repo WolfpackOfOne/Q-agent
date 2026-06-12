@@ -2,3 +2,7 @@ pytest>=7.4
 pytest-cov>=4.1
 pytest-mock>=3.12
 pandas>=2.2.0
+
+# agent_graph_system runtime deps needed to import/test it (tests/agent_graph_system)
+networkx>=3.0
+pyyaml>=6.0

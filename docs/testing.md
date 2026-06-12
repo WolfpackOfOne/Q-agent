@@ -97,7 +97,7 @@ Q-agent/
 │       └── test_template_structure.py
 ```
 
-The existing `agent_graph_system/tests/` directory remains separate — it covers that module's internals and uses its own configuration.
+The `agent_graph_system/` knowledge-graph subsystem is tested separately under `tests/agent_graph_system/` (ontology rules, deployment gate, provenance, QuantConnect ingestion, context packs). It uses its own fixtures (`conftest.py`) and an isolated in-memory graph. See `agent_graph_system/README.md`.
 
 ## Continuous integration
 

@@ -25,13 +25,6 @@
 - Old resolved markets (pre-2023) return flat post-resolution prices — no historical probability series
 - See `lean-gotchas.md` for full API change details
 
-## Correlation Analysis Notebook
-- `infrastructure/marimo/notebooks/crypto_polymarket_correlation.py`
-- Marimo server: port 2721
-- Key finding: spot price **leads** Polymarket (r≈0.25–0.70 for ret→nextΔprob); Polymarket does NOT lead price
-- Level correlation r≈0.92–0.97 (prob tracks spot tightly for price-target markets)
-- ETH Merge historical data unavailable via CLOB (pre-2023 gap)
-
 ## Workflow Lessons (from May 2026 session)
 See `data-pipelines.md` for full list. Short version:
 1. Always probe a live API with one raw request before building pipelines against it
