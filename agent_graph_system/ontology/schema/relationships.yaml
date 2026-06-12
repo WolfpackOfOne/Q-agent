@@ -55,9 +55,9 @@ relationships:
       - version: string
 
   CONTAINS:
-    description: "Repository or workflow contains sub-entities"
-    from: [Repository, Workflow]
-    to: [Notebook, Pipeline, Strategy]
+    description: "Repository, workflow, or project contains sub-entities"
+    from: [Repository, Workflow, Project]
+    to: [Notebook, Pipeline, Strategy, File, ResearchNotebook, ConfigParam]
 
   MONITORS:
     description: "Agent monitors a resource for changes"
@@ -116,3 +116,40 @@ relationships:
     to: [Repository, Dataset, API]
     properties:
       - trigger_type: enum[webhook, schedule, manual, event]
+
+  # --- ingestion/quantconnect/ -----------------------------------------------
+
+  HAS_DOC:
+    description: "Project's documentation file (kind=doc)"
+    from: [Project]
+    to: [File]
+
+  DEFINES:
+    description: "File defines a module or signal"
+    from: [File]
+    to: [Module, Signal]
+
+  WRITES:
+    description: "Strategy or notebook writes to an ObjectStore key"
+    from: [Strategy, ResearchNotebook]
+    to: [ObjectStoreKey]
+
+  READS:
+    description: "Strategy or notebook reads from an ObjectStore key"
+    from: [Strategy, ResearchNotebook]
+    to: [ObjectStoreKey]
+
+  # --- ingestion/papers/ (#63) ------------------------------------------------
+
+  HAS_SECTION:
+    description: "Paper has a section"
+    from: [Paper]
+    to: [PaperSection]
+
+  CITES:
+    description: >
+      Strategy cites a paper as research backing. Anchoring details
+      (page, quote) are carried as provenance (prov_page, prov_quote) via
+      Provenance.from_document, not as domain properties.
+    from: [Strategy]
+    to: [Paper]
