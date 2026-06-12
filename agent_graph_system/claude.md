@@ -62,5 +62,6 @@ Golden fixture for ingestion/context-pack tests: `MyProjects/ElectionIndustryBet
 ```bash
 python -m agent_graph_system.main ingest-project MyProjects/ElectionIndustryBeta
 python -m agent_graph_system.main context-pack MyProjects/ElectionIndustryBeta --format md
+python -m agent_graph_system.main ingest-paper 2401.12345
 python -m agent_graph_system.main status
 ```

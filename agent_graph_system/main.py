@@ -5,6 +5,7 @@ Entry point with subcommands:
   init            Create Neo4j indexes and seed the graph from ontology schema
   ingest          Parse a local repo and write to the graph
   ingest-project  Ingest one MyProjects/ QuantConnect project into the graph
+  ingest-paper    Fetch an arXiv paper and write its sections into the graph
   context-pack    Build a project context pack for an agent (md | json)
   query           Run a named Cypher query or GraphRAG search
   agent       Run a named agent (coding | monitoring | orchestration | research)
@@ -14,6 +15,7 @@ Entry point with subcommands:
 Usage:
   python -m agent_graph_system.main init
   python -m agent_graph_system.main ingest --repo /path/to/repo
+  python -m agent_graph_system.main ingest-paper 2401.12345
   python -m agent_graph_system.main query stale-deps
   python -m agent_graph_system.main query rag "show notebooks using WRDS data"
   python -m agent_graph_system.main agent monitoring
@@ -95,6 +97,14 @@ def cmd_ingest_project(args: argparse.Namespace) -> None:
         sys.exit(1)
     result = ingest_project(project_path)
     log.info("Ingested project '%s': %s", result["project"], result["counts"])
+    print(json.dumps(result, indent=2, default=str))
+
+
+def cmd_ingest_paper(args: argparse.Namespace) -> None:
+    """Fetch an arXiv paper and write its sections into the graph."""
+    from agent_graph_system.ingestion.papers.graph_writer import ingest_paper
+    result = ingest_paper(args.arxiv_id)
+    log.info("Ingested paper '%s': %d sections", result["arxiv_id"], result["section_count"])
     print(json.dumps(result, indent=2, default=str))
 
 
@@ -237,6 +247,10 @@ def build_parser() -> argparse.ArgumentParser:
     ip = sub.add_parser("ingest-project", help="Ingest one MyProjects/ project into the graph")
     ip.add_argument("project", help="Path to the project directory (e.g. MyProjects/ElectionIndustryBeta)")
 
+    # ingest-paper
+    ip2 = sub.add_parser("ingest-paper", help="Fetch an arXiv paper and write its sections into the graph")
+    ip2.add_argument("arxiv_id", help="arXiv id or URL, e.g. 2401.12345")
+
     # context-pack
     cp = sub.add_parser("context-pack", help="Build a project context pack for an agent")
     cp.add_argument("project", help="Project path (or name, with --no-ingest)")
@@ -276,6 +290,7 @@ def main() -> None:
         "init":    cmd_init,
         "ingest":  cmd_ingest,
         "ingest-project": cmd_ingest_project,
+        "ingest-paper": cmd_ingest_paper,
         "context-pack":   cmd_context_pack,
         "query":   cmd_query,
         "agent":   cmd_agent,
