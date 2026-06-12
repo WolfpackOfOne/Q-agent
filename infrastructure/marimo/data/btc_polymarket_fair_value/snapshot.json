@@ -1,6 +1,6 @@
 {
   "generated_at_utc": "2026-05-28T04:11:01.112187+00:00",
-  "source_polymarket_root": "/Users/graham/Documents/Q-agent/infrastructure/pipelines/polymarket/lean-data/alternative/polymarket",
+  "source_polymarket_root": "infrastructure/pipelines/polymarket/lean-data/alternative/polymarket",
   "start": "2026-04-01",
   "end": null,
   "as_of_for_contract_selection": "2026-05-28",

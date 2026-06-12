@@ -30,6 +30,14 @@ DEFAULT_OUTPUT_DIR = (
     REPO_ROOT / "infrastructure" / "marimo" / "data" / "btc_polymarket_fair_value"
 )
 
+def _repo_relative(path: pathlib.Path) -> str:
+    """Repo-relative form of ``path`` for the manifest (no personal paths)."""
+    try:
+        return str(path.resolve().relative_to(REPO_ROOT))
+    except ValueError:
+        return str(path)
+
+
 BTC_MARKETS = [
     {
         "label": "Reach $90k",
@@ -197,7 +205,7 @@ def build_snapshot(
 
     manifest = {
         "generated_at_utc": pd.Timestamp.now("UTC").isoformat(),
-        "source_polymarket_root": str(polymarket_root),
+        "source_polymarket_root": _repo_relative(polymarket_root),
         "start": start,
         "end": end,
         "as_of_for_contract_selection": as_of_ts.date().isoformat(),
