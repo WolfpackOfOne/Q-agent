@@ -33,6 +33,8 @@ class ResearchAgent(BaseAgent):
         test_months: int = 3,
         step_months: int = 3,
         bootstrap: bool = True,
+        windows: "list | None" = None,
+        refit=None,
         **kwargs,
     ) -> Any:
         log.info(
@@ -47,6 +49,8 @@ class ResearchAgent(BaseAgent):
                     test_months=test_months,
                     step_months=step_months,
                     bootstrap=bootstrap,
+                    windows=windows,
+                    refit=refit,
                 )
             elif mode == "ingest_paper":
                 if not arxiv_id:
@@ -72,12 +76,16 @@ class ResearchAgent(BaseAgent):
         test_months: int,
         step_months: int,
         bootstrap: bool,
+        windows: "list | None" = None,
+        refit=None,
     ) -> dict[str, Any]:
         """Run walk-forward analysis and persist the result to the graph.
 
-        On insufficient data, a ``status='insufficient_data'`` run is still
-        written (so the gap is visible in context packs and the gate) and
-        returned rather than raised.
+        ``windows`` (per-window OOS returns) or ``refit`` (a train→test callback)
+        produce a genuine ``mode='walkforward'`` run; ``returns`` alone produces a
+        gate-ineligible ``rolling_holdout`` run. On insufficient data, a
+        ``status='insufficient_data'`` run is still written (so the gap is visible
+        in context packs and the gate) and returned rather than raised.
         """
         import numpy as np
 
@@ -92,8 +100,11 @@ class ResearchAgent(BaseAgent):
 
         if not strategy:
             raise ValueError("mode='walkforward' requires a strategy name")
-        if returns is None:
-            raise ValueError("mode='walkforward' requires a returns Series")
+        if returns is None and windows is None:
+            raise ValueError(
+                "mode='walkforward' requires a returns Series, per-window OOS "
+                "returns (windows=), or a refit callback"
+            )
 
         run_id = str(uuid.uuid4())
         created_at = datetime.now(timezone.utc).isoformat()
@@ -106,6 +117,8 @@ class ResearchAgent(BaseAgent):
                 train_months=train_months,
                 test_months=test_months,
                 step_months=step_months,
+                windows=windows,
+                refit=refit,
             )
         except InsufficientDataError as exc:
             gm.upsert_walkforward_run(
@@ -138,6 +151,8 @@ class ResearchAgent(BaseAgent):
             train_months=result.train_months,
             test_months=result.test_months,
             step_months=result.step_months,
+            mode=result.mode,
+            oos_source=result.oos_source,
             n_windows=len(result.windows),
             n_windows_profitable=n_profitable,
             pct_profitable=result.pct_windows_profitable,

@@ -213,6 +213,12 @@ def _derive_risks(
             "deployment_gate check would fail closed."
         )
     else:
+        if (walkforward.get("mode") or "walkforward") != "walkforward":
+            risks.append(
+                "The only walk-forward evidence is a rolling-holdout run "
+                "(in-sample slicing, no refit) — it is NOT genuine out-of-sample "
+                "validation and a live deployment_gate check would refuse it."
+            )
         pct = walkforward.get("pct_profitable")
         if pct is not None and float(pct) < 0.5:
             risks.append(
@@ -313,6 +319,11 @@ def render_markdown(pack: dict[str, Any]) -> str:
     lines += ["", "## Walk-forward validation"]
     wf = pack.get("walkforward")
     if wf:
+        mode = wf.get("mode") or "walkforward"
+        if mode != "walkforward":
+            lines.append(
+                f"- ⚠️ mode: {mode} (in-sample slicing — NOT gate-eligible)"
+            )
         n = wf.get("n_windows")
         n_prof = wf.get("n_windows_profitable")
         pct = wf.get("pct_profitable")

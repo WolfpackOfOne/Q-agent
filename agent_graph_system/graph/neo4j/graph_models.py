@@ -196,6 +196,31 @@ def latest_walkforward_for_strategy(strategy: str) -> dict[str, Any] | None:
         return dict(record["wf"]) if record else None
 
 
+def latest_walkforward_for_backtest(backtest_run_id: str) -> dict[str, Any] | None:
+    """Latest completed walk-forward run that VALIDATES a specific backtest.
+
+    Mirrors the local engine: only runs linked by ``VALIDATES`` to this exact
+    backtest qualify, so the gate cannot accept a run that validated an older
+    backtest. ``validates_backtest`` is returned alongside the run properties.
+    """
+    from agent_graph_system.graph.neo4j.driver import session
+
+    cypher = """
+        MATCH (w:WalkforwardRun)-[:VALIDATES]->(b:Backtest {run_id: $bt})
+        WHERE coalesce(w.status, 'completed') = 'completed'
+        RETURN w AS wf
+        ORDER BY coalesce(w.created_at, w.updated_at, '') DESC
+        LIMIT 1
+    """
+    with session() as s:
+        record = s.run(cypher, bt=backtest_run_id).single()
+        if not record:
+            return None
+        wf = dict(record["wf"])
+        wf["validates_backtest"] = backtest_run_id
+        return wf
+
+
 def repository_contains_notebook(repo: str, notebook: str, **props) -> None:
     merge_relationship("Repository", "name", repo, "CONTAINS", "Notebook", "name", notebook, props)
 

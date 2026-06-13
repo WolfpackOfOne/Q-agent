@@ -19,14 +19,25 @@ train/test with overlapping test periods. We enforce it by requiring
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from typing import Callable
 
 import numpy as np
 import pandas as pd
 
+log = logging.getLogger(__name__)
+
 # Trading days per year — used to annualize Sharpe and CAGR.
 TRADING_DAYS = 252
+
+# Result modes. Only ``walkforward`` is genuine out-of-sample evaluation and is
+# eligible to satisfy the live deployment gate (see ontology/policy.py). The
+# single precomputed-series path is ``rolling_holdout``: it slices one already
+# realized return series into calendar windows without refitting anything, so it
+# is in-sample reporting, NOT validation, and the gate must refuse it.
+MODE_WALKFORWARD = "walkforward"
+MODE_ROLLING_HOLDOUT = "rolling_holdout"
 
 
 class InsufficientDataError(ValueError):
@@ -67,6 +78,14 @@ class WalkforwardResult:
     train_months: int
     test_months: int
     step_months: int
+    # How the per-window OOS returns were produced. ``rolling_holdout`` (the
+    # default single-series path) is in-sample slicing and is NOT gate-eligible;
+    # ``walkforward`` means each window's returns came from a model fit only on
+    # its own train slice (refit callback or caller-supplied per-window OOS).
+    mode: str = MODE_ROLLING_HOLDOUT
+    # Provenance: how each window's OOS returns were generated —
+    # ``rolling_holdout_slice`` | ``refit_callback`` | ``supplied_windows``.
+    oos_source: str = "rolling_holdout_slice"
     # Set after a bootstrap significance test; None until then.
     bootstrap_p_value: float | None = None
     bootstrap_n_permutations: int | None = None
@@ -104,11 +123,17 @@ def cagr(returns: np.ndarray, periods: int = TRADING_DAYS) -> float:
 
 
 def max_drawdown(returns: np.ndarray) -> float:
-    """Worst peak-to-trough decline of the equity curve, as a negative float."""
+    """Worst peak-to-trough decline of the equity curve, as a negative float.
+
+    The curve is anchored at the initial capital (1.0) *before* the first return,
+    so an immediate loss is measured from the start. Without the anchor a series
+    like ``[-0.5, 0.1]`` would treat the post-first-return level as the peak and
+    report 0.0, understating risk; with it, that series correctly reports -0.5.
+    """
     r = np.asarray(returns, dtype=float)
     if r.size == 0:
         return 0.0
-    equity = np.cumprod(1.0 + r)
+    equity = np.concatenate(([1.0], np.cumprod(1.0 + r)))
     running_max = np.maximum.accumulate(equity)
     drawdown = (equity - running_max) / running_max
     return float(drawdown.min())
@@ -153,7 +178,7 @@ def _iter_window_bounds(
 
 
 def run_walkforward(
-    returns: pd.Series,
+    returns: pd.Series | None = None,
     *,
     strategy: str = "",
     train_months: int = 12,
@@ -162,20 +187,48 @@ def run_walkforward(
     min_windows: int = 4,
     anchored: bool = False,
     metric_fn: Callable[[np.ndarray], dict] | None = None,
+    windows: "list | tuple | None" = None,
+    refit: Callable[[pd.Series, pd.DatetimeIndex], object] | None = None,
 ) -> WalkforwardResult:
-    """Run rolling walk-forward analysis over a daily return series.
+    """Run walk-forward analysis. Three input modes, two of them genuine OOS:
 
-    ``returns`` must be a :class:`pandas.Series` indexed by a ``DatetimeIndex``.
+    - ``windows=[oos_0, oos_1, ...]`` — caller supplies the per-window
+      out-of-sample returns directly (each a ``pd.Series`` with a
+      ``DatetimeIndex``, or a bare array). Each was produced by a model trained
+      only on its own train window. Result ``mode='walkforward'``.
+    - ``returns=..., refit=fn`` — ``fn(train_returns, test_index)`` is called for
+      each window to generate that window's OOS returns from a model fit on the
+      train slice only. Result ``mode='walkforward'``.
+    - ``returns=...`` alone — the convenience path: one precomputed series sliced
+      into calendar windows with **no refit**. This is in-sample reporting, so
+      the result is ``mode='rolling_holdout'`` and is NOT eligible to validate a
+      live deployment (the gate refuses it).
+
     Train windows may overlap (or expand, with ``anchored=True``); test windows
-    never do. Raises :class:`InsufficientDataError` if fewer than
-    ``min_windows`` complete test windows fit in the series, and ``ValueError``
-    on a configuration that would overlap test windows.
+    never do (enforced by ``step_months >= test_months``). Raises
+    :class:`InsufficientDataError` if fewer than ``min_windows`` windows result.
     """
+    if windows is not None and refit is not None:
+        raise ValueError("pass either windows= or refit=, not both")
     if step_months < test_months:
         raise ValueError(
             f"step_months ({step_months}) < test_months ({test_months}) would "
             "overlap test windows; walk-forward requires step_months >= test_months."
         )
+
+    if windows is not None:
+        built = _windows_from_oos(windows, metric_fn=metric_fn)
+        if len(built) < min_windows:
+            raise InsufficientDataError(
+                f"only {len(built)} OOS window(s) supplied; need at least {min_windows}."
+            )
+        return _assemble_result(
+            strategy, built, train_months, test_months, step_months,
+            mode=MODE_WALKFORWARD, oos_source="supplied_windows",
+        )
+
+    if returns is None:
+        raise ValueError("run_walkforward requires one of returns=, windows=, or refit=")
     if not isinstance(returns.index, pd.DatetimeIndex):
         raise TypeError("returns must be indexed by a DatetimeIndex")
 
@@ -183,42 +236,136 @@ def run_walkforward(
     if series.empty:
         raise InsufficientDataError("return series is empty")
 
-    idx = series.index
-    start, end = idx[0], idx[-1]
+    bounds_kw = dict(train_months=train_months, test_months=test_months,
+                     step_months=step_months, anchored=anchored)
+    if refit is not None:
+        built = _windows_with_refit(series, refit, metric_fn=metric_fn, **bounds_kw)
+        if len(built) < min_windows:
+            raise InsufficientDataError(
+                f"only {len(built)} walk-forward window(s) produced by refit; "
+                f"need at least {min_windows}."
+            )
+        return _assemble_result(
+            strategy, built, train_months, test_months, step_months,
+            mode=MODE_WALKFORWARD, oos_source="refit_callback",
+        )
 
-    windows: list[WalkforwardWindow] = []
-    for train_start, train_end, test_start, test_end, complete in _iter_window_bounds(
-        start, end,
-        train_months=train_months, test_months=test_months,
-        step_months=step_months, anchored=anchored,
-    ):
-        if not complete:
-            continue
+    built = _windows_from_slices(series, metric_fn=metric_fn, **bounds_kw)
+    if len(built) < min_windows:
+        raise InsufficientDataError(
+            f"only {len(built)} walk-forward window(s) fit in the series; "
+            f"need at least {min_windows} (train={train_months}m, "
+            f"test={test_months}m, step={step_months}m)."
+        )
+    log.warning(
+        "run_walkforward(returns=...) sliced one precomputed series into %d "
+        "windows without refitting; result is mode='rolling_holdout' (in-sample "
+        "reporting) and is NOT eligible to validate a live deployment.",
+        len(built),
+    )
+    return _assemble_result(
+        strategy, built, train_months, test_months, step_months,
+        mode=MODE_ROLLING_HOLDOUT, oos_source="rolling_holdout_slice",
+    )
+
+
+def _build_window(
+    index: int,
+    oos: np.ndarray,
+    *,
+    train_start: str = "",
+    train_end: str = "",
+    test_start: str = "",
+    test_end: str = "",
+    metric_fn: Callable[[np.ndarray], dict] | None = None,
+) -> WalkforwardWindow:
+    oos = np.asarray(oos, dtype=float)
+    metrics = metric_fn(oos) if metric_fn else {}
+    return WalkforwardWindow(
+        window_index=index,
+        train_start=train_start, train_end=train_end,
+        test_start=test_start, test_end=test_end,
+        oos_returns=oos,
+        sharpe=metrics.get("sharpe", sharpe_ratio(oos)),
+        cagr=metrics.get("cagr", cagr(oos)),
+        max_drawdown=metrics.get("max_drawdown", max_drawdown(oos)),
+        n_trades=metrics.get("n_trades", _n_trades(oos)),
+    )
+
+
+def _slice_bounds(idx, start, end, **bounds_kw):
+    """Yield ``(train_start, train_end, test_start, test_end)`` for complete windows."""
+    for ts, te, vs, ve, complete in _iter_window_bounds(start, end, **bounds_kw):
+        if complete:
+            yield ts, te, vs, ve
+
+
+def _windows_from_slices(series, *, metric_fn, **bounds_kw) -> list[WalkforwardWindow]:
+    idx = series.index
+    out: list[WalkforwardWindow] = []
+    for train_start, train_end, test_start, test_end in _slice_bounds(idx, idx[0], idx[-1], **bounds_kw):
         mask = (idx >= test_start) & (idx < test_end)
         oos = series.values[mask]
         if oos.size == 0:
             continue
-        metrics = metric_fn(oos) if metric_fn else {}
-        windows.append(WalkforwardWindow(
-            window_index=len(windows),
-            train_start=train_start.isoformat(),
-            train_end=train_end.isoformat(),
-            test_start=test_start.isoformat(),
-            test_end=test_end.isoformat(),
-            oos_returns=np.asarray(oos, dtype=float),
-            sharpe=metrics.get("sharpe", sharpe_ratio(oos)),
-            cagr=metrics.get("cagr", cagr(oos)),
-            max_drawdown=metrics.get("max_drawdown", max_drawdown(oos)),
-            n_trades=metrics.get("n_trades", _n_trades(oos)),
+        out.append(_build_window(
+            len(out), oos,
+            train_start=train_start.isoformat(), train_end=train_end.isoformat(),
+            test_start=test_start.isoformat(), test_end=test_end.isoformat(),
+            metric_fn=metric_fn,
         ))
+    return out
 
-    if len(windows) < min_windows:
-        raise InsufficientDataError(
-            f"only {len(windows)} walk-forward window(s) fit in the series; "
-            f"need at least {min_windows} (train={train_months}m, "
-            f"test={test_months}m, step={step_months}m)."
-        )
 
+def _windows_with_refit(series, refit, *, metric_fn, **bounds_kw) -> list[WalkforwardWindow]:
+    idx = series.index
+    out: list[WalkforwardWindow] = []
+    for train_start, train_end, test_start, test_end in _slice_bounds(idx, idx[0], idx[-1], **bounds_kw):
+        train = series[(idx >= train_start) & (idx < train_end)]
+        test_index = idx[(idx >= test_start) & (idx < test_end)]
+        if train.empty or len(test_index) == 0:
+            continue
+        oos = np.asarray(refit(train, test_index), dtype=float)
+        if oos.size == 0:
+            continue
+        out.append(_build_window(
+            len(out), oos,
+            train_start=train_start.isoformat(), train_end=train_end.isoformat(),
+            test_start=test_start.isoformat(), test_end=test_end.isoformat(),
+            metric_fn=metric_fn,
+        ))
+    return out
+
+
+def _windows_from_oos(windows, *, metric_fn) -> list[WalkforwardWindow]:
+    out: list[WalkforwardWindow] = []
+    for w in windows:
+        if isinstance(w, pd.Series) and isinstance(w.index, pd.DatetimeIndex) and len(w):
+            s = w.sort_index()
+            test_start, test_end = s.index[0].isoformat(), s.index[-1].isoformat()
+            oos = s.values
+        else:
+            test_start = test_end = ""
+            oos = np.asarray(w, dtype=float)
+        if np.asarray(oos, dtype=float).size == 0:
+            continue
+        out.append(_build_window(
+            len(out), oos, test_start=test_start, test_end=test_end, metric_fn=metric_fn,
+        ))
+    return out
+
+
+def _assemble_result(
+    strategy: str,
+    windows: list[WalkforwardWindow],
+    train_months: int,
+    test_months: int,
+    step_months: int,
+    *,
+    mode: str,
+    oos_source: str,
+) -> WalkforwardResult:
+    """Aggregate per-window OOS returns into a :class:`WalkforwardResult`."""
     all_oos = np.concatenate([w.oos_returns for w in windows])
     n = len(windows)
     return WalkforwardResult(
@@ -234,4 +381,6 @@ def run_walkforward(
         train_months=train_months,
         test_months=test_months,
         step_months=step_months,
+        mode=mode,
+        oos_source=oos_source,
     )

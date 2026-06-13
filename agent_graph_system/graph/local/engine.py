@@ -365,21 +365,21 @@ def latest_walkforward_for_strategy(strategy: str) -> dict[str, Any] | None:
     """
     candidates: dict[str, dict[str, Any]] = {}
 
-    def _add(node: dict[str, Any]) -> None:
+    def _add(node_id: str, node: dict[str, Any]) -> None:
         if node.get("_label") != "WalkforwardRun":
             return
-        key = node.get("run_id") or id(node)
-        candidates[str(key)] = dict(node)
+        key = node.get("run_id") or node_id
+        candidates[str(key)] = _walkforward_dict(node_id, node)
 
     seed_id = f"Strategy::{strategy}"
     if seed_id in _G:
         for _, v, data in _G.out_edges(seed_id, data=True):
             if data.get("_type") == "HAS_WALKFORWARD":
-                _add(_G.nodes.get(v, {}))
+                _add(v, _G.nodes.get(v, {}))
 
-    for _, data in _G.nodes(data=True):
+    for node_id, data in _G.nodes(data=True):
         if data.get("_label") == "WalkforwardRun" and data.get("strategy") == strategy:
-            _add(data)
+            _add(node_id, data)
 
     pool = [
         w for w in candidates.values()
@@ -388,13 +388,57 @@ def latest_walkforward_for_strategy(strategy: str) -> dict[str, Any] | None:
     if not pool:
         return None
 
-    def _ts(node: dict[str, Any]) -> str:
-        for key in ("created_at", "updated_at"):
-            if node.get(key):
-                return str(node[key])
-        return ""
+    return max(pool, key=_walkforward_ts)
 
-    return max(pool, key=_ts)
+
+def _walkforward_dict(node_id: str, node: dict[str, Any]) -> dict[str, Any]:
+    """Materialize a WalkforwardRun node, resolving its VALIDATES target.
+
+    ``validates_backtest`` is the run_id of the Backtest this run was computed
+    against (via the ``VALIDATES`` edge), so the deployment gate can confirm a
+    run validates the *exact* backtest being gated rather than just the newest
+    run for the strategy.
+    """
+    out = dict(node)
+    validates = None
+    if node_id in _G:
+        for _, v, data in _G.out_edges(node_id, data=True):
+            if data.get("_type") == "VALIDATES":
+                validates = _G.nodes.get(v, {}).get("run_id") or str(v).split("::", 1)[-1]
+                break
+    out["validates_backtest"] = validates
+    return out
+
+
+def _walkforward_ts(node: dict[str, Any]) -> str:
+    for key in ("created_at", "updated_at"):
+        if node.get(key):
+            return str(node[key])
+    return ""
+
+
+def latest_walkforward_for_backtest(backtest_run_id: str) -> dict[str, Any] | None:
+    """Return the latest completed walk-forward run that VALIDATES the backtest.
+
+    Stricter than :func:`latest_walkforward_for_strategy`: only runs linked by a
+    ``WalkforwardRun -[VALIDATES]-> Backtest`` edge to *this* ``backtest_run_id``
+    qualify. The deployment gate uses this so a stale run that validated an older
+    backtest cannot green-light a newer one.
+    """
+    if not backtest_run_id:
+        return None
+    pool: dict[str, dict[str, Any]] = {}
+    for node_id, data in _G.nodes(data=True):
+        if data.get("_label") != "WalkforwardRun":
+            continue
+        if data.get("status", "completed") != "completed":
+            continue
+        wf = _walkforward_dict(node_id, data)
+        if wf.get("validates_backtest") == backtest_run_id:
+            pool[str(wf.get("run_id") or node_id)] = wf
+    if not pool:
+        return None
+    return max(pool.values(), key=_walkforward_ts)
 
 
 def nodes(label: str | None = None) -> list[tuple[str, dict[str, Any]]]:

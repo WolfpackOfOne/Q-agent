@@ -124,17 +124,24 @@ and orders by `completed_at → run_date → created_at → updated_at`.
 
 ### Walk-forward validation loop
 
-For *live* deploys the gate has a second bar: a completed `WalkforwardRun` whose
-bootstrap p-value clears `BOOTSTRAP_P_VALUE_THRESHOLD`. That run is produced
+For *live* deploys the gate has a second bar: a completed, **genuine**
+(`mode="walkforward"`) `WalkforwardRun` that validates the exact backtest being
+gated and whose bootstrap p-value clears `BOOTSTRAP_P_VALUE_THRESHOLD`. A
+`rolling_holdout` run (one precomputed series sliced into windows, no refit) is
+in-sample reporting and is **refused** by the gate. That run is produced
 automatically:
 
 1. `MonitoringAgent` sees a backtested Strategy with no recent completed
    `WalkforwardRun` and sets `status="needs_walkforward"`.
-2. `WalkforwardAgent` (`agent walkforward`) scans for those strategies, sources a
-   daily return series (injectable provider; default discovers a `returns.csv`
-   or LEAN `result.json` under `MyProjects/<strategy>/`), runs the walk-forward +
-   bootstrap via the `ResearchAgent`, and sets `status` to `validated` /
-   `not_significant` / `walkforward_insufficient_data` / `walkforward_unavailable`.
+2. `WalkforwardAgent` (`agent walkforward`) scans for those strategies and sources
+   OOS data from an injectable provider. The provider may return **a list of
+   per-window OOS return series** (each trained out of sample → a genuine
+   `walkforward` run) or **a single series** (→ a `rolling_holdout` run, honestly
+   not gate-eligible). The default provider discovers a `returns.csv` or LEAN
+   `result.json` under `MyProjects/<strategy>/` (a single series). The run +
+   bootstrap go through the `ResearchAgent`, and `status` is set to `validated` /
+   `not_significant` / `walkforward_not_oos` (rolling holdout) /
+   `walkforward_insufficient_data` / `walkforward_unavailable`.
 3. `OrchestrationAgent` surfaces flagged strategies as `run_walkforward` actions.
 
 Run `agent walkforward` with no arguments to process every flagged strategy, or

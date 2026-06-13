@@ -65,25 +65,30 @@ class WalkforwardAgent(BaseAgent):
 
     # -- public entry point --------------------------------------------------
 
-    def run(self, strategy: str | None = None, returns: "pd.Series | None" = None, **kwargs) -> Any:
+    def run(self, strategy: str | None = None, returns=None, **kwargs) -> Any:
         """Process strategies awaiting walk-forward validation.
 
         With no arguments, scans the graph for every strategy flagged
         ``needs_walkforward`` and processes each. Passing ``strategy`` (and
-        optionally an explicit ``returns`` series) processes just that one — used
-        by the CLI / orchestration to target a single strategy on demand.
+        optionally an explicit ``returns``) processes just that one — used by the
+        CLI / orchestration to target a single strategy on demand.
+
+        The provider (or the explicit ``returns``) may return **either** a single
+        ``pd.Series`` — which is in-sample slicing (``rolling_holdout``, not
+        gate-eligible) — **or** a list of per-window OOS return series, which is a
+        genuine ``walkforward`` run. See :meth:`_validate`.
         """
         results: dict[str, Any] = {"processed": [], "unavailable": [], "errors": []}
         try:
             targets = [strategy] if strategy else self._flagged_strategies()
             for name in targets:
-                series = returns if (strategy and returns is not None) else self._returns_provider(name)
-                if series is None:
+                oos = returns if (strategy and returns is not None) else self._returns_provider(name)
+                if oos is None:
                     self._set_status(name, "walkforward_unavailable")
                     results["unavailable"].append(name)
                     log.warning("[WalkforwardAgent] no returns available for %s", name)
                     continue
-                outcome = self._validate(name, series)
+                outcome = self._validate(name, oos)
                 results["processed"].append(outcome)
             self._mark_idle()
         except Exception as exc:
@@ -101,29 +106,37 @@ class WalkforwardAgent(BaseAgent):
         rows = query("MATCH (s:Strategy) RETURN s.name AS name, s.status AS status")
         return [r["name"] for r in rows if r.get("status") == NEEDS_WALKFORWARD and r.get("name")]
 
-    def _validate(self, strategy: str, returns: "pd.Series") -> dict[str, Any]:
-        """Run the walk-forward via the ResearchAgent and update the status."""
+    def _validate(self, strategy: str, oos) -> dict[str, Any]:
+        """Run the walk-forward via the ResearchAgent and update the status.
+
+        A list/tuple of per-window OOS series runs the genuine ``walkforward``
+        path; a single series runs the ``rolling_holdout`` path (which cannot
+        validate a live deploy — its status reflects that honestly).
+        """
         from agent_graph_system.agents.research_agent import ResearchAgent
 
-        payload = ResearchAgent().run(
-            mode="walkforward",
-            strategy=strategy,
-            returns=returns,
-            train_months=self._train_months,
-            test_months=self._test_months,
-            step_months=self._step_months,
-            bootstrap=self._bootstrap,
+        run_kwargs = dict(
+            mode="walkforward", strategy=strategy,
+            train_months=self._train_months, test_months=self._test_months,
+            step_months=self._step_months, bootstrap=self._bootstrap,
         )
+        if isinstance(oos, (list, tuple)):
+            run_kwargs["windows"] = list(oos)
+        else:
+            run_kwargs["returns"] = oos
+
+        payload = ResearchAgent().run(**run_kwargs)
         status = self._status_from_payload(payload)
         self._set_status(strategy, status)
         log.info(
-            "[WalkforwardAgent] %s → %s (run %s)",
-            strategy, status, payload.get("run_id"),
+            "[WalkforwardAgent] %s → %s (run %s, mode=%s)",
+            strategy, status, payload.get("run_id"), payload.get("mode"),
         )
         return {
             "strategy": strategy,
             "status": status,
             "run_id": payload.get("run_id"),
+            "mode": payload.get("mode"),
             "bootstrap_p_value": payload.get("bootstrap_p_value"),
         }
 
@@ -131,15 +144,21 @@ class WalkforwardAgent(BaseAgent):
     def _status_from_payload(payload: dict) -> str:
         """Translate a walk-forward result into a Strategy.status.
 
-        ``validated`` means a completed run that clears the significance bar (or
-        had no bootstrap p-value, i.e. presence alone satisfies the gate, matching
-        :func:`ontology.policy.check_deployment_gate`). ``not_significant`` means
-        the run completed but the bootstrap p-value missed the threshold.
+        - ``walkforward_insufficient_data`` — too little data to form windows.
+        - ``walkforward_not_oos`` — a completed ``rolling_holdout`` run (in-sample
+          slicing); honest about the fact that it is NOT out-of-sample validation
+          and the live gate will refuse it.
+        - ``not_significant`` — a genuine run whose bootstrap p-value missed the
+          threshold.
+        - ``validated`` — a genuine run that clears the bar (or had no p-value),
+          matching :func:`ontology.policy.check_deployment_gate`.
         """
         from agent_graph_system.ontology.policy import BOOTSTRAP_P_VALUE_THRESHOLD
 
         if payload.get("status") == "insufficient_data":
             return "walkforward_insufficient_data"
+        if (payload.get("mode") or "walkforward") != "walkforward":
+            return "walkforward_not_oos"
         p_value = payload.get("bootstrap_p_value")
         if p_value is not None and p_value > BOOTSTRAP_P_VALUE_THRESHOLD:
             return "not_significant"
@@ -150,11 +169,17 @@ class WalkforwardAgent(BaseAgent):
 
     @staticmethod
     def _strategy_type(name: str) -> str:
-        """Preserve an existing strategy's type when re-upserting its status."""
-        from agent_graph_system.graph.local import engine
-        node = engine.get_node(f"Strategy::{name}") or {}
-        return node.get("strategy_type", "unknown")
+        """Preserve an existing strategy's type when re-upserting its status.
 
-    def _default_returns_provider(self, strategy: str) -> "pd.Series | None":
+        Resolved through the active backend (not the local engine directly) so it
+        stays correct when ``GRAPH_BACKEND=neo4j``.
+        """
+        rows = query("MATCH (s:Strategy) RETURN s.name AS name, s.strategy_type AS strategy_type")
+        for row in rows:
+            if row.get("name") == name:
+                return row.get("strategy_type") or "unknown"
+        return "unknown"
+
+    def _default_returns_provider(self, strategy: str):
         from agent_graph_system.analysis.returns import discover_returns
         return discover_returns(strategy, self._search_roots)

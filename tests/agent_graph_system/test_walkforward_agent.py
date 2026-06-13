@@ -63,6 +63,57 @@ def test_walkforward_validates_existing_backtest():
     assert "Backtest::btX" in targets
 
 
+def test_supplied_windows_run_is_walkforward_and_can_pass_the_gate():
+    from agent_graph_system.ontology.policy import PolicyViolation
+
+    gm.upsert_strategy("WFG", strategy_type="momentum")
+    gm.upsert_backtest("btG", name="WFG", sharpe=1.5, drawdown=0.1, cagr=0.2)
+    gm.strategy_has_backtest("WFG", "btG")
+
+    # Genuine per-window OOS returns (positive drift with variance → significant).
+    rng = np.random.default_rng(0)
+    base = pd.Timestamp("2018-01-01")
+    windows = [
+        pd.Series(rng.normal(0.0015, 0.006, 63),
+                  index=pd.bdate_range(base + pd.DateOffset(months=4 * i), periods=63))
+        for i in range(6)
+    ]
+    payload = ResearchAgent().run(
+        mode="walkforward", strategy="WFG", windows=windows, bootstrap=True
+    )
+    assert payload["status"] == "completed"
+    assert payload["mode"] == "walkforward"
+
+    wf = latest_walkforward_for_strategy("WFG")
+    assert wf["mode"] == "walkforward"
+    assert wf["validates_backtest"] == "btG"
+
+    # Because it is a genuine walk-forward run validating btG and significant,
+    # the live deployment gate now allows the deploy.
+    gm.merge_node("API", "name", "AlpacaLive")
+    gm.strategy_deploys_to("WFG", "AlpacaLive", environment="live")
+    active = [d for r, _, d in engine.out_relations("Strategy::WFG") if r == "DEPLOYS_TO"]
+    assert active, "expected a live DEPLOYS_TO edge after a passing genuine walk-forward"
+
+
+def test_single_series_run_is_rolling_holdout_and_blocked_from_live():
+    from agent_graph_system.ontology.policy import PolicyViolation
+
+    gm.upsert_strategy("RHS", strategy_type="momentum")
+    gm.upsert_backtest("btR", name="RHS", sharpe=1.5, drawdown=0.1, cagr=0.2)
+    gm.strategy_has_backtest("RHS", "btR")
+
+    payload = ResearchAgent().run(
+        mode="walkforward", strategy="RHS", returns=_series(seed=1), bootstrap=True
+    )
+    assert payload["mode"] == "rolling_holdout"
+
+    gm.merge_node("API", "name", "AlpacaLive")
+    with pytest.raises(PolicyViolation) as exc:
+        gm.strategy_deploys_to("RHS", "AlpacaLive", environment="live")
+    assert exc.value.decision.code == "NOT_OUT_OF_SAMPLE"
+
+
 def test_insufficient_data_persists_status_not_raises():
     gm.upsert_strategy("WF3", strategy_type="momentum")
     payload = ResearchAgent().run(
