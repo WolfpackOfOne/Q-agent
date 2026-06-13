@@ -421,17 +421,18 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="../../roadmap/" class="md-tabs__link">
-        
-  
-  
     
+    
+      <li class="md-tabs__item">
+        <a href="../../roadmap/" class="md-tabs__link">
+          
+  
   
   Roadmap
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -1106,6 +1107,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#output-location" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output location
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#output-schema" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1395,6 +1407,58 @@
   
   
   
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Roadmap
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
       <a href="../../roadmap/" class="md-nav__link">
         
@@ -1412,6 +1476,42 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public Release Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -1503,6 +1603,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#output-location" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output location
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#output-schema" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1567,13 +1678,18 @@
 
 
 <h1 id="yfinance-pipeline">yfinance Pipeline<a class="headerlink" href="#yfinance-pipeline" title="Permanent link">&para;</a></h1>
-<p>Daily OHLCV price data for any ticker covered by Yahoo Finance, written to LEAN-compatible CSV format. Free, no credentials required.</p>
+<p>Daily OHLCV price data for tickers covered by Yahoo Finance, written to LEAN-compatible local data format. Free, no credentials required.</p>
 <h2 id="what-it-provides">What it provides<a class="headerlink" href="#what-it-provides" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Any equity, ETF, index, or currency pair on Yahoo Finance</li>
-<li>Daily OHLCV with adjusted close prices</li>
-<li>Fast pulls — typical ticker completes in under 1 second</li>
+<li>Daily OHLCV for equities and ETFs covered by Yahoo Finance</li>
+<li>LEAN-ready daily equity zip files under <code>lean-data/equity/usa/daily/</code></li>
+<li>Factor and map files under <code>lean-data/equity/usa/</code></li>
+<li>Fast pulls — a typical ticker completes in under 1 second</li>
 </ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Open PR work may add Forex support. Until that lands, treat this page as the documentation for the current equity/ETF pipeline.</p>
+</div>
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <p>No credentials required.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">cd</span><span class="w"> </span>~/Documents/Q-agent/infrastructure
@@ -1587,20 +1703,31 @@
 <p>To pull a specific date range:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>scripts/run_pipeline.py<span class="w"> </span>--tickers<span class="w"> </span>AAPL<span class="w"> </span>--start<span class="w"> </span><span class="m">2020</span>-01-01<span class="w"> </span>--end<span class="w"> </span><span class="m">2024</span>-12-31
 </code></pre></div>
+<h2 id="output-location">Output location<a class="headerlink" href="#output-location" title="Permanent link">&para;</a></h2>
+<p>The pipeline writes LEAN-ready files under:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>infrastructure/pipelines/yfinance/lean-data/
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>├── equity/usa/daily/&lt;ticker&gt;.zip
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>├── equity/usa/factor_files/&lt;ticker&gt;.csv
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>└── equity/usa/map_files/&lt;ticker&gt;.csv
+</code></pre></div>
+<p>Point <code>lean.json</code> at <code>infrastructure/pipelines/yfinance/lean-data</code> when you want a local LEAN backtest to read this data.</p>
 <h2 id="output-schema">Output schema<a class="headerlink" href="#output-schema" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Date,Open,High,Low,Close,Volume
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>20240101,1852340000,1876520000,1845670000,1869430000,75234100
+<p>Daily equity rows inside each zip are headerless and use LEAN's scaled-price convention:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Date,Open,High,Low,Close,Volume
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>20240101,1852340000,1876520000,1845670000,1869430000,75234100
 </code></pre></div>
 <p>Prices are multiplied by 10,000 per LEAN's internal format.</p>
 <h2 id="using-in-a-notebook">Using in a notebook<a class="headerlink" href="#using-in-a-notebook" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="s2">&quot;infrastructure/pipelines/yfinance/data/aapl.csv&quot;</span><span class="p">,</span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="s2">&quot;open&quot;</span><span class="p">,</span> <span class="s2">&quot;high&quot;</span><span class="p">,</span> <span class="s2">&quot;low&quot;</span><span class="p">,</span> <span class="s2">&quot;close&quot;</span><span class="p">,</span> <span class="s2">&quot;volume&quot;</span><span class="p">],</span>
-<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="n">parse_dates</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">]</span>
-<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="p">)</span>
-<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="n">df</span><span class="p">[[</span><span class="s2">&quot;open&quot;</span><span class="p">,</span> <span class="s2">&quot;high&quot;</span><span class="p">,</span> <span class="s2">&quot;low&quot;</span><span class="p">,</span> <span class="s2">&quot;close&quot;</span><span class="p">]]</span> <span class="o">/=</span> <span class="mi">10_000</span>
+<p>For notebook research, read the CSV inside the zip and undo the LEAN scaling:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">zip_path</span> <span class="o">=</span> <span class="s2">&quot;infrastructure/pipelines/yfinance/lean-data/equity/usa/daily/aapl.zip&quot;</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    <span class="n">zip_path</span><span class="p">,</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="s2">&quot;open&quot;</span><span class="p">,</span> <span class="s2">&quot;high&quot;</span><span class="p">,</span> <span class="s2">&quot;low&quot;</span><span class="p">,</span> <span class="s2">&quot;close&quot;</span><span class="p">,</span> <span class="s2">&quot;volume&quot;</span><span class="p">],</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    <span class="n">parse_dates</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">],</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="p">)</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="n">df</span><span class="p">[[</span><span class="s2">&quot;open&quot;</span><span class="p">,</span> <span class="s2">&quot;high&quot;</span><span class="p">,</span> <span class="s2">&quot;low&quot;</span><span class="p">,</span> <span class="s2">&quot;close&quot;</span><span class="p">]]</span> <span class="o">/=</span> <span class="mi">10_000</span>
 </code></pre></div>
 <h2 id="good-use-cases">Good use cases<a class="headerlink" href="#good-use-cases" title="Permanent link">&para;</a></h2>
 <ul>

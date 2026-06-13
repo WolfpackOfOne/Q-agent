@@ -421,17 +421,18 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="../roadmap/" class="md-tabs__link">
-        
-  
-  
     
+    
+      <li class="md-tabs__item">
+        <a href="../roadmap/" class="md-tabs__link">
+          
+  
   
   Roadmap
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -944,6 +945,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#output-directory-convention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output directory convention
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lean-compatibility-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LEAN compatibility matrix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#fully-documented-pipelines" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -988,10 +1011,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#lean-csv-format" class="md-nav__link">
+  <a href="#lean-csv-and-zip-output" class="md-nav__link">
     <span class="md-ellipsis">
       
-        LEAN CSV format
+        LEAN CSV and ZIP output
       
     </span>
   </a>
@@ -1406,6 +1429,58 @@
   
   
   
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Roadmap
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
       <a href="../roadmap/" class="md-nav__link">
         
@@ -1423,6 +1498,42 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public Release Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -1492,6 +1603,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#output-directory-convention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output directory convention
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lean-compatibility-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LEAN compatibility matrix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#fully-documented-pipelines" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1536,10 +1669,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#lean-csv-format" class="md-nav__link">
+  <a href="#lean-csv-and-zip-output" class="md-nav__link">
     <span class="md-ellipsis">
       
-        LEAN CSV format
+        LEAN CSV and ZIP output
       
     </span>
   </a>
@@ -1589,7 +1722,7 @@
 
 
 <h1 id="data-pipelines">Data Pipelines<a class="headerlink" href="#data-pipelines" title="Permanent link">&para;</a></h1>
-<p>Q-agent ships with ready-made pipelines for the most common quantitative research data sources. Each pipeline pulls data from its source, normalizes it to LEAN-compatible CSV format, and writes it to a local directory.</p>
+<p>Q-agent ships with ready-made pipelines for common quantitative research data sources. Each pipeline pulls data from its source, normalizes it into a documented local format, and makes the result available to notebooks and, where appropriate, LEAN backtests.</p>
 <hr />
 <h2 id="pipeline-maturity">Pipeline maturity<a class="headerlink" href="#pipeline-maturity" title="Permanent link">&para;</a></h2>
 <table>
@@ -1615,9 +1748,141 @@
 </tbody>
 </table>
 <hr />
+<h2 id="output-directory-convention">Output directory convention<a class="headerlink" href="#output-directory-convention" title="Permanent link">&para;</a></h2>
+<p>Q-agent uses two local output conventions:</p>
+<table>
+<thead>
+<tr>
+<th>Directory</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>data/</code></td>
+<td>Pipeline-specific raw, intermediate, or research CSV outputs</td>
+</tr>
+<tr>
+<td><code>lean-data/</code></td>
+<td>LEAN-ready data folders that can be pointed to from <code>lean.json</code></td>
+</tr>
+</tbody>
+</table>
+<p>Not every pipeline writes both. For example, the crypto, yfinance, and WRDS pipelines write LEAN-ready data under <code>lean-data/</code>, while the Polymarket pipeline writes alternative-data CSVs that require project-specific reader logic.</p>
+<hr />
+<h2 id="lean-compatibility-matrix">LEAN compatibility matrix<a class="headerlink" href="#lean-compatibility-matrix" title="Permanent link">&para;</a></h2>
+<p>Some pipelines write native LEAN local data. Others write research CSVs used by notebooks or project-specific custom readers. Do not assume that every file under a <code>lean-data/</code> folder is a standard LEAN equity, crypto, futures, or options data file.</p>
+<table>
+<thead>
+<tr>
+<th>Pipeline</th>
+<th>Main output folder</th>
+<th style="text-align: right;">Native LEAN local data?</th>
+<th style="text-align: right;">Requires custom reader?</th>
+<th style="text-align: right;">Notebook-only / research CSV?</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="crypto/">Crypto</a></td>
+<td><code>infrastructure/pipelines/crypto/lean-data/</code></td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">No</td>
+<td>Writes LEAN-style crypto daily/minute zip files under <code>crypto/&lt;market&gt;/...</code>.</td>
+</tr>
+<tr>
+<td><a href="yfinance/">yfinance</a></td>
+<td><code>infrastructure/pipelines/yfinance/lean-data/</code></td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">No</td>
+<td>Writes daily equity zips plus factor and map files under <code>equity/usa/...</code>.</td>
+</tr>
+<tr>
+<td><a href="wrds/">WRDS / CRSP</a></td>
+<td><code>infrastructure/pipelines/wrds/lean-data/</code></td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">No</td>
+<td>Writes CRSP-derived daily equity zips plus factor and map files under <code>equity/usa/...</code>.</td>
+</tr>
+<tr>
+<td><a href="polymarket/">Polymarket</a></td>
+<td><code>infrastructure/pipelines/polymarket/lean-data/alternative/polymarket/</code></td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">Yes</td>
+<td>Writes market metadata and <code>datetime,price</code> CSVs for custom research/strategy logic, not standard LEAN data.</td>
+</tr>
+<tr>
+<td><a href="edgar/">SEC EDGAR</a></td>
+<td>pipeline-specific CSV outputs</td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">Yes, if used in LEAN</td>
+<td style="text-align: right;">Yes</td>
+<td>Fundamentals and Piotroski-style outputs are research/features data, not native LEAN local data.</td>
+</tr>
+<tr>
+<td><code>passive_share</code></td>
+<td><code>infrastructure/pipelines/passive_share/data/processed/</code></td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">Yes, if used in LEAN</td>
+<td style="text-align: right;">Yes</td>
+<td>Committed research snapshots for notebooks.</td>
+</tr>
+<tr>
+<td><code>etf_flows</code></td>
+<td><code>infrastructure/pipelines/etf_flows/data/processed/</code></td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">Yes, if used in LEAN</td>
+<td style="text-align: right;">Yes</td>
+<td>Committed research snapshots for notebooks.</td>
+</tr>
+<tr>
+<td><code>equity_liquidity</code></td>
+<td><code>infrastructure/pipelines/equity_liquidity/data/processed/</code></td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">Yes, if used in LEAN</td>
+<td style="text-align: right;">Yes</td>
+<td>Committed research snapshots for notebooks.</td>
+</tr>
+<tr>
+<td><code>treasury_gov_rates</code></td>
+<td>pipeline-specific outputs</td>
+<td style="text-align: right;">Not confirmed</td>
+<td style="text-align: right;">Yes, if used in LEAN</td>
+<td style="text-align: right;">Yes</td>
+<td>Experimental; document exact schema before using in a backtest.</td>
+</tr>
+<tr>
+<td><code>fixed_income</code></td>
+<td>pipeline-specific outputs</td>
+<td style="text-align: right;">Not confirmed</td>
+<td style="text-align: right;">Yes, if used in LEAN</td>
+<td style="text-align: right;">Yes</td>
+<td>Experimental; document exact schema before using in a backtest.</td>
+</tr>
+<tr>
+<td><code>macro_rates</code></td>
+<td>pipeline-specific outputs</td>
+<td style="text-align: right;">Not confirmed</td>
+<td style="text-align: right;">Yes, if used in LEAN</td>
+<td style="text-align: right;">Yes</td>
+<td>Experimental; document exact schema before using in a backtest.</td>
+</tr>
+</tbody>
+</table>
+<p>For new pipelines, explicitly choose one of these targets:</p>
+<ol>
+<li><strong>Native LEAN data</strong> — match a standard LEAN local-data folder and file schema.</li>
+<li><strong>Custom LEAN data</strong> — write documented CSVs and implement a project-specific <code>PythonData</code> reader.</li>
+<li><strong>Notebook-only research data</strong> — write clearly documented CSVs for Marimo notebooks and diagnostics.</li>
+</ol>
+<hr />
 <h2 id="fully-documented-pipelines">Fully documented pipelines<a class="headerlink" href="#fully-documented-pipelines" title="Permanent link">&para;</a></h2>
-<p>These five pipelines have dedicated docs pages, end-to-end examples, and are the
-recommended starting points for new research.</p>
+<p>These five pipelines have dedicated docs pages, end-to-end examples, and are the recommended starting points for new research.</p>
 <table>
 <thead>
 <tr>
@@ -1662,9 +1927,7 @@ recommended starting points for new research.</p>
 </table>
 <hr />
 <h2 id="committed-data-pipelines">Committed-data pipelines<a class="headerlink" href="#committed-data-pipelines" title="Permanent link">&para;</a></h2>
-<p>These pipelines have processed snapshots committed to the repository under
-<code>infrastructure/pipelines/&lt;name&gt;/data/processed/</code>. The notebooks that use them
-work offline without re-running the scripts. Re-run the scripts to refresh.</p>
+<p>These pipelines have processed snapshots committed to the repository under <code>infrastructure/pipelines/&lt;name&gt;/data/processed/</code>. The notebooks that use them work offline without re-running the scripts. Re-run the scripts to refresh.</p>
 <table>
 <thead>
 <tr>
@@ -1694,9 +1957,7 @@ work offline without re-running the scripts. Re-run the scripts to refresh.</p>
 <p>These pipelines feed the <a href="../research-recipes/passive-market-instability-extension/">Passive Market Instability</a> research notebook directly.</p>
 <hr />
 <h2 id="experimental-pipelines">Experimental pipelines<a class="headerlink" href="#experimental-pipelines" title="Permanent link">&para;</a></h2>
-<p>These pipelines exist in <code>infrastructure/pipelines/</code> but documentation, schema
-stability, and test coverage are still evolving. Use with caution and expect
-breaking changes.</p>
+<p>These pipelines exist in <code>infrastructure/pipelines/</code> but documentation, schema stability, and test coverage are still evolving. Use with caution and expect breaking changes.</p>
 <table>
 <thead>
 <tr>
@@ -1728,29 +1989,30 @@ breaking changes.</p>
 <p>All pipelines follow the same pattern:</p>
 <pre class="mermaid"><code>graph LR
     A[Data Source&lt;br/&gt;API / File] --&gt; B[run_pipeline.py]
-    B --&gt; C[Normalize to&lt;br/&gt;LEAN CSV Format]
-    C --&gt; D[infrastructure/pipelines/&lt;br/&gt;&amp;lt;name&amp;gt;/data/]
+    B --&gt; C[Normalize to&lt;br/&gt;documented local schema]
+    C --&gt; D[data/&lt;br/&gt;or lean-data/]
     D --&gt; E[Research&lt;br/&gt;Notebook]
-    D --&gt; F[LEAN&lt;br/&gt;Backtest]</code></pre>
+    D --&gt; F[LEAN&lt;br/&gt;Backtest or&lt;br/&gt;Custom Reader]</code></pre>
 <ol>
 <li>A <code>run_pipeline.py</code> script pulls from the upstream source</li>
-<li>Data is normalized to LEAN's expected CSV schema</li>
-<li>Output lands in <code>infrastructure/pipelines/&lt;name&gt;/data/</code></li>
-<li>Notebooks and backtests read from that directory</li>
+<li>Data is normalized into the pipeline's documented output schema</li>
+<li>Output lands in <code>data/</code>, <code>lean-data/</code>, or both depending on the pipeline</li>
+<li>Notebooks, native LEAN backtests, or custom readers consume those outputs</li>
 </ol>
-<p>Pipeline data is <strong>gitignored</strong> — the scripts are committed, the data is not. Every collaborator regenerates local data by running the pipeline.</p>
+<p>Pipeline data is generally <strong>gitignored</strong> — the scripts are committed, the generated data is usually not. Committed-data pipelines are the exception and are called out explicitly above.</p>
 <hr />
-<h2 id="lean-csv-format">LEAN CSV format<a class="headerlink" href="#lean-csv-format" title="Permanent link">&para;</a></h2>
-<p>LEAN expects daily equity data in this format:</p>
+<h2 id="lean-csv-and-zip-output">LEAN CSV and ZIP output<a class="headerlink" href="#lean-csv-and-zip-output" title="Permanent link">&para;</a></h2>
+<p>LEAN-ready daily equity and crypto bars use LEAN's local data conventions. Daily equity rows look like this inside the zip files:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Date,Open,High,Low,Close,Volume
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>20240101,17543200,17612300,17498700,17589400,1234567890
 </code></pre></div>
 <ul>
 <li>Dates: <code>YYYYMMDD</code></li>
-<li>Prices: multiplied by 10,000 (LEAN's internal representation)</li>
-<li>Volume: integer shares</li>
+<li>Prices: multiplied by 10,000 for asset classes that use LEAN's scaled-price convention</li>
+<li>Volume: integer shares or contracts, depending on the asset class</li>
+<li>Location: usually <code>infrastructure/pipelines/&lt;name&gt;/lean-data/...</code></li>
 </ul>
-<p>Pipelines handle this normalization automatically.</p>
+<p>Pipelines handle this normalization only when they are explicitly marked as native LEAN data writers in the compatibility matrix above. Always check the individual pipeline page for the exact path and schema.</p>
 <hr />
 <h2 id="adding-a-new-pipeline">Adding a new pipeline<a class="headerlink" href="#adding-a-new-pipeline" title="Permanent link">&para;</a></h2>
 <p>Use the <code>new-pipeline-coder</code> agent to scaffold a new pipeline from any data source:</p>
@@ -1766,9 +2028,10 @@ breaking changes.</p>
 <a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>│       ├── fetch.py
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>│       ├── transform.py
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>│       └── write.py
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>├── data/                   ← gitignored output
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>├── requirements.txt
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>└── README.md
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>├── data/                   ← raw/intermediate/research output, usually gitignored
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>├── lean-data/              ← native or custom LEAN-consumable output, if applicable
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>├── requirements.txt
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>└── README.md
 </code></pre></div>
 <hr />
 <h2 id="infrastructure-venv">Infrastructure venv<a class="headerlink" href="#infrastructure-venv" title="Permanent link">&para;</a></h2>

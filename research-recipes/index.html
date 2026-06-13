@@ -421,17 +421,18 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="../roadmap/" class="md-tabs__link">
-        
-  
-  
     
+    
+      <li class="md-tabs__item">
+        <a href="../roadmap/" class="md-tabs__link">
+          
+  
   
   Roadmap
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -1239,10 +1240,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#crypto-returns-vs-polymarket-election-probabilities" class="md-nav__link">
+  <a href="#crypto-returns-vs-election-prediction-markets" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Crypto Returns vs. Polymarket Election Probabilities
+        Crypto Returns vs. Election Prediction Markets
       
     </span>
   </a>
@@ -1496,6 +1497,58 @@
   
   
   
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Roadmap
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
       <a href="../roadmap/" class="md-nav__link">
         
@@ -1513,6 +1566,42 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public Release Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -1622,10 +1711,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#crypto-returns-vs-polymarket-election-probabilities" class="md-nav__link">
+  <a href="#crypto-returns-vs-election-prediction-markets" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Crypto Returns vs. Polymarket Election Probabilities
+        Crypto Returns vs. Election Prediction Markets
       
     </span>
   </a>
@@ -1769,7 +1858,7 @@
 
 
 <h1 id="research-recipes">Research Recipes<a class="headerlink" href="#research-recipes" title="Permanent link">&para;</a></h1>
-<p>A recipe is a focused, reproducible research task: a hypothesis, the data needed to test it, and a starting point for the notebook. Each recipe can be completed in a few hours with the data pipelines already in this repo.</p>
+<p>A recipe is a focused, reproducible research task: a hypothesis, the data needed to test it, and a starting point for the notebook. Each recipe can be completed in a few hours when the needed data pipeline is already available.</p>
 <hr />
 <h2 id="macro-policy">Macro &amp; Policy<a class="headerlink" href="#macro-policy" title="Permanent link">&para;</a></h2>
 <h3 id="fed-policy-probability-vs-equity-sectors">Fed Policy Probability vs. Equity Sectors<a class="headerlink" href="#fed-policy-probability-vs-equity-sectors" title="Permanent link">&para;</a></h3>
@@ -1779,26 +1868,26 @@
 - Do rising rate-cut probabilities predict utility and REIT outperformance?
 - Is there a lead/lag structure between prediction market prices and ETF returns?
 - Does the effect strengthen in the 5 days before an FOMC meeting?</p>
-<p><strong>Status:</strong> Example notebook included — see <a href="../notebooks/">Election &amp; Industry Returns</a></p>
+<p><strong>Status:</strong> Recipe pattern only — use the <a href="../notebooks/">Election &amp; Industry Returns</a> notebook and the <a href="../golden-path/">Golden Path</a> as the template for converting prediction-market probabilities into ETF sensitivity research.</p>
 <hr />
 <h3 id="treasury-yield-curve-vs-bank-stocks">Treasury Yield Curve vs. Bank Stocks<a class="headerlink" href="#treasury-yield-curve-vs-bank-stocks" title="Permanent link">&para;</a></h3>
 <p><strong>Hypothesis:</strong> Yield curve steepening predicts bank stock outperformance.</p>
-<p><strong>Data:</strong> Treasury.gov rate data + WRDS (JPM, BAC, GS, MS)</p>
+<p><strong>Data:</strong> Treasury.gov rate data + WRDS or yfinance bank-stock returns (JPM, BAC, GS, MS)</p>
 <p><strong>Research questions:</strong>
 - What is the rolling correlation between the 10Y-2Y spread and bank stock returns?
 - Does the effect hold after controlling for market beta?
 - Is the signal stronger at curve inversions?</p>
-<p><strong>Status:</strong> Coming soon — Treasury pipeline not yet built</p>
+<p><strong>Status:</strong> Experimental data pipeline exists (<code>treasury_gov_rates</code>), but this recipe has not yet been implemented as a notebook.</p>
 <hr />
 <h2 id="crypto-prediction-markets">Crypto &amp; Prediction Markets<a class="headerlink" href="#crypto-prediction-markets" title="Permanent link">&para;</a></h2>
-<h3 id="crypto-returns-vs-polymarket-election-probabilities">Crypto Returns vs. Polymarket Election Probabilities<a class="headerlink" href="#crypto-returns-vs-polymarket-election-probabilities" title="Permanent link">&para;</a></h3>
-<p><strong>Hypothesis:</strong> Crypto prices are sensitive to political event probabilities.</p>
-<p><strong>Data:</strong> Coinbase/Kraken (BTC, ETH, SOL) + Polymarket (election/policy markets) + yfinance (COIN)</p>
+<h3 id="crypto-returns-vs-election-prediction-markets">Crypto Returns vs. Election Prediction Markets<a class="headerlink" href="#crypto-returns-vs-election-prediction-markets" title="Permanent link">&para;</a></h3>
+<p><strong>Hypothesis:</strong> Crypto prices are sensitive to political and policy event probabilities.</p>
+<p><strong>Data:</strong> Coinbase/Kraken (BTC, ETH, SOL) + Polymarket election or policy markets + yfinance (COIN)</p>
 <p><strong>Research questions:</strong>
-- Does BTC correlate with Trump election probability?
-- Does the correlation change sign between primary and general election periods?
-- Is COIN (Coinbase stock) a better proxy than BTC for political sensitivity?</p>
-<p><strong>Status:</strong> Recipe — build it with the <a href="../pipelines/crypto/">Crypto</a> and <a href="../pipelines/polymarket/">Polymarket</a> pipelines. (A worked election × ETF example ships as the <a href="../notebooks/">example notebook</a> and the <a href="../golden-path/">golden path</a>.)</p>
+- Do crypto returns correlate with changes in election-market probabilities?
+- Does the correlation change between early and late campaign periods?
+- Is COIN a better proxy than BTC for political-market sensitivity?</p>
+<p><strong>Status:</strong> Recipe — build it with the <a href="../pipelines/crypto/">Crypto</a> and <a href="../pipelines/polymarket/">Polymarket</a> pipelines. A worked election × ETF example ships as the <a href="../notebooks/">example notebook</a>, <a href="../workflows/election-industry-beta/">canonical workflow</a>, and <a href="../golden-path/">golden path</a>.</p>
 <hr />
 <h3 id="crypto-volatility-regimes">Crypto Volatility Regimes<a class="headerlink" href="#crypto-volatility-regimes" title="Permanent link">&para;</a></h3>
 <p><strong>Hypothesis:</strong> Crypto volatility clusters and is predictable short-term.</p>

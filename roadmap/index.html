@@ -16,7 +16,7 @@
         <link rel="prev" href="../architecture-hybrid-graph/">
       
       
-        <link rel="next" href="../contributing/">
+        <link rel="next" href="../release-checklist/">
       
       
         
@@ -421,17 +421,18 @@
     
   
   
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="./" class="md-tabs__link">
-        
-  
-  
     
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
   
   Roadmap
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -1268,6 +1269,63 @@
   
   
   
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Roadmap
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
     <li class="md-nav__item md-nav__item--active">
       
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
@@ -1340,6 +1398,42 @@
     </ul>
   
 </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Public Release Checklist
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
       
     </li>
   
@@ -1444,23 +1538,34 @@
 <h1 id="recently-shipped">Recently Shipped<a class="headerlink" href="#recently-shipped" title="Permanent link">&para;</a></h1>
 <ul>
 <li><strong>Docker / GHCR image</strong> (<a href="https://github.com/WolfpackOfOne/Q-agent/issues/20">#20</a>, <a href="https://github.com/WolfpackOfOne/Q-agent/pull/25">#25</a>). Public image at <code>ghcr.io/wolfpackofone/q-agent:latest</code> bundles LEAN CLI + infrastructure pipelines + marimo. CI builds on every PR, publishes on every push to <code>main</code>. See <a href="../docker/">Docker</a>.</li>
+<li><strong>Multi-arch Docker image</strong> — the published manifest supports both <code>linux/amd64</code> and <code>linux/arm64</code>, so Apple Silicon hosts can pull natively. See <a href="../docker/">Docker</a>.</li>
 <li><strong>Workflow-first documentation site</strong> — mkdocs at <a href="https://wolfpackofone.github.io/Q-agent/">https://wolfpackofone.github.io/Q-agent/</a> with linkcheck on every PR.</li>
 <li><strong>Personal-paths CI scanner</strong> — <code>.github/workflows/secret-scan.yml</code> blocks PRs that leak host home directories.</li>
+<li><strong>Pipeline maturity table</strong> — the data-pipeline catalog distinguishes stable, committed-data, and experimental pipelines.</li>
 </ul>
 <hr />
 <h1 id="near-term-priorities">Near-Term Priorities<a class="headerlink" href="#near-term-priorities" title="Permanent link">&para;</a></h1>
 <h2 id="documentation-hardening">Documentation Hardening<a class="headerlink" href="#documentation-hardening" title="Permanent link">&para;</a></h2>
 <ul>
-<li>canonical workflows</li>
-<li>workflow-first navigation</li>
-<li>pipeline catalog</li>
-<li>agent workflows</li>
-<li>reproducibility improvements</li>
-<li>onboarding clarity</li>
+<li>close remaining docs-to-code consistency gaps</li>
+<li>keep the Golden Path and ElectionIndustryBeta workflow synchronized</li>
+<li>maintain pipeline maturity labels</li>
+<li>improve agent workflow examples</li>
+<li>keep onboarding commands copy-pasteable</li>
+</ul>
+<h2 id="repo-hygiene-public-launch">Repo Hygiene / Public Launch<a class="headerlink" href="#repo-hygiene-public-launch" title="Permanent link">&para;</a></h2>
+<p>Tracked in <a href="https://github.com/WolfpackOfOne/Q-agent/issues/73">#73</a>:</p>
+<ul>
+<li>issue templates</li>
+<li>stronger PR template</li>
+<li>CODEOWNERS</li>
+<li>CODE_OF_CONDUCT</li>
+<li>label and milestone taxonomy</li>
+<li>README status badges</li>
+<li>dependency policy</li>
 </ul>
 <h2 id="docker-followups">Docker Followups<a class="headerlink" href="#docker-followups" title="Permanent link">&para;</a></h2>
 <ul>
-<li>multi-arch image (<code>linux/arm64</code> so Apple Silicon hosts can pull natively) — <a href="https://github.com/WolfpackOfOne/Q-agent/issues/26">#26</a></li>
 <li>support <code>lean backtest</code> (local) inside the container — <a href="https://github.com/WolfpackOfOne/Q-agent/issues/27">#27</a></li>
 </ul>
 <hr />
@@ -1474,16 +1579,26 @@
 <li>systematic portfolio construction</li>
 <li>ObjectStore diagnostics</li>
 </ul>
+<p>Tracked research feature issues:</p>
+<ul>
+<li><a href="https://github.com/WolfpackOfOne/Q-agent/issues/52">#52</a> — passive instability research-to-strategy workflow</li>
+<li><a href="https://github.com/WolfpackOfOne/Q-agent/issues/62">#62</a> — walk-forward analysis and bootstrap validation</li>
+</ul>
 <hr />
 <h1 id="pipeline-expansion">Pipeline Expansion<a class="headerlink" href="#pipeline-expansion" title="Permanent link">&para;</a></h1>
 <p>Potential future pipelines:</p>
 <ul>
-<li>Treasury.gov</li>
 <li>FRED</li>
 <li>SEC insider filings</li>
 <li>options datasets</li>
 <li>futures term structure data</li>
 <li>macroeconomic indicators</li>
+</ul>
+<p>Experimental pipelines already present but still maturing:</p>
+<ul>
+<li><code>treasury_gov_rates</code></li>
+<li><code>fixed_income</code></li>
+<li><code>macro_rates</code></li>
 </ul>
 <hr />
 <h1 id="agent-native-development">Agent-Native Development<a class="headerlink" href="#agent-native-development" title="Permanent link">&para;</a></h1>
@@ -1494,6 +1609,12 @@
 <li>research assistant tooling</li>
 <li>AI-safe refactoring standards</li>
 <li>project-level AGENTS.md conventions</li>
+<li>graph-backed context packs and retrieval workflows</li>
+</ul>
+<p>Graph-system roadmap issues:</p>
+<ul>
+<li><a href="https://github.com/WolfpackOfOne/Q-agent/issues/54">#54</a> — hybrid property-graph-first architecture</li>
+<li><a href="https://github.com/WolfpackOfOne/Q-agent/issues/67">#67</a> — stale-fact cleanup for merge-only re-ingest</li>
 </ul>
 <hr />
 <h1 id="educational-goals">Educational Goals<a class="headerlink" href="#educational-goals" title="Permanent link">&para;</a></h1>
