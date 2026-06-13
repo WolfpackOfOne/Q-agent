@@ -19,14 +19,25 @@ train/test with overlapping test periods. We enforce it by requiring
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from typing import Callable
 
 import numpy as np
 import pandas as pd
 
+log = logging.getLogger(__name__)
+
 # Trading days per year — used to annualize Sharpe and CAGR.
 TRADING_DAYS = 252
+
+# Result modes. Only ``walkforward`` is genuine out-of-sample evaluation and is
+# eligible to satisfy the live deployment gate (see ontology/policy.py). The
+# single precomputed-series path is ``rolling_holdout``: it slices one already
+# realized return series into calendar windows without refitting anything, so it
+# is in-sample reporting, NOT validation, and the gate must refuse it.
+MODE_WALKFORWARD = "walkforward"
+MODE_ROLLING_HOLDOUT = "rolling_holdout"
 
 
 class InsufficientDataError(ValueError):
@@ -67,6 +78,11 @@ class WalkforwardResult:
     train_months: int
     test_months: int
     step_months: int
+    # How the per-window OOS returns were produced. ``rolling_holdout`` (the
+    # default single-series path) is in-sample slicing and is NOT gate-eligible;
+    # ``walkforward`` means each window's returns came from a model fit only on
+    # its own train slice (refit callback or caller-supplied per-window OOS).
+    mode: str = MODE_ROLLING_HOLDOUT
     # Set after a bootstrap significance test; None until then.
     bootstrap_p_value: float | None = None
     bootstrap_n_permutations: int | None = None
@@ -225,6 +241,28 @@ def run_walkforward(
             f"test={test_months}m, step={step_months}m)."
         )
 
+    log.warning(
+        "run_walkforward(returns=...) sliced one precomputed series into %d "
+        "windows without refitting; result is mode='rolling_holdout' (in-sample "
+        "reporting) and is NOT eligible to validate a live deployment.",
+        len(windows),
+    )
+    return _assemble_result(
+        strategy, windows, train_months, test_months, step_months,
+        mode=MODE_ROLLING_HOLDOUT,
+    )
+
+
+def _assemble_result(
+    strategy: str,
+    windows: list[WalkforwardWindow],
+    train_months: int,
+    test_months: int,
+    step_months: int,
+    *,
+    mode: str,
+) -> WalkforwardResult:
+    """Aggregate per-window OOS returns into a :class:`WalkforwardResult`."""
     all_oos = np.concatenate([w.oos_returns for w in windows])
     n = len(windows)
     return WalkforwardResult(
@@ -240,4 +278,5 @@ def run_walkforward(
         train_months=train_months,
         test_months=test_months,
         step_months=step_months,
+        mode=mode,
     )

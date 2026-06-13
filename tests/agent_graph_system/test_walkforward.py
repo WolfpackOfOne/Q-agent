@@ -96,3 +96,10 @@ def test_metric_helpers():
 def test_strategy_name_threaded_through():
     result = run_walkforward(_series(4), strategy="MyStrat")
     assert result.strategy == "MyStrat"
+
+
+def test_single_series_path_is_rolling_holdout():
+    # The precomputed-series path is in-sample slicing, not genuine walk-forward,
+    # and must be tagged so the deployment gate can refuse it.
+    result = run_walkforward(_series(4), strategy="MyStrat")
+    assert result.mode == "rolling_holdout"

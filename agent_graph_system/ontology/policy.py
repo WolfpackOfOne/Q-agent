@@ -102,10 +102,11 @@ def check_deployment_gate(
 
     1. **Backtest** — a valid completed backtest whose Sharpe meets ``threshold``
        (a missing backtest, non-numeric Sharpe, or sub-threshold Sharpe denies).
-    2. **Walk-forward** — a completed walk-forward run must validate the
-       strategy out of sample, and its bootstrap p-value (when present) must be
-       at or below ``p_value_threshold``; otherwise the OOS Sharpe is
-       indistinguishable from noise.
+    2. **Walk-forward** — a completed, genuine (``mode='walkforward'``) run must
+       validate the *exact* backtest being gated, and its bootstrap p-value
+       (when present) must be a finite number at or below ``p_value_threshold``.
+       A ``rolling_holdout`` run, a run validating a different backtest, or a
+       non-finite p-value all deny.
 
     ``latest_backtest`` / ``latest_walkforward`` may be injected (mainly for
     tests); otherwise they are fetched from the active graph backend.
@@ -196,6 +197,21 @@ def check_deployment_gate(
             "NO_WALKFORWARD",
             f"Latest walk-forward run validates backtest {validated_bt}, not the "
             f"gated backtest {bt_id}; cannot deploy live (fail-closed).",
+            evidence,
+        )
+
+    # The run must be genuine out-of-sample evaluation. A ``rolling_holdout`` run
+    # (one precomputed series sliced into windows, no refit) is in-sample
+    # reporting and cannot validate a live deploy. A run with no recorded mode is
+    # treated as a caller/legacy assertion of a real run.
+    wf_mode = latest_walkforward.get("mode") or "walkforward"
+    if wf_mode != "walkforward":
+        return PolicyDecision(
+            False,
+            "NOT_OUT_OF_SAMPLE",
+            f"Walk-forward run for '{strategy}' is mode='{wf_mode}' (rolling "
+            "holdout / in-sample slicing), not genuine out-of-sample evaluation; "
+            "cannot validate a live deploy (fail-closed).",
             evidence,
         )
 

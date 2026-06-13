@@ -138,6 +138,7 @@ class ResearchAgent(BaseAgent):
             train_months=result.train_months,
             test_months=result.test_months,
             step_months=result.step_months,
+            mode=result.mode,
             n_windows=len(result.windows),
             n_windows_profitable=n_profitable,
             pct_profitable=result.pct_windows_profitable,

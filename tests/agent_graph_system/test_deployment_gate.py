@@ -23,14 +23,14 @@ def _seed_strategy_with_backtest(strategy="S1", sharpe=0.9, run_id="bt1", **bt_p
 
 
 def _seed_walkforward(strategy, run_id="wf1", p_value=0.02, status="completed",
-                      backtest_run_id="bt1"):
+                      backtest_run_id="bt1", mode="walkforward"):
     """Seed a completed walk-forward run validating ``backtest_run_id``.
 
-    The VALIDATES edge is what the gate now keys off — a run must validate the
-    exact backtest being gated.
+    The VALIDATES edge and ``mode`` are what the gate keys off — a run must be a
+    genuine ``walkforward`` run validating the exact backtest being gated.
     """
     gm.upsert_walkforward_run(
-        run_id, strategy, status=status, bootstrap_p_value=p_value,
+        run_id, strategy, status=status, mode=mode, bootstrap_p_value=p_value,
         created_at="2026-05-01T00:00:00", n_windows=8,
     )
     gm.strategy_has_walkforward(strategy, run_id)
@@ -96,6 +96,18 @@ def test_gate_blocked_when_walkforward_validates_a_different_backtest():
     )
     assert decision.allowed is False
     assert decision.code == "NO_WALKFORWARD"
+
+
+def test_gate_blocked_when_walkforward_is_rolling_holdout():
+    # In-sample slicing (rolling_holdout) is not genuine OOS and cannot validate.
+    decision = check_deployment_gate(
+        "S1", "live",
+        latest_backtest={"run_id": "bt1", "sharpe": 0.9},
+        latest_walkforward={"run_id": "wf1", "bootstrap_p_value": 0.01,
+                            "mode": "rolling_holdout"},
+    )
+    assert decision.allowed is False
+    assert decision.code == "NOT_OUT_OF_SAMPLE"
 
 
 def test_gate_blocked_when_pvalue_is_nan():
@@ -197,6 +209,17 @@ def test_live_deploy_blocked_when_not_significant():
         gm.strategy_deploys_to("S9", "AlpacaLive", environment="live")
     assert exc.value.decision.code == "NOT_SIGNIFICANT"
     assert not _active_deploy_envs("S9")
+
+
+def test_live_deploy_blocked_when_walkforward_is_rolling_holdout():
+    # End-to-end: a passing backtest with only a rolling_holdout run is blocked.
+    _seed_strategy_with_backtest("S11", sharpe=1.5)
+    _seed_walkforward("S11", p_value=0.01, mode="rolling_holdout")
+    gm.merge_node("API", "name", "AlpacaLive")
+    with pytest.raises(PolicyViolation) as exc:
+        gm.strategy_deploys_to("S11", "AlpacaLive", environment="live")
+    assert exc.value.decision.code == "NOT_OUT_OF_SAMPLE"
+    assert not _active_deploy_envs("S11")
 
 
 def test_live_deploy_blocked_when_gate_fails():
