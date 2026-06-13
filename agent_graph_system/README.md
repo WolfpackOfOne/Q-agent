@@ -122,6 +122,24 @@ calls `check_deployment_gate` and raises `PolicyViolation` on denial.
 `HAS_BACKTEST` edge **or** a `strategy` property, excludes failed/running runs,
 and orders by `completed_at → run_date → created_at → updated_at`.
 
+### Walk-forward validation loop
+
+For *live* deploys the gate has a second bar: a completed `WalkforwardRun` whose
+bootstrap p-value clears `BOOTSTRAP_P_VALUE_THRESHOLD`. That run is produced
+automatically:
+
+1. `MonitoringAgent` sees a backtested Strategy with no recent completed
+   `WalkforwardRun` and sets `status="needs_walkforward"`.
+2. `WalkforwardAgent` (`agent walkforward`) scans for those strategies, sources a
+   daily return series (injectable provider; default discovers a `returns.csv`
+   or LEAN `result.json` under `MyProjects/<strategy>/`), runs the walk-forward +
+   bootstrap via the `ResearchAgent`, and sets `status` to `validated` /
+   `not_significant` / `walkforward_insufficient_data` / `walkforward_unavailable`.
+3. `OrchestrationAgent` surfaces flagged strategies as `run_walkforward` actions.
+
+Run `agent walkforward` with no arguments to process every flagged strategy, or
+`--strategy <name>` to target one.
+
 ## Provenance
 
 Every node or edge can carry a flat provenance block (stored under the `prov_`
@@ -269,7 +287,7 @@ python -m agent_graph_system.main <command>
 | `ingest-paper <arxiv_id>` | Fetch an arXiv paper and write its sections into the graph. |
 | `context-pack <path> [--format md\|json] [--no-ingest]` | Build a project context pack (re-ingests from disk first unless `--no-ingest`). |
 | `query <name> [question]` | Named Cypher query or `rag` GraphRAG search. |
-| `agent <name>` | Run an agent (coding / monitoring / orchestration / research). |
+| `agent <name>` | Run an agent (coding / monitoring / orchestration / research / walkforward). |
 | `api` | Start the FastAPI server. |
 | `status` | Node / relationship counts. |
 
