@@ -1,6 +1,6 @@
 # Research Recipes
 
-A recipe is a focused, reproducible research task: a hypothesis, the data needed to test it, and a starting point for the notebook. Each recipe can be completed in a few hours with the data pipelines already in this repo.
+A recipe is a focused, reproducible research task: a hypothesis, the data needed to test it, and a starting point for the notebook. Each recipe can be completed in a few hours when the needed data pipeline is already available.
 
 ---
 
@@ -16,37 +16,37 @@ A recipe is a focused, reproducible research task: a hypothesis, the data needed
 - Is there a lead/lag structure between prediction market prices and ETF returns?
 - Does the effect strengthen in the 5 days before an FOMC meeting?
 
-**Status:** Example notebook included — see [Election & Industry Returns](notebooks.md)
+**Status:** Recipe pattern only — use the [Election & Industry Returns](notebooks.md) notebook and the [Golden Path](golden-path.md) as the template for converting prediction-market probabilities into ETF sensitivity research.
 
 ---
 
 ### Treasury Yield Curve vs. Bank Stocks
 **Hypothesis:** Yield curve steepening predicts bank stock outperformance.
 
-**Data:** Treasury.gov rate data + WRDS (JPM, BAC, GS, MS)
+**Data:** Treasury.gov rate data + WRDS or yfinance bank-stock returns (JPM, BAC, GS, MS)
 
 **Research questions:**
 - What is the rolling correlation between the 10Y-2Y spread and bank stock returns?
 - Does the effect hold after controlling for market beta?
 - Is the signal stronger at curve inversions?
 
-**Status:** Coming soon — Treasury pipeline not yet built
+**Status:** Experimental data pipeline exists (`treasury_gov_rates`), but this recipe has not yet been implemented as a notebook.
 
 ---
 
 ## Crypto & Prediction Markets
 
-### Crypto Returns vs. Polymarket Election Probabilities
-**Hypothesis:** Crypto prices are sensitive to political event probabilities.
+### Crypto Returns vs. Election Prediction Markets
+**Hypothesis:** Crypto prices are sensitive to political and policy event probabilities.
 
-**Data:** Coinbase/Kraken (BTC, ETH, SOL) + Polymarket (election/policy markets) + yfinance (COIN)
+**Data:** Coinbase/Kraken (BTC, ETH, SOL) + Polymarket election or policy markets + yfinance (COIN)
 
 **Research questions:**
-- Does BTC correlate with Trump election probability?
-- Does the correlation change sign between primary and general election periods?
-- Is COIN (Coinbase stock) a better proxy than BTC for political sensitivity?
+- Do crypto returns correlate with changes in election-market probabilities?
+- Does the correlation change between early and late campaign periods?
+- Is COIN a better proxy than BTC for political-market sensitivity?
 
-**Status:** Recipe — build it with the [Crypto](pipelines/crypto.md) and [Polymarket](pipelines/polymarket.md) pipelines. (A worked election × ETF example ships as the [example notebook](notebooks.md) and the [golden path](golden-path.md).)
+**Status:** Recipe — build it with the [Crypto](pipelines/crypto.md) and [Polymarket](pipelines/polymarket.md) pipelines. A worked election × ETF example ships as the [example notebook](notebooks.md), [canonical workflow](workflows/election-industry-beta.md), and [golden path](golden-path.md).
 
 ---
 

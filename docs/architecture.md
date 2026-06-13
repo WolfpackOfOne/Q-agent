@@ -34,7 +34,7 @@ graph TD
     end
 
     subgraph Local["Local Store"]
-        D1["infrastructure/pipelines/\n*/data/"]
+        D1["infrastructure/pipelines/\n*/data/ or */lean-data/"]
     end
 
     subgraph Research["Research"]
@@ -67,8 +67,8 @@ graph TD
 graph LR
     SRC["Data Source<br/>API / File"]
     PIPE["run_pipeline.py"]
-    FMT["LEAN CSV Format"]
-    DATA["data/"]
+    FMT["Documented<br/>Local Schema"]
+    DATA["data/ or<br/>lean-data/"]
     NB["Research Notebook"]
     BT["LEAN Backtest"]
 
@@ -78,6 +78,8 @@ graph LR
     DATA --> NB
     DATA --> BT
 ```
+
+`data/` is used for raw, intermediate, or research CSV outputs. `lean-data/` is used for LEAN-ready local data folders that can be pointed to from `lean.json`. Individual pipeline pages document the exact output path.
 
 ---
 
@@ -145,21 +147,16 @@ ln -s ../../../shared/signals/momentum.py momentum.py
 
 ### Windows / no-symlink fallback
 
-Symlinks are not guaranteed everywhere: on Windows they need Developer Mode or
-admin rights, and a repo unzipped from a GitHub ZIP (rather than cloned) can
-materialise links as plain text files. Two reliable options:
+Symlinks are not guaranteed everywhere: on Windows they need Developer Mode or admin rights, and a repo unzipped from a GitHub ZIP (rather than cloned) can materialise links as plain text files. Two reliable options:
 
-- **Git symlinks on Windows** — clone with symlink support and the links in
-  this repo resolve normally:
+- **Git symlinks on Windows** — clone with symlink support and the links in this repo resolve normally:
 
   ```powershell
   git config --global core.symlinks true
   git clone https://github.com/WolfpackOfOne/Q-agent.git
   ```
 
-- **Copy instead of link** — if symlinks are unavailable, copy the signal in
-  and keep it in sync manually. The trade-off is you must re-copy when the
-  shared atom changes:
+- **Copy instead of link** — if symlinks are unavailable, copy the signal in and keep it in sync manually. The trade-off is you must re-copy when the shared atom changes:
 
   ```powershell
   copy ..\..\..\shared\signals\momentum.py momentum.py   # Windows
@@ -168,10 +165,7 @@ materialise links as plain text files. Two reliable options:
   cp ../../../shared/signals/momentum.py momentum.py       # macOS / Linux
   ```
 
-`lean cloud push` follows symlinks, so the linked form is preferred when it
-works; the copy fallback only exists so onboarding never hard-blocks on
-symlink support. To check whether a link resolved correctly, confirm the file
-has real Python content (`cat` it) rather than a one-line path string.
+`lean cloud push` follows symlinks, so the linked form is preferred when it works; the copy fallback only exists so onboarding never hard-blocks on symlink support. To check whether a link resolved correctly, confirm the file has real Python content (`cat` it) rather than a one-line path string.
 
 ---
 
@@ -187,11 +181,7 @@ has real Python content (`cat` it) rather than a one-line path string.
 
 ## Knowledge-graph subsystem — `agent_graph_system/`
 
-A separate, optional layer that ingests repos and QuantConnect projects into a
-typed knowledge graph, enforces a few write-time safety rules, tracks provenance
-on every fact, and assembles per-project **context packs** for coding agents. It
-is independent of the LEAN strategy workflow above and has its own dependencies
-and tests.
+A separate, optional layer that ingests repos and QuantConnect projects into a typed knowledge graph, enforces a few write-time safety rules, tracks provenance on every fact, and assembles per-project **context packs** for coding agents. It is independent of the LEAN strategy workflow above and has its own dependencies and tests.
 
 ```mermaid
 graph LR
@@ -207,11 +197,7 @@ graph LR
     G --> PACK --> AGENT
 ```
 
-Its core principle is **honesty over enforcement**: graph metadata must never
-imply a safety guarantee the code does not actually provide. A rule is a hard
-gate only when it is both `enforced` and `blocking`; the `deployment_gate` that
-guards live `DEPLOYS_TO` edges is fail-closed; and low-confidence extracted
-facts are surfaced separately from authoritative ones.
+Its core principle is **honesty over enforcement**: graph metadata must never imply a safety guarantee the code does not actually provide. A rule is a hard gate only when it is both `enforced` and `blocking`; the `deployment_gate` that guards live `DEPLOYS_TO` edges is fail-closed; and low-confidence extracted facts are surfaced separately from authoritative ones.
 
 ```bash
 python -m agent_graph_system.main ingest-project MyProjects/ElectionIndustryBeta
@@ -219,20 +205,15 @@ python -m agent_graph_system.main context-pack MyProjects/ElectionIndustryBeta -
 python -m agent_graph_system.main ingest-paper 2401.12345
 ```
 
-A separate `ingestion/papers/` module fetches and parses arXiv papers into
-`Paper`/`PaperSection` nodes (and `Strategy -[CITES]-> Paper` edges), using the
-same provenance scheme extended with document-anchored fields (`source_kind`,
-`page`, `quote`, ...).
+A separate `ingestion/papers/` module fetches and parses arXiv papers into `Paper`/`PaperSection` nodes (and `Strategy -[CITES]-> Paper` edges), using the same provenance scheme extended with document-anchored fields (`source_kind`, `page`, `quote`, ...).
 
-Full reference and CLI: see `agent_graph_system/README.md` and
-`agent_graph_system/claude.md` in the repository root.
+Full reference and CLI: see `agent_graph_system/README.md` and `agent_graph_system/claude.md` in the repository root.
 
 ---
 
 ## Runtime artifact: the workspace Docker image
 
-The workspace publishes a single runtime image to GitHub Container Registry
-on every push to `main`:
+The workspace publishes a single runtime image to GitHub Container Registry on every push to `main`:
 
 ```
 ghcr.io/wolfpackofone/q-agent:latest   # tracks main
@@ -252,7 +233,7 @@ Build pipeline:
 graph LR
     SRC["Dockerfile<br/>.dockerignore"]
     CI[".github/workflows/docker.yml"]
-    BLD["Buildx build (linux/amd64)"]
+    BLD["Buildx build<br/>(linux/amd64 + linux/arm64)"]
     SMK["Smoke tests<br/>(in built image)"]
     GHCR["ghcr.io/wolfpackofone/q-agent"]
 
@@ -262,19 +243,8 @@ graph LR
     SMK --> GHCR
 ```
 
-`.dockerignore` mirrors `.gitignore` and additionally excludes the LEAN engine
-checkout, `References/`, the rendered mkdocs site, all per-user data
-directories, and every `MyProjects/*/` subtree except the
-`ElectionIndustryBeta/` reference example. The image runs as non-root
-`qagent` (uid 1000) and contains no credentials — `lean.json`, `.env`, and
-`config.json` files are mounted in at runtime, never baked.
+`.dockerignore` mirrors `.gitignore` and additionally excludes the LEAN engine checkout, `References/`, the rendered mkdocs site, all per-user data directories, and every `MyProjects/*/` subtree except the `ElectionIndustryBeta/` reference example. The image runs as non-root `qagent` (uid 1000) and contains no credentials — `lean.json`, `.env`, and `config.json` files are mounted in at runtime, never baked.
 
-The image deliberately does **not** support `lean backtest` (local). That
-command spawns a nested `quantconnect/lean` Docker container, which would
-require either the Docker socket (privilege escalation) or Docker-in-Docker.
-`lean cloud backtest` works inside the container; `lean backtest` runs on
-the host. Tracked as issue #27.
+The image deliberately does **not** support `lean backtest` (local). That command spawns a nested `quantconnect/lean` Docker container, which would require either the Docker socket (privilege escalation) or Docker-in-Docker. `lean cloud backtest` works inside the container; `lean backtest` runs on the host. Tracked as issue #27.
 
-For build commands, smoke-test recipe, GHCR pull verification, and the six
-known gotchas, see [Docker](docker.md) and the `/docker-workflow` skill at
-`.claude/skills/docker-workflow/SKILL.md`.
+For build commands, smoke-test recipe, GHCR pull verification, and the six known gotchas, see [Docker](docker.md) and the `/docker-workflow` skill at `.claude/skills/docker-workflow/SKILL.md`.

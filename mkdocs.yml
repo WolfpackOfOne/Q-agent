@@ -67,7 +67,9 @@ nav:
   - Architecture: architecture.md
   - Graph Architecture: architecture-hybrid-graph.md
 
-  - Roadmap: roadmap.md
+  - Roadmap:
+      - Roadmap: roadmap.md
+      - Public Release Checklist: release-checklist.md
 
   - Contributing: contributing.md
 
