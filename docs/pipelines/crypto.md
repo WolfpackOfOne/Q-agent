@@ -48,24 +48,29 @@ Use `--lean-root` to write to a different LEAN data folder.
 Daily rows inside the generated LEAN zip files follow the pipeline's crypto data schema:
 
 ```
-Date,Open,High,Low,Close,Volume
-20240101,4301245000,4341230000,4289340000,4329870000,12847350000
+DateTime,Open,High,Low,Close,Volume
+20240101 00:00,42301.25,43412.30,42089.34,43298.70,12847.35
 ```
 
-Prices are multiplied by 10,000 per the pipeline's LEAN normalization. Dates are `YYYYMMDD`.
+Prices are **real, unscaled** values rounded to 4 decimal places — LEAN's crypto
+convention does **not** scale prices (unlike equities). The first column is a
+`YYYYMMDD 00:00` timestamp. Files are headerless; the header above is shown only
+to name the columns.
 
 ## Using in a notebook
 
 ```python
 import pandas as pd
 
-zip_path = "infrastructure/pipelines/crypto/lean-data/coinbase/daily/btcusd.zip"
+# coinbase maps to LEAN's historical 'coinbasepro' market, under the crypto
+# asset-class folder. Check the path printed by the pipeline run to be sure.
+zip_path = "infrastructure/pipelines/crypto/lean-data/crypto/coinbasepro/daily/btcusd.zip"
 df = pd.read_csv(
     zip_path,
-    names=["date", "open", "high", "low", "close", "volume"],
-    parse_dates=["date"],
+    names=["datetime", "open", "high", "low", "close", "volume"],
+    parse_dates=["datetime"],
 )
-df[["open", "high", "low", "close"]] /= 10_000
+# Prices are already real values — no /10_000 rescaling needed.
 ```
 
 !!! note

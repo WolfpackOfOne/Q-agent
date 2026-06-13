@@ -140,11 +140,36 @@ The strategy:
 
 ## 5. Analyze ObjectStore outputs
 
-After a backtest, run the diagnostics notebook:
+`pl_attribution.py` reads three CSVs (`daily_snapshots.csv`, `positions.csv`,
+`trades.csv`). It looks for them **locally first** under
+`MyProjects/storage/electionbeta/`, then falls back to `QuantBook().ObjectStore`.
+A **cloud** backtest writes the artifacts to the *cloud* ObjectStore — it does
+not populate the local files, and a plain host-side `marimo run` venv has no
+QuantConnect research runtime to hit the fallback. So you must first pull the
+artifacts down to local storage:
+
+```bash
+cd MyProjects
+mkdir -p storage/electionbeta
+lean cloud object-store get \
+  "electionbeta/daily_snapshots.csv" \
+  "electionbeta/positions.csv" \
+  "electionbeta/trades.csv" \
+  --destination-folder storage/electionbeta
+# Confirm the three CSVs landed at storage/electionbeta/<name>.csv
+# (move them there if `get` nested them under the key path).
+```
+
+Then run the diagnostics notebook:
 
 ```bash
 marimo run MyProjects/ElectionIndustryBeta/research/pl_attribution.py
 ```
+
+> Alternatively, run a **local** backtest (`bash scripts/lean-backtest.sh
+> "ElectionIndustryBeta"`), which writes the CSVs straight into
+> `MyProjects/storage/electionbeta/`, or open the notebook inside `lean research`
+> where the `QuantBook().ObjectStore` fallback is available.
 
 The diagnostics workflow is where you evaluate whether the backtest behavior matches the original hypothesis: P&L attribution, exposure, concentration, and realized performance.
 
