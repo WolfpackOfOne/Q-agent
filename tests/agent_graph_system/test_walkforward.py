@@ -103,3 +103,48 @@ def test_single_series_path_is_rolling_holdout():
     # and must be tagged so the deployment gate can refuse it.
     result = run_walkforward(_series(4), strategy="MyStrat")
     assert result.mode == "rolling_holdout"
+    assert result.oos_source == "rolling_holdout_slice"
+
+
+def test_supplied_windows_path_is_walkforward():
+    # Caller supplies per-window OOS returns (each trained out of sample).
+    base = pd.Timestamp("2018-01-01")
+    windows = [
+        pd.Series(
+            np.full(63, 0.001),
+            index=pd.bdate_range(base + pd.DateOffset(months=4 * i), periods=63),
+        )
+        for i in range(5)
+    ]
+    result = run_walkforward(windows=windows, strategy="WF", min_windows=4)
+    assert result.mode == "walkforward"
+    assert result.oos_source == "supplied_windows"
+    assert len(result.windows) == 5
+
+
+def test_refit_path_is_walkforward_and_calls_back():
+    calls = {"n": 0}
+
+    def refit(train, test_index):
+        # A real model would fit on `train`; here we just emit a fixed OOS series
+        # of the right length and record that we were invoked per window.
+        calls["n"] += 1
+        return np.full(len(test_index), 0.0008)
+
+    result = run_walkforward(
+        _series(4), strategy="WF", refit=refit, train_months=12,
+        test_months=3, step_months=3,
+    )
+    assert result.mode == "walkforward"
+    assert result.oos_source == "refit_callback"
+    assert calls["n"] == len(result.windows) >= 4
+
+
+def test_windows_and_refit_are_mutually_exclusive():
+    with pytest.raises(ValueError, match="not both"):
+        run_walkforward(_series(4), windows=[np.array([0.01])], refit=lambda t, i: i)
+
+
+def test_run_walkforward_requires_some_input():
+    with pytest.raises(ValueError, match="requires one of"):
+        run_walkforward()

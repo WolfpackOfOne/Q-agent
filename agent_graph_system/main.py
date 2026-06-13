@@ -207,8 +207,11 @@ def _render_walkforward_summary(payload: dict) -> str:
         )
     n = payload.get("n_windows") or len(payload.get("windows", []))
     pct = payload.get("pct_windows_profitable", 0.0)
-    lines = [
-        f"## Walk-forward validation — {payload.get('strategy')}",
+    mode = payload.get("mode") or "walkforward"
+    lines = [f"## Walk-forward validation — {payload.get('strategy')}"]
+    if mode != "walkforward":
+        lines.append(f"- ⚠️ mode: {mode} (in-sample slicing — NOT gate-eligible)")
+    lines += [
         f"- windows: {n} | profitable: {pct * 100:.1f}%",
         f"- OOS Sharpe: {payload.get('aggregate_sharpe', 0):.2f} | "
         f"OOS CAGR: {payload.get('aggregate_cagr', 0) * 100:.1f}% | "
@@ -232,11 +235,30 @@ def cmd_walkforward(args: argparse.Namespace) -> None:
     path = Path(args.project).expanduser()
     project_name = path.name if (path.exists() or "/" in args.project) else args.project
 
-    returns_path = Path(args.returns_csv).expanduser()
-    if not returns_path.exists():
-        log.error("Returns file not found: %s", returns_path)
+    # Two ways to supply OOS data:
+    #  --oos-window CSV (repeatable): genuine per-window out-of-sample returns,
+    #    each produced by a model trained only on its own window → mode=walkforward
+    #  --returns-csv: one precomputed series → mode=rolling_holdout (gate-ineligible)
+    returns = None
+    windows = None
+    if args.oos_window:
+        windows = []
+        for wp in args.oos_window:
+            p = Path(wp).expanduser()
+            if not p.exists():
+                log.error("OOS window file not found: %s", p)
+                sys.exit(1)
+            windows.append(_load_returns(p))
+    elif args.returns_csv:
+        returns_path = Path(args.returns_csv).expanduser()
+        if not returns_path.exists():
+            log.error("Returns file not found: %s", returns_path)
+            sys.exit(1)
+        returns = _load_returns(returns_path)
+    else:
+        log.error("Provide --returns-csv (rolling holdout) or one or more "
+                  "--oos-window CSVs (genuine walk-forward).")
         sys.exit(1)
-    returns = _load_returns(returns_path)
 
     # Ensure a Strategy node exists so HAS_WALKFORWARD links cleanly.
     from agent_graph_system.graph.local import engine
@@ -248,6 +270,7 @@ def cmd_walkforward(args: argparse.Namespace) -> None:
         mode="walkforward",
         strategy=project_name,
         returns=returns,
+        windows=windows,
         train_months=args.train_months,
         test_months=args.test_months,
         step_months=args.step_months,
@@ -385,8 +408,13 @@ def build_parser() -> argparse.ArgumentParser:
     # walkforward
     wf = sub.add_parser("walkforward", help="Run walk-forward validation for a project")
     wf.add_argument("project", help="Project path (or strategy name)")
-    wf.add_argument("--returns-csv", required=True,
-                    help="CSV (date + return/close) or LEAN result JSON of the equity curve")
+    wf.add_argument("--returns-csv",
+                    help="One precomputed series (CSV date+return/close, or LEAN "
+                         "result JSON). Rolling-holdout reporting — NOT gate-eligible.")
+    wf.add_argument("--oos-window", action="append", metavar="CSV",
+                    help="Per-window out-of-sample returns CSV (repeatable). Each "
+                         "window's returns must come from a model trained only on "
+                         "that window — produces a genuine, gate-eligible run.")
     wf.add_argument("--train-months", type=int, default=12)
     wf.add_argument("--test-months", type=int, default=3)
     wf.add_argument("--step-months", type=int, default=3)
