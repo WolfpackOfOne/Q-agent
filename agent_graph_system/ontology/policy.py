@@ -167,18 +167,35 @@ def check_deployment_gate(
             evidence,
         )
 
-    # Second bar: out-of-sample walk-forward validation.
+    # Second bar: out-of-sample walk-forward validation of THIS backtest.
+    # Look the run up by the exact backtest being gated (not merely the newest
+    # run for the strategy), so a stale run that validated an older backtest
+    # cannot green-light a newer one.
     if latest_walkforward is None:
-        from agent_graph_system.graph.backend import latest_walkforward_for_strategy
+        from agent_graph_system.graph.backend import latest_walkforward_for_backtest
 
-        latest_walkforward = latest_walkforward_for_strategy(strategy)
+        latest_walkforward = latest_walkforward_for_backtest(bt_id)
 
     if not latest_walkforward:
         return PolicyDecision(
             False,
             "NO_WALKFORWARD",
             f"Strategy '{strategy}' has a passing backtest but no completed "
-            "walk-forward run; cannot deploy live (fail-closed).",
+            f"walk-forward run validating backtest {bt_id}; cannot deploy live "
+            "(fail-closed).",
+            evidence,
+        )
+
+    # If the run records which backtest it validated, it must be this one. (An
+    # injected run without the field is treated as a caller assertion that it is
+    # the relevant one.)
+    validated_bt = latest_walkforward.get("validates_backtest")
+    if validated_bt is not None and validated_bt != bt_id:
+        return PolicyDecision(
+            False,
+            "NO_WALKFORWARD",
+            f"Latest walk-forward run validates backtest {validated_bt}, not the "
+            f"gated backtest {bt_id}; cannot deploy live (fail-closed).",
             evidence,
         )
 
@@ -190,12 +207,25 @@ def check_deployment_gate(
         "value": p_value,
     })
 
+    # When a p-value is present it must be a finite number. A non-numeric or NaN
+    # value is malformed validation data and must fail closed rather than fall
+    # through to PASSED (a NaN comparison is always False).
     if p_value is not None:
+        import math
+
         try:
             p_value_f = float(p_value)
         except (TypeError, ValueError):
-            p_value_f = None
-        if p_value_f is not None and p_value_f > p_value_threshold:
+            p_value_f = math.nan
+        if not math.isfinite(p_value_f):
+            return PolicyDecision(
+                False,
+                "INVALID_PVALUE",
+                f"Walk-forward bootstrap p-value {p_value!r} is not a finite "
+                "number; cannot validate (fail-closed).",
+                evidence,
+            )
+        if p_value_f > p_value_threshold:
             return PolicyDecision(
                 False,
                 "NOT_SIGNIFICANT",

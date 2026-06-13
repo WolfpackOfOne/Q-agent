@@ -108,7 +108,13 @@ class MonitoringAgent(BaseAgent):
 
     @staticmethod
     def _strategy_type(name: str) -> str:
-        """Preserve an existing strategy's type when re-upserting its status."""
-        from agent_graph_system.graph.local import engine
-        node = engine.get_node(f"Strategy::{name}") or {}
-        return node.get("strategy_type", "unknown")
+        """Preserve an existing strategy's type when re-upserting its status.
+
+        Resolved through the active backend (not the local engine directly) so it
+        stays correct when ``GRAPH_BACKEND=neo4j``.
+        """
+        rows = query("MATCH (s:Strategy) RETURN s.name AS name, s.strategy_type AS strategy_type")
+        for row in rows:
+            if row.get("name") == name:
+                return row.get("strategy_type") or "unknown"
+        return "unknown"

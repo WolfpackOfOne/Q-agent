@@ -84,6 +84,9 @@ def test_metric_helpers():
     r = np.array([0.01, -0.02, 0.03, 0.0, 0.01])
     assert sharpe_ratio(np.zeros(10)) == 0.0  # zero variance → 0
     assert max_drawdown(np.array([0.1, -0.5])) < 0
+    # Drawdown is anchored at initial capital, so an immediate 50% loss is a
+    # -0.5 drawdown rather than 0.0 (regression: PR #75 review item).
+    assert max_drawdown(np.array([-0.5, 0.1])) == pytest.approx(-0.5)
     assert cagr(np.array([0.0, 0.0])) == 0.0
     # blown-up curve has no real growth rate → clamped to -1.0
     assert cagr(np.array([-1.5, 0.2])) == -1.0

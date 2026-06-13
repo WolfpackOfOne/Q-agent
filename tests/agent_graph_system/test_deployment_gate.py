@@ -22,13 +22,20 @@ def _seed_strategy_with_backtest(strategy="S1", sharpe=0.9, run_id="bt1", **bt_p
     gm.strategy_has_backtest(strategy, run_id)
 
 
-def _seed_walkforward(strategy, run_id="wf1", p_value=0.02, status="completed"):
-    """Seed a completed walk-forward run so the live gate's second bar passes."""
+def _seed_walkforward(strategy, run_id="wf1", p_value=0.02, status="completed",
+                      backtest_run_id="bt1"):
+    """Seed a completed walk-forward run validating ``backtest_run_id``.
+
+    The VALIDATES edge is what the gate now keys off — a run must validate the
+    exact backtest being gated.
+    """
     gm.upsert_walkforward_run(
         run_id, strategy, status=status, bootstrap_p_value=p_value,
         created_at="2026-05-01T00:00:00", n_windows=8,
     )
     gm.strategy_has_walkforward(strategy, run_id)
+    if backtest_run_id:
+        gm.walkforward_validates_backtest(run_id, backtest_run_id)
 
 
 def _active_deploy_envs(strategy):
@@ -77,6 +84,38 @@ def test_gate_allowed_when_significant():
     )
     assert decision.allowed is True
     assert decision.code == "DEPLOYMENT_GATE_PASSED"
+
+
+def test_gate_blocked_when_walkforward_validates_a_different_backtest():
+    # The run validated an older backtest; it must not green-light a newer one.
+    decision = check_deployment_gate(
+        "S1", "live",
+        latest_backtest={"run_id": "bt_new", "sharpe": 0.9},
+        latest_walkforward={"run_id": "wf1", "bootstrap_p_value": 0.02,
+                            "validates_backtest": "bt_old"},
+    )
+    assert decision.allowed is False
+    assert decision.code == "NO_WALKFORWARD"
+
+
+def test_gate_blocked_when_pvalue_is_nan():
+    decision = check_deployment_gate(
+        "S1", "live",
+        latest_backtest={"run_id": "bt1", "sharpe": 0.9},
+        latest_walkforward={"run_id": "wf1", "bootstrap_p_value": float("nan")},
+    )
+    assert decision.allowed is False
+    assert decision.code == "INVALID_PVALUE"
+
+
+def test_gate_blocked_when_pvalue_unparseable():
+    decision = check_deployment_gate(
+        "S1", "live",
+        latest_backtest={"run_id": "bt1", "sharpe": 0.9},
+        latest_walkforward={"run_id": "wf1", "bootstrap_p_value": "not-a-number"},
+    )
+    assert decision.allowed is False
+    assert decision.code == "INVALID_PVALUE"
 
 
 def test_gate_allowed_when_walkforward_has_no_pvalue():
@@ -214,8 +253,27 @@ def test_latest_backtest_selected_by_timestamp():
     assert latest is not None
     assert latest["run_id"] == "new"
     # And the gate should pass on the newer, higher-Sharpe backtest once a
-    # significant walk-forward run validates it out of sample.
-    _seed_walkforward("S7", p_value=0.02)
+    # significant walk-forward run validates *that* backtest out of sample.
+    _seed_walkforward("S7", p_value=0.02, backtest_run_id="new")
     gm.merge_node("API", "name", "AlpacaLive")
     gm.strategy_deploys_to("S7", "AlpacaLive", environment="live")
     assert _active_deploy_envs("S7")
+
+
+def test_live_deploy_blocked_when_only_an_older_backtest_is_validated():
+    # A new passing backtest is added, but the only walk-forward run validates
+    # the OLD backtest — the gate must not deploy on the unvalidated new one.
+    gm.upsert_strategy("S10", strategy_type="momentum")
+    gm.upsert_backtest("old10", name="S10", sharpe=1.5, drawdown=0.1, cagr=0.2,
+                       completed_at="2026-01-01T00:00:00")
+    gm.upsert_backtest("new10", name="S10", sharpe=1.6, drawdown=0.1, cagr=0.2,
+                       completed_at="2026-05-01T00:00:00")
+    gm.strategy_has_backtest("S10", "old10")
+    gm.strategy_has_backtest("S10", "new10")
+    # Walk-forward validates only the older backtest.
+    _seed_walkforward("S10", p_value=0.01, backtest_run_id="old10")
+    gm.merge_node("API", "name", "AlpacaLive")
+    with pytest.raises(PolicyViolation) as exc:
+        gm.strategy_deploys_to("S10", "AlpacaLive", environment="live")
+    assert exc.value.decision.code == "NO_WALKFORWARD"
+    assert not _active_deploy_envs("S10")

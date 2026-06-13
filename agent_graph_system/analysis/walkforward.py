@@ -104,11 +104,17 @@ def cagr(returns: np.ndarray, periods: int = TRADING_DAYS) -> float:
 
 
 def max_drawdown(returns: np.ndarray) -> float:
-    """Worst peak-to-trough decline of the equity curve, as a negative float."""
+    """Worst peak-to-trough decline of the equity curve, as a negative float.
+
+    The curve is anchored at the initial capital (1.0) *before* the first return,
+    so an immediate loss is measured from the start. Without the anchor a series
+    like ``[-0.5, 0.1]`` would treat the post-first-return level as the peak and
+    report 0.0, understating risk; with it, that series correctly reports -0.5.
+    """
     r = np.asarray(returns, dtype=float)
     if r.size == 0:
         return 0.0
-    equity = np.cumprod(1.0 + r)
+    equity = np.concatenate(([1.0], np.cumprod(1.0 + r)))
     running_max = np.maximum.accumulate(equity)
     drawdown = (equity - running_max) / running_max
     return float(drawdown.min())
