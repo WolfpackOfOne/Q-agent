@@ -22,6 +22,15 @@ def _seed_strategy_with_backtest(strategy="S1", sharpe=0.9, run_id="bt1", **bt_p
     gm.strategy_has_backtest(strategy, run_id)
 
 
+def _seed_walkforward(strategy, run_id="wf1", p_value=0.02, status="completed"):
+    """Seed a completed walk-forward run so the live gate's second bar passes."""
+    gm.upsert_walkforward_run(
+        run_id, strategy, status=status, bootstrap_p_value=p_value,
+        created_at="2026-05-01T00:00:00", n_windows=8,
+    )
+    gm.strategy_has_walkforward(strategy, run_id)
+
+
 def _active_deploy_envs(strategy):
     return [d for d in query("MATCH (s:Strategy)-[r:DEPLOYS_TO]->(a:API) RETURN r")
             if d.get("strategy") == strategy]
@@ -31,10 +40,65 @@ def _active_deploy_envs(strategy):
 
 def test_gate_passes_with_high_sharpe():
     decision = check_deployment_gate(
-        "S1", "live", latest_backtest={"run_id": "bt1", "sharpe": 0.9}
+        "S1", "live",
+        latest_backtest={"run_id": "bt1", "sharpe": 0.9},
+        latest_walkforward={"run_id": "wf1", "bootstrap_p_value": 0.02},
     )
     assert decision.allowed is True
     assert decision.code == "DEPLOYMENT_GATE_PASSED"
+
+
+# --- walk-forward second-bar checks ---------------------------------------
+
+def test_gate_blocked_when_no_walkforward():
+    # High Sharpe backtest, but no walk-forward run (empty graph) → fail closed.
+    decision = check_deployment_gate(
+        "Unknown", "live", latest_backtest={"run_id": "bt1", "sharpe": 0.9}
+    )
+    assert decision.allowed is False
+    assert decision.code == "NO_WALKFORWARD"
+
+
+def test_gate_blocked_when_not_significant():
+    decision = check_deployment_gate(
+        "S1", "live",
+        latest_backtest={"run_id": "bt1", "sharpe": 0.9},
+        latest_walkforward={"run_id": "wf1", "bootstrap_p_value": 0.15},
+    )
+    assert decision.allowed is False
+    assert decision.code == "NOT_SIGNIFICANT"
+
+
+def test_gate_allowed_when_significant():
+    decision = check_deployment_gate(
+        "S1", "live",
+        latest_backtest={"run_id": "bt1", "sharpe": 0.9},
+        latest_walkforward={"run_id": "wf1", "bootstrap_p_value": 0.03},
+    )
+    assert decision.allowed is True
+    assert decision.code == "DEPLOYMENT_GATE_PASSED"
+
+
+def test_gate_allowed_when_walkforward_has_no_pvalue():
+    # bootstrap skipped → no p-value → presence of the run satisfies the bar.
+    decision = check_deployment_gate(
+        "S1", "live",
+        latest_backtest={"run_id": "bt1", "sharpe": 0.9},
+        latest_walkforward={"run_id": "wf1", "bootstrap_p_value": None},
+    )
+    assert decision.allowed is True
+    assert decision.code == "DEPLOYMENT_GATE_PASSED"
+
+
+def test_walkforward_not_checked_until_backtest_passes():
+    # A sub-threshold Sharpe is denied at the backtest bar, before walk-forward.
+    decision = check_deployment_gate(
+        "S1", "live",
+        latest_backtest={"run_id": "bt1", "sharpe": 0.1},
+        latest_walkforward={"run_id": "wf1", "bootstrap_p_value": 0.01},
+    )
+    assert decision.allowed is False
+    assert decision.code == "DEPLOYMENT_GATE_FAILED"
 
 
 def test_gate_fails_with_low_sharpe():
@@ -70,9 +134,30 @@ def test_paper_environment_is_not_gated():
 
 def test_live_deploy_allowed_when_gate_passes():
     _seed_strategy_with_backtest("S1", sharpe=1.5)
+    _seed_walkforward("S1", p_value=0.02)
     gm.merge_node("API", "name", "AlpacaLive")
     gm.strategy_deploys_to("S1", "AlpacaLive", environment="live")
     assert _active_deploy_envs("S1"), "expected a DEPLOYS_TO edge to be written"
+
+
+def test_live_deploy_blocked_when_no_walkforward():
+    # Passing backtest but no walk-forward run → blocked at the second bar.
+    _seed_strategy_with_backtest("S8", sharpe=1.5)
+    gm.merge_node("API", "name", "AlpacaLive")
+    with pytest.raises(PolicyViolation) as exc:
+        gm.strategy_deploys_to("S8", "AlpacaLive", environment="live")
+    assert exc.value.decision.code == "NO_WALKFORWARD"
+    assert not _active_deploy_envs("S8")
+
+
+def test_live_deploy_blocked_when_not_significant():
+    _seed_strategy_with_backtest("S9", sharpe=1.5)
+    _seed_walkforward("S9", p_value=0.20)
+    gm.merge_node("API", "name", "AlpacaLive")
+    with pytest.raises(PolicyViolation) as exc:
+        gm.strategy_deploys_to("S9", "AlpacaLive", environment="live")
+    assert exc.value.decision.code == "NOT_SIGNIFICANT"
+    assert not _active_deploy_envs("S9")
 
 
 def test_live_deploy_blocked_when_gate_fails():
@@ -128,7 +213,9 @@ def test_latest_backtest_selected_by_timestamp():
     latest = latest_backtest_for_strategy("S7")
     assert latest is not None
     assert latest["run_id"] == "new"
-    # And the gate should pass on the newer, higher-Sharpe backtest.
+    # And the gate should pass on the newer, higher-Sharpe backtest once a
+    # significant walk-forward run validates it out of sample.
+    _seed_walkforward("S7", p_value=0.02)
     gm.merge_node("API", "name", "AlpacaLive")
     gm.strategy_deploys_to("S7", "AlpacaLive", environment="live")
     assert _active_deploy_envs("S7")

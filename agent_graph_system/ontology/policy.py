@@ -24,6 +24,10 @@ log = logging.getLogger(__name__)
 
 DEFAULT_SHARPE_THRESHOLD = 0.5
 
+# Above this bootstrap p-value a strategy's out-of-sample Sharpe cannot be
+# distinguished from noise, so it is denied a live deployment.
+BOOTSTRAP_P_VALUE_THRESHOLD = 0.10
+
 # Environments treated as "live" for gating purposes. paper/staging are not
 # gated — they are exactly where un-validated strategies are meant to run.
 LIVE_ENVIRONMENTS = frozenset({"live"})
@@ -81,7 +85,9 @@ def check_deployment_gate(
     environment: str,
     *,
     latest_backtest: dict[str, Any] | None = None,
+    latest_walkforward: dict[str, Any] | None = None,
     threshold: float | None = None,
+    p_value_threshold: float = BOOTSTRAP_P_VALUE_THRESHOLD,
 ) -> PolicyDecision:
     """Decide whether ``strategy`` may deploy to ``environment``.
 
@@ -91,11 +97,18 @@ def check_deployment_gate(
     in the decision ``code``), which keeps the YAML honest: a non-enforced rule
     never silently blocks.
 
-    When the gate IS active it is fail-closed: a missing latest backtest, a
-    non-numeric Sharpe, or a Sharpe below threshold all deny the write.
+    When the gate IS active it is fail-closed. A live deployment must clear two
+    bars, in order:
 
-    ``latest_backtest`` may be injected (mainly for tests); otherwise it is
-    fetched from the active graph backend.
+    1. **Backtest** — a valid completed backtest whose Sharpe meets ``threshold``
+       (a missing backtest, non-numeric Sharpe, or sub-threshold Sharpe denies).
+    2. **Walk-forward** — a completed walk-forward run must validate the
+       strategy out of sample, and its bootstrap p-value (when present) must be
+       at or below ``p_value_threshold``; otherwise the OOS Sharpe is
+       indistinguishable from noise.
+
+    ``latest_backtest`` / ``latest_walkforward`` may be injected (mainly for
+    tests); otherwise they are fetched from the active graph backend.
     """
     env = (environment or "").strip().lower()
     rule = get_rule("deployment_gate")
@@ -154,9 +167,47 @@ def check_deployment_gate(
             evidence,
         )
 
+    # Second bar: out-of-sample walk-forward validation.
+    if latest_walkforward is None:
+        from agent_graph_system.graph.backend import latest_walkforward_for_strategy
+
+        latest_walkforward = latest_walkforward_for_strategy(strategy)
+
+    if not latest_walkforward:
+        return PolicyDecision(
+            False,
+            "NO_WALKFORWARD",
+            f"Strategy '{strategy}' has a passing backtest but no completed "
+            "walk-forward run; cannot deploy live (fail-closed).",
+            evidence,
+        )
+
+    p_value = latest_walkforward.get("bootstrap_p_value")
+    wf_id = latest_walkforward.get("run_id") or "unknown"
+    evidence.append({
+        "node": f"WalkforwardRun:{wf_id}",
+        "metric": "bootstrap_p_value",
+        "value": p_value,
+    })
+
+    if p_value is not None:
+        try:
+            p_value_f = float(p_value)
+        except (TypeError, ValueError):
+            p_value_f = None
+        if p_value_f is not None and p_value_f > p_value_threshold:
+            return PolicyDecision(
+                False,
+                "NOT_SIGNIFICANT",
+                f"Bootstrap p-value {p_value_f:.3f} > {p_value_threshold}; "
+                "out-of-sample Sharpe is not distinguishable from noise.",
+                evidence,
+            )
+
     return PolicyDecision(
         True,
         "DEPLOYMENT_GATE_PASSED",
-        f"Latest backtest Sharpe {sharpe} meets threshold {bt_threshold}.",
+        f"Latest backtest Sharpe {sharpe} meets threshold {bt_threshold} and a "
+        "walk-forward run validates it out of sample.",
         evidence,
     )

@@ -259,6 +259,27 @@ def query(cypher: str, **params) -> list[dict[str, Any]]:
                 })
         return results
 
+    # --- walk-forward runs for a strategy ---
+    if "WALKFORWARD" in c and "STRATEGY" in c:
+        name = params.get("name", "")
+        results = []
+        for node_id, data in _G.nodes(data=True):
+            if data.get("_label") != "WalkforwardRun":
+                continue
+            linked = data.get("strategy") == name or _G.has_edge(f"Strategy::{name}", node_id)
+            if name and not linked:
+                continue
+            results.append({
+                "strategy": data.get("strategy", name),
+                "run_id": data.get("run_id", node_id),
+                "status": data.get("status", ""),
+                "aggregate_sharpe": data.get("aggregate_sharpe", 0),
+                "pct_profitable": data.get("pct_profitable", 0),
+                "bootstrap_p_value": data.get("bootstrap_p_value"),
+                "created_at": data.get("created_at", ""),
+            })
+        return results
+
     # Generic fallback: return nodes matching a label, with optional WHERE status filter
     label = _extract_label_from_match(cypher)
     if label:
@@ -326,6 +347,49 @@ def latest_backtest_for_strategy(strategy: str) -> dict[str, Any] | None:
 
     def _ts(node: dict[str, Any]) -> str:
         for key in ("completed_at", "run_date", "created_at", "updated_at"):
+            if node.get(key):
+                return str(node[key])
+        return ""
+
+    return max(pool, key=_ts)
+
+
+def latest_walkforward_for_strategy(strategy: str) -> dict[str, Any] | None:
+    """Return the latest completed walk-forward run linked to ``strategy``.
+
+    Mirrors :func:`latest_backtest_for_strategy`: a run is linked via a
+    ``Strategy -[HAS_WALKFORWARD]-> WalkforwardRun`` edge or by carrying a
+    ``strategy`` property. Only ``status == 'completed'`` runs qualify
+    (insufficient_data / failed runs never satisfy the gate); "latest" is the
+    max over created_at / updated_at. De-duplicated by run_id.
+    """
+    candidates: dict[str, dict[str, Any]] = {}
+
+    def _add(node: dict[str, Any]) -> None:
+        if node.get("_label") != "WalkforwardRun":
+            return
+        key = node.get("run_id") or id(node)
+        candidates[str(key)] = dict(node)
+
+    seed_id = f"Strategy::{strategy}"
+    if seed_id in _G:
+        for _, v, data in _G.out_edges(seed_id, data=True):
+            if data.get("_type") == "HAS_WALKFORWARD":
+                _add(_G.nodes.get(v, {}))
+
+    for _, data in _G.nodes(data=True):
+        if data.get("_label") == "WalkforwardRun" and data.get("strategy") == strategy:
+            _add(data)
+
+    pool = [
+        w for w in candidates.values()
+        if w.get("status", "completed") == "completed"
+    ]
+    if not pool:
+        return None
+
+    def _ts(node: dict[str, Any]) -> str:
+        for key in ("created_at", "updated_at"):
             if node.get(key):
                 return str(node[key])
         return ""

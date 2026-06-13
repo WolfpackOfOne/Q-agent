@@ -7,6 +7,7 @@ Entry point with subcommands:
   ingest-project  Ingest one MyProjects/ QuantConnect project into the graph
   ingest-paper    Fetch an arXiv paper and write its sections into the graph
   context-pack    Build a project context pack for an agent (md | json)
+  walkforward     Run walk-forward validation for a project (md | json)
   query           Run a named Cypher query or GraphRAG search
   agent       Run a named agent (coding | monitoring | orchestration | research)
   api         Start the FastAPI server
@@ -136,6 +137,129 @@ def cmd_context_pack(args: argparse.Namespace) -> None:
         print(cp.render_markdown(pack))
 
 
+def _load_returns(path: Path):
+    """Load a daily return Series (DatetimeIndex) from a CSV or LEAN result JSON.
+
+    CSV: a date column (date/Date/time/timestamp) plus either a returns column
+    (return/returns/ret/daily_return) or a level column (close/equity/value)
+    from which percent-change returns are derived.
+
+    JSON: a LEAN backtest result — the equity curve is located heuristically and
+    converted to percent-change returns.
+    """
+    import pandas as pd
+
+    if path.suffix.lower() == ".json":
+        return _returns_from_lean_json(path)
+
+    df = pd.read_csv(path)
+    cols = {c.lower(): c for c in df.columns}
+    date_col = next((cols[c] for c in ("date", "time", "timestamp", "datetime") if c in cols), None)
+    if date_col is None:
+        raise ValueError(f"{path} has no date/time column")
+    idx = pd.to_datetime(df[date_col])
+
+    ret_col = next((cols[c] for c in ("return", "returns", "ret", "daily_return") if c in cols), None)
+    if ret_col is not None:
+        series = pd.Series(df[ret_col].astype(float).values, index=idx)
+    else:
+        level_col = next((cols[c] for c in ("close", "equity", "value", "nav") if c in cols), None)
+        if level_col is None:
+            raise ValueError(f"{path} has no return or level (close/equity) column")
+        series = pd.Series(df[level_col].astype(float).values, index=idx).pct_change()
+    return series.dropna().sort_index()
+
+
+def _returns_from_lean_json(path: Path):
+    """Best-effort extraction of a daily return series from a LEAN result JSON."""
+    import pandas as pd
+
+    raw = json.loads(path.read_text())
+    charts = raw.get("Charts") or raw.get("charts") or {}
+    equity_chart = charts.get("Strategy Equity") or charts.get("Equity") or {}
+    series_map = equity_chart.get("Series") or equity_chart.get("series") or {}
+    equity_series = series_map.get("Equity") or next(iter(series_map.values()), {})
+    values = equity_series.get("Values") or equity_series.get("values") or []
+    if not values:
+        raise ValueError(f"{path}: could not locate an equity curve in the LEAN result")
+
+    times, levels = [], []
+    for point in values:
+        if isinstance(point, dict):
+            times.append(point.get("x") or point.get("Time"))
+            levels.append(point.get("y") or point.get("Close") or point.get("Value"))
+        else:  # [timestamp, value] pairs
+            times.append(point[0])
+            levels.append(point[1])
+    idx = pd.to_datetime(times, unit="s", errors="coerce")
+    series = pd.Series([float(v) for v in levels], index=idx).dropna()
+    # Collapse intraday points to a daily close before computing returns.
+    daily = series.groupby(series.index.normalize()).last()
+    return daily.pct_change().dropna()
+
+
+def _render_walkforward_summary(payload: dict) -> str:
+    """Compact markdown summary of a walk-forward run payload."""
+    if payload.get("status") == "insufficient_data":
+        return (
+            f"## Walk-forward — {payload.get('strategy')}\n"
+            f"- status: insufficient_data\n- {payload.get('message', '')}\n"
+        )
+    n = payload.get("n_windows") or len(payload.get("windows", []))
+    pct = payload.get("pct_windows_profitable", 0.0)
+    lines = [
+        f"## Walk-forward validation — {payload.get('strategy')}",
+        f"- windows: {n} | profitable: {pct * 100:.1f}%",
+        f"- OOS Sharpe: {payload.get('aggregate_sharpe', 0):.2f} | "
+        f"OOS CAGR: {payload.get('aggregate_cagr', 0) * 100:.1f}% | "
+        f"max drawdown: {payload.get('aggregate_max_drawdown', 0) * 100:.1f}%",
+    ]
+    p_value = payload.get("bootstrap_p_value")
+    if p_value is not None:
+        from agent_graph_system.ontology.policy import BOOTSTRAP_P_VALUE_THRESHOLD
+        sig = "significant" if p_value <= BOOTSTRAP_P_VALUE_THRESHOLD else "not significant"
+        lines.append(f"- bootstrap p-value: {p_value:.3f} ({sig})")
+    else:
+        lines.append("- bootstrap p-value: (not run)")
+    return "\n".join(lines) + "\n"
+
+
+def cmd_walkforward(args: argparse.Namespace) -> None:
+    """Run walk-forward validation for a project and persist it to the graph."""
+    from agent_graph_system.agents.research_agent import ResearchAgent
+    from agent_graph_system.graph.neo4j import graph_models as gm
+
+    path = Path(args.project).expanduser()
+    project_name = path.name if (path.exists() or "/" in args.project) else args.project
+
+    returns_path = Path(args.returns_csv).expanduser()
+    if not returns_path.exists():
+        log.error("Returns file not found: %s", returns_path)
+        sys.exit(1)
+    returns = _load_returns(returns_path)
+
+    # Ensure a Strategy node exists so HAS_WALKFORWARD links cleanly.
+    from agent_graph_system.graph.local import engine
+    existing = engine.get_node(f"Strategy::{project_name}")
+    if existing is None:
+        gm.upsert_strategy(project_name, strategy_type="unknown")
+
+    payload = ResearchAgent().run(
+        mode="walkforward",
+        strategy=project_name,
+        returns=returns,
+        train_months=args.train_months,
+        test_months=args.test_months,
+        step_months=args.step_months,
+        bootstrap=not args.no_bootstrap,
+    )
+
+    if args.format == "json":
+        print(json.dumps(payload, indent=2, default=str))
+    else:
+        print(_render_walkforward_summary(payload))
+
+
 def cmd_query(args: argparse.Namespace) -> None:
     """Run a named query or GraphRAG search."""
     from agent_graph_system.graph.cypher import queries as cq
@@ -258,6 +382,18 @@ def build_parser() -> argparse.ArgumentParser:
     cp.add_argument("--no-ingest", action="store_true",
                     help="Read the graph as-is instead of (re)ingesting from disk first")
 
+    # walkforward
+    wf = sub.add_parser("walkforward", help="Run walk-forward validation for a project")
+    wf.add_argument("project", help="Project path (or strategy name)")
+    wf.add_argument("--returns-csv", required=True,
+                    help="CSV (date + return/close) or LEAN result JSON of the equity curve")
+    wf.add_argument("--train-months", type=int, default=12)
+    wf.add_argument("--test-months", type=int, default=3)
+    wf.add_argument("--step-months", type=int, default=3)
+    wf.add_argument("--no-bootstrap", action="store_true",
+                    help="Skip the bootstrap significance test")
+    wf.add_argument("--format", choices=["md", "json"], default="md", help="Output format")
+
     # query
     query_p = sub.add_parser("query", help="Run a named Cypher query or GraphRAG search")
     query_p.add_argument("query_name", help=(
@@ -292,6 +428,7 @@ def main() -> None:
         "ingest-project": cmd_ingest_project,
         "ingest-paper": cmd_ingest_paper,
         "context-pack":   cmd_context_pack,
+        "walkforward":    cmd_walkforward,
         "query":   cmd_query,
         "agent":   cmd_agent,
         "api":     cmd_api,

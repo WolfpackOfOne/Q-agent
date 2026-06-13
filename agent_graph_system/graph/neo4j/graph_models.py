@@ -37,6 +37,30 @@ def upsert_backtest(run_id: str, name: str, sharpe: float, drawdown: float, cagr
     })
 
 
+def upsert_walkforward_run(run_id: str, strategy: str, **props) -> None:
+    """A walk-forward validation run for ``strategy``.
+
+    ``status`` is one of ``completed`` | ``failed`` | ``insufficient_data``.
+    Pass ``provenance=`` (e.g. ``Provenance.declared(...)``) for computed runs.
+    """
+    provenance = props.pop("provenance", None)
+    merge_node(
+        "WalkforwardRun", "run_id", run_id,
+        {"strategy": strategy, **props},
+        provenance=provenance,
+    )
+
+
+def upsert_walkforward_window(window_id: str, run_id: str, **props) -> None:
+    """One train/test window belonging to a :func:`upsert_walkforward_run`."""
+    provenance = props.pop("provenance", None)
+    merge_node(
+        "WalkforwardWindow", "window_id", window_id,
+        {"run_id": run_id, **props},
+        provenance=provenance,
+    )
+
+
 def upsert_repository(name: str, url: str, branch: str = "main", **props) -> None:
     merge_node("Repository", "name", name, {"url": url, "branch": branch, **props})
 
@@ -72,6 +96,25 @@ def notebook_generates_backtest(notebook: str, run_id: str, **props) -> None:
 def strategy_has_backtest(strategy: str, run_id: str, **props) -> None:
     """Link a Strategy to one of its Backtest runs (lineage for the gate)."""
     merge_relationship("Strategy", "name", strategy, "HAS_BACKTEST", "Backtest", "run_id", run_id, props)
+
+
+def strategy_has_walkforward(strategy: str, run_id: str, **props) -> None:
+    """Link a Strategy to one of its WalkforwardRun results."""
+    merge_relationship("Strategy", "name", strategy, "HAS_WALKFORWARD", "WalkforwardRun", "run_id", run_id, props)
+
+
+def walkforward_run_has_window(run_id: str, window_id: str, **props) -> None:
+    """Link a WalkforwardRun to one of its WalkforwardWindow nodes."""
+    merge_relationship("WalkforwardRun", "run_id", run_id, "HAS_WINDOW", "WalkforwardWindow", "window_id", window_id, props)
+
+
+def walkforward_validates_backtest(run_id: str, backtest_run_id: str, **props) -> None:
+    """A WalkforwardRun VALIDATES the Backtest it was computed against.
+
+    Lets the live deployment gate ask not just "is there a backtest?" but
+    "is there a walk-forward run validating it?".
+    """
+    merge_relationship("WalkforwardRun", "run_id", run_id, "VALIDATES", "Backtest", "run_id", backtest_run_id, props)
 
 
 def strategy_deploys_to(
@@ -127,6 +170,30 @@ def latest_backtest_for_strategy(strategy: str) -> dict[str, Any] | None:
     with session() as s:
         record = s.run(cypher, name=strategy).single()
         return dict(record["bt"]) if record else None
+
+
+def latest_walkforward_for_strategy(strategy: str) -> dict[str, Any] | None:
+    """Neo4j implementation of the latest-completed-walkforward lookup.
+
+    Mirrors :func:`latest_backtest_for_strategy`: linked via ``HAS_WALKFORWARD``
+    or a ``strategy`` property, restricted to completed runs, newest first.
+    """
+    from agent_graph_system.graph.neo4j.driver import session
+
+    cypher = """
+        MATCH (w:WalkforwardRun)
+        WHERE (
+            EXISTS { MATCH (:Strategy {name: $name})-[:HAS_WALKFORWARD]->(w) }
+            OR w.strategy = $name
+        )
+        AND coalesce(w.status, 'completed') = 'completed'
+        RETURN w AS wf
+        ORDER BY coalesce(w.created_at, w.updated_at, '') DESC
+        LIMIT 1
+    """
+    with session() as s:
+        record = s.run(cypher, name=strategy).single()
+        return dict(record["wf"]) if record else None
 
 
 def repository_contains_notebook(repo: str, notebook: str, **props) -> None:
