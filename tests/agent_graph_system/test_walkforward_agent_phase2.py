@@ -136,6 +136,39 @@ def test_agent_only_processes_flagged_strategies():
     assert _status("Idle") == "backtesting"
 
 
+def test_agent_scan_continues_after_one_strategy_fails():
+    _flag("Bad")
+    _flag("Good")
+
+    def provider(name):
+        if name == "Bad":
+            raise RuntimeError("provider failed")
+        return _windows(seed=9)
+
+    result = WalkforwardAgent(returns_provider=provider, bootstrap=False).run()
+
+    assert result["errors"] == [{"strategy": "Bad", "error": "provider failed"}]
+    assert _status("Bad") == "walkforward_error"
+    assert [p["strategy"] for p in result["processed"]] == ["Good"]
+    assert _status("Good") == "validated"
+    assert (engine.get_node("Agent::WalkforwardAgent") or {})["status"] == "idle"
+
+
+def test_agent_direct_target_failure_reraises():
+    _flag("BadDirect")
+
+    def failing_provider(_name):
+        raise RuntimeError("failed")
+
+    agent = WalkforwardAgent(returns_provider=failing_provider)
+
+    with pytest.raises(RuntimeError, match="failed"):
+        agent.run(strategy="BadDirect")
+
+    assert _status("BadDirect") == "walkforward_error"
+    assert (engine.get_node("Agent::WalkforwardAgent") or {})["status"] == "error"
+
+
 def test_agent_targets_single_strategy_with_explicit_windows():
     # Not flagged, but addressed directly with explicit per-window OOS returns.
     gm.upsert_strategy("OnDemand", strategy_type="momentum", status="backtesting")

@@ -29,6 +29,14 @@ log = logging.getLogger(__name__)
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
+def _first_present(mapping: dict, *keys: str):
+    """Return the first non-None value without treating zero as missing."""
+    for key in keys:
+        if key in mapping and mapping[key] is not None:
+            return mapping[key]
+    return None
+
+
 def default_search_roots() -> list[Path]:
     """Directories under which per-strategy returns artifacts are looked for.
 
@@ -79,24 +87,49 @@ def returns_from_lean_json(path: Path) -> "pd.Series":
     import pandas as pd
 
     raw = json.loads(path.read_text())
+    if not isinstance(raw, dict):
+        raise ValueError(f"{path}: LEAN result JSON must be an object")
     charts = raw.get("Charts") or raw.get("charts") or {}
+    if not isinstance(charts, dict):
+        raise ValueError(f"{path}: LEAN result Charts must be an object")
     equity_chart = charts.get("Strategy Equity") or charts.get("Equity") or {}
+    if not isinstance(equity_chart, dict):
+        raise ValueError(f"{path}: LEAN equity chart must be an object")
     series_map = equity_chart.get("Series") or equity_chart.get("series") or {}
+    if not isinstance(series_map, dict):
+        raise ValueError(f"{path}: LEAN equity Series must be an object")
     equity_series = series_map.get("Equity") or next(iter(series_map.values()), {})
+    if not isinstance(equity_series, dict):
+        raise ValueError(f"{path}: LEAN equity series must be an object")
     values = equity_series.get("Values") or equity_series.get("values") or []
+    if not isinstance(values, (list, tuple)):
+        raise ValueError(f"{path}: LEAN equity Values must be a list")
     if not values:
         raise ValueError(f"{path}: could not locate an equity curve in the LEAN result")
 
     times, levels = [], []
-    for point in values:
+    for index, point in enumerate(values):
         if isinstance(point, dict):
-            times.append(point.get("x") or point.get("Time"))
-            levels.append(point.get("y") or point.get("Close") or point.get("Value"))
+            timestamp = _first_present(point, "x", "Time")
+            value = _first_present(point, "y", "Close", "Value")
         else:  # [timestamp, value] pairs
-            times.append(point[0])
-            levels.append(point[1])
+            if not isinstance(point, (list, tuple)) or len(point) < 2:
+                raise ValueError(f"{path}: equity point {index} is not a timestamp/value pair")
+            timestamp, value = point[0], point[1]
+        if timestamp is None:
+            raise ValueError(f"{path}: equity point {index} has no timestamp")
+        if value is None:
+            raise ValueError(f"{path}: equity point {index} has no equity value")
+        try:
+            level = float(value)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"{path}: equity point {index} has invalid equity value {value!r}") from exc
+        times.append(timestamp)
+        levels.append(level)
     idx = pd.to_datetime(times, unit="s", errors="coerce")
-    series = pd.Series([float(v) for v in levels], index=idx).dropna()
+    if idx.isna().any():
+        raise ValueError(f"{path}: equity curve contains an invalid timestamp")
+    series = pd.Series(levels, index=idx).dropna()
     # Collapse intraday points to a daily close before computing returns.
     daily = series.groupby(series.index.normalize()).last()
     return daily.pct_change().dropna()
@@ -149,6 +182,6 @@ def discover_returns(strategy: str, roots: list[Path] | None = None) -> "pd.Seri
         return None
     try:
         return load_returns(path)
-    except (ValueError, KeyError, OSError) as exc:
+    except (IndexError, KeyError, OSError, TypeError, ValueError) as exc:
         log.warning("could not load returns for %s from %s: %s", strategy, path, exc)
         return None

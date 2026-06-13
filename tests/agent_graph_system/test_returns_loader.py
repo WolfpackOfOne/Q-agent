@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -16,6 +18,17 @@ def _write_csv(path, *, level_col=False):
     else:
         df = pd.DataFrame({"date": idx, "return": np.full(10, 0.001)})
     path.write_text(df.to_csv(index=False))
+
+
+def _write_lean_result(path, values):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({
+        "Charts": {
+            "Strategy Equity": {
+                "Series": {"Equity": {"Values": values}},
+            },
+        },
+    }))
 
 
 def test_load_returns_from_return_column(tmp_path):
@@ -43,6 +56,29 @@ def test_load_returns_rejects_columnless_csv(tmp_path):
         rl.load_returns(p)
 
 
+@pytest.mark.parametrize("zero", [0, 0.0, "0"])
+def test_load_returns_preserves_zero_lean_equity_point(tmp_path, zero):
+    p = tmp_path / "result.json"
+    _write_lean_result(p, [
+        {"x": 0, "y": 100},
+        {"x": 86_400, "y": zero},
+        {"x": 172_800, "y": 10},
+    ])
+
+    returns = rl.load_returns(p)
+
+    assert returns.iloc[0] == -1.0
+    assert len(returns) == 2
+
+
+def test_load_returns_reports_missing_lean_equity_value(tmp_path):
+    p = tmp_path / "result.json"
+    _write_lean_result(p, [{"x": 1_577_836_800}])
+
+    with pytest.raises(ValueError, match="has no equity value"):
+        rl.load_returns(p)
+
+
 def test_discover_returns_finds_project_csv(tmp_path):
     proj = tmp_path / "MyStrat" / "data"
     proj.mkdir(parents=True)
@@ -61,6 +97,28 @@ def test_discover_returns_swallows_bad_file(tmp_path):
     (proj / "returns.csv").write_text("a,b\n1,2\n")
     # A malformed artifact is treated as "unavailable", not an exception.
     assert rl.discover_returns("Broken", roots=[tmp_path]) is None
+
+
+@pytest.mark.parametrize("payload", [
+    "{not valid json",
+    json.dumps({
+        "Charts": {
+            "Strategy Equity": {
+                "Series": {
+                    "Equity": {
+                        "Values": [{"x": 1_577_836_800, "y": {"bad": "value"}}],
+                    },
+                },
+            },
+        },
+    }),
+])
+def test_discover_returns_swallows_malformed_lean_result(tmp_path, payload):
+    result = tmp_path / "BrokenLean" / "backtests" / "run" / "result.json"
+    result.parent.mkdir(parents=True)
+    result.write_text(payload)
+
+    assert rl.discover_returns("BrokenLean", roots=[tmp_path]) is None
 
 
 def test_default_search_roots_honours_env(tmp_path, monkeypatch):

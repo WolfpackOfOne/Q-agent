@@ -8,7 +8,8 @@ Phase 2 of issue #62. The pipeline this completes:
       → WalkforwardAgent (this) picks it up, fetches a return series, runs the
         walk-forward + bootstrap via the ResearchAgent, writes the WalkforwardRun
       → sets Strategy.status to "validated" / "not_significant" /
-        "walkforward_insufficient_data" / "walkforward_unavailable"
+        "walkforward_insufficient_data" / "walkforward_unavailable" /
+        "walkforward_error"
       → deployment gate reads the WalkforwardRun before any live deploy
 
 The heavy lifting (analysis, persistence, provenance) lives in the ResearchAgent
@@ -79,10 +80,16 @@ class WalkforwardAgent(BaseAgent):
         genuine ``walkforward`` run. See :meth:`_validate`.
         """
         results: dict[str, Any] = {"processed": [], "unavailable": [], "errors": []}
+        single_target = strategy is not None
         try:
-            targets = [strategy] if strategy else self._flagged_strategies()
-            for name in targets:
-                oos = returns if (strategy and returns is not None) else self._returns_provider(name)
+            targets = [strategy] if single_target else self._flagged_strategies()
+        except Exception as exc:
+            self._mark_error(str(exc))
+            raise
+
+        for name in targets:
+            try:
+                oos = returns if (single_target and returns is not None) else self._returns_provider(name)
                 if oos is None:
                     self._set_status(name, "walkforward_unavailable")
                     results["unavailable"].append(name)
@@ -90,6 +97,18 @@ class WalkforwardAgent(BaseAgent):
                     continue
                 outcome = self._validate(name, oos)
                 results["processed"].append(outcome)
+            except Exception as exc:
+                results["errors"].append({"strategy": name, "error": str(exc)})
+                try:
+                    self._set_status(name, "walkforward_error")
+                except Exception:
+                    log.exception("[WalkforwardAgent] could not set error status for %s", name)
+                log.exception("[WalkforwardAgent] failed to process %s", name)
+                if single_target:
+                    self._mark_error(str(exc))
+                    raise
+
+        try:
             self._mark_idle()
         except Exception as exc:
             self._mark_error(str(exc))
