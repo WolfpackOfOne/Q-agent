@@ -23,7 +23,33 @@ Q-agent uses two local output conventions:
 | `data/` | Pipeline-specific raw, intermediate, or research CSV outputs |
 | `lean-data/` | LEAN-ready data folders that can be pointed to from `lean.json` |
 
-Not every pipeline writes both. For example, the crypto and yfinance pipelines write LEAN-ready zips under `lean-data/`, while the Polymarket pipeline writes research CSVs under `data/` that notebooks or strategy refresh tools can consume.
+Not every pipeline writes both. For example, the crypto, yfinance, and WRDS pipelines write LEAN-ready data under `lean-data/`, while the Polymarket pipeline writes alternative-data CSVs that require project-specific reader logic.
+
+---
+
+## LEAN compatibility matrix
+
+Some pipelines write native LEAN local data. Others write research CSVs used by notebooks or project-specific custom readers. Do not assume that every file under a `lean-data/` folder is a standard LEAN equity, crypto, futures, or options data file.
+
+| Pipeline | Main output folder | Native LEAN local data? | Requires custom reader? | Notebook-only / research CSV? | Notes |
+|---|---|---:|---:|---:|---|
+| [Crypto](crypto.md) | `infrastructure/pipelines/crypto/lean-data/` | Yes | No | No | Writes LEAN-style crypto daily/minute zip files under `crypto/<market>/...`. |
+| [yfinance](yfinance.md) | `infrastructure/pipelines/yfinance/lean-data/` | Yes | No | No | Writes daily equity zips plus factor and map files under `equity/usa/...`. |
+| [WRDS / CRSP](wrds.md) | `infrastructure/pipelines/wrds/lean-data/` | Yes | No | No | Writes CRSP-derived daily equity zips plus factor and map files under `equity/usa/...`. |
+| [Polymarket](polymarket.md) | `infrastructure/pipelines/polymarket/lean-data/alternative/polymarket/` | No | Yes | Yes | Writes market metadata and `datetime,price` CSVs for custom research/strategy logic, not standard LEAN data. |
+| [SEC EDGAR](edgar.md) | pipeline-specific CSV outputs | No | Yes, if used in LEAN | Yes | Fundamentals and Piotroski-style outputs are research/features data, not native LEAN local data. |
+| `passive_share` | `infrastructure/pipelines/passive_share/data/processed/` | No | Yes, if used in LEAN | Yes | Committed research snapshots for notebooks. |
+| `etf_flows` | `infrastructure/pipelines/etf_flows/data/processed/` | No | Yes, if used in LEAN | Yes | Committed research snapshots for notebooks. |
+| `equity_liquidity` | `infrastructure/pipelines/equity_liquidity/data/processed/` | No | Yes, if used in LEAN | Yes | Committed research snapshots for notebooks. |
+| `treasury_gov_rates` | pipeline-specific outputs | Not confirmed | Yes, if used in LEAN | Yes | Experimental; document exact schema before using in a backtest. |
+| `fixed_income` | pipeline-specific outputs | Not confirmed | Yes, if used in LEAN | Yes | Experimental; document exact schema before using in a backtest. |
+| `macro_rates` | pipeline-specific outputs | Not confirmed | Yes, if used in LEAN | Yes | Experimental; document exact schema before using in a backtest. |
+
+For new pipelines, explicitly choose one of these targets:
+
+1. **Native LEAN data** — match a standard LEAN local-data folder and file schema.
+2. **Custom LEAN data** — write documented CSVs and implement a project-specific `PythonData` reader.
+3. **Notebook-only research data** — write clearly documented CSVs for Marimo notebooks and diagnostics.
 
 ---
 
@@ -77,13 +103,13 @@ graph LR
     B --> C[Normalize to<br/>documented local schema]
     C --> D[data/<br/>or lean-data/]
     D --> E[Research<br/>Notebook]
-    D --> F[LEAN<br/>Backtest]
+    D --> F[LEAN<br/>Backtest or<br/>Custom Reader]
 ```
 
 1. A `run_pipeline.py` script pulls from the upstream source
 2. Data is normalized into the pipeline's documented output schema
 3. Output lands in `data/`, `lean-data/`, or both depending on the pipeline
-4. Notebooks and backtests read from those directories
+4. Notebooks, native LEAN backtests, or custom readers consume those outputs
 
 Pipeline data is generally **gitignored** — the scripts are committed, the generated data is usually not. Committed-data pipelines are the exception and are called out explicitly above.
 
@@ -103,7 +129,7 @@ Date,Open,High,Low,Close,Volume
 - Volume: integer shares or contracts, depending on the asset class
 - Location: usually `infrastructure/pipelines/<name>/lean-data/...`
 
-Pipelines handle this normalization automatically. Always check the individual pipeline page for the exact path and schema.
+Pipelines handle this normalization only when they are explicitly marked as native LEAN data writers in the compatibility matrix above. Always check the individual pipeline page for the exact path and schema.
 
 ---
 
@@ -128,7 +154,7 @@ infrastructure/pipelines/<name>/
 │       ├── transform.py
 │       └── write.py
 ├── data/                   ← raw/intermediate/research output, usually gitignored
-├── lean-data/              ← LEAN-ready output, if the pipeline writes LEAN data
+├── lean-data/              ← native or custom LEAN-consumable output, if applicable
 ├── requirements.txt
 └── README.md
 ```
