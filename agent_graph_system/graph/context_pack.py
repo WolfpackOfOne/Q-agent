@@ -151,6 +151,7 @@ def build_context_pack(
     modules = sorted(n for n in module_names if n)
 
     backtest = engine.latest_backtest_for_strategy(project)
+    walkforward = engine.latest_walkforward_for_strategy(project)
 
     # Low-confidence facts: scan the project's connected nodes and the edges
     # between them, so dynamic ObjectStore keys etc. are surfaced honestly.
@@ -163,7 +164,7 @@ def build_context_pack(
         if is_low_confidence(edge, confidence_threshold):
             low_conf.append({"node": descriptor, **_fact_summary(edge)})
 
-    risks = _derive_risks(backtest, objectstore, low_conf)
+    risks = _derive_risks(backtest, walkforward, objectstore, low_conf)
     recommended = _recommend_files(files + docs + notebooks)
 
     return {
@@ -174,12 +175,14 @@ def build_context_pack(
             "signals": len(signals), "modules": len(modules),
             "notebooks": len(notebooks),
             "has_completed_backtest": backtest is not None,
+            "has_walkforward": walkforward is not None,
         },
         "important_files": recommended,
         "docs": sorted(docs),
         "datasets": datasets,
         "objectstore": objectstore,
         "backtest": backtest,
+        "walkforward": walkforward,
         "signals": signals,
         "modules": modules,
         "config_params": config_params,
@@ -191,15 +194,44 @@ def build_context_pack(
 
 def _derive_risks(
     backtest: dict[str, Any] | None,
+    walkforward: dict[str, Any] | None,
     objectstore: list[dict[str, Any]],
     low_conf: list[dict[str, Any]],
 ) -> list[str]:
+    from agent_graph_system.ontology.policy import BOOTSTRAP_P_VALUE_THRESHOLD
+
     risks: list[str] = []
     if backtest is None:
         risks.append(
             "No completed backtest is linked to this strategy — a live "
             "deployment_gate check would fail closed."
         )
+    if walkforward is None:
+        risks.append(
+            "No walk-forward run validates this strategy out of sample — its "
+            "backtest Sharpe may be an in-sample curve fit; a live "
+            "deployment_gate check would fail closed."
+        )
+    else:
+        if (walkforward.get("mode") or "walkforward") != "walkforward":
+            risks.append(
+                "The only walk-forward evidence is a rolling-holdout run "
+                "(in-sample slicing, no refit) — it is NOT genuine out-of-sample "
+                "validation and a live deployment_gate check would refuse it."
+            )
+        pct = walkforward.get("pct_profitable")
+        if pct is not None and float(pct) < 0.5:
+            risks.append(
+                f"Only {float(pct) * 100:.0f}% of walk-forward windows were "
+                "profitable (<50%) — out-of-sample performance is fragile."
+            )
+        p_value = walkforward.get("bootstrap_p_value")
+        if p_value is not None and float(p_value) > BOOTSTRAP_P_VALUE_THRESHOLD:
+            risks.append(
+                f"Walk-forward bootstrap p-value {float(p_value):.3f} > "
+                f"{BOOTSTRAP_P_VALUE_THRESHOLD} — the out-of-sample Sharpe is "
+                "not statistically distinguishable from noise."
+            )
     unresolved = [o for o in objectstore if not o["resolved"]]
     if unresolved:
         risks.append(
@@ -229,6 +261,22 @@ def _recommend_files(paths: list[str]) -> list[str]:
     return [p for p in sorted(dict.fromkeys(paths), key=rank)]
 
 
+def _fmt(value: Any) -> str:
+    """Format a float metric to two decimals, or '?' when missing."""
+    try:
+        return f"{float(value):.2f}"
+    except (TypeError, ValueError):
+        return "?"
+
+
+def _fmt_pct(value: Any) -> str:
+    """Format a fractional metric as a percentage, or '?' when missing."""
+    try:
+        return f"{float(value) * 100:.1f}%"
+    except (TypeError, ValueError):
+        return "?"
+
+
 def render_markdown(pack: dict[str, Any]) -> str:
     """Render a context pack as readable markdown."""
     s = pack["summary"]
@@ -239,7 +287,8 @@ def render_markdown(pack: dict[str, Any]) -> str:
         f"- Files: {s['files']} | Docs: {s['docs']} | Notebooks: {s['notebooks']}",
         f"- Datasets: {s['datasets']} | ObjectStore keys: {s['objectstore_keys']}",
         f"- Signals: {s['signals']} | Modules: {s['modules']}",
-        f"- Completed backtest linked: {'yes' if s['has_completed_backtest'] else 'no'}",
+        f"- Completed backtest linked: {'yes' if s['has_completed_backtest'] else 'no'}"
+        f" | Walk-forward validated: {'yes' if s.get('has_walkforward') else 'no'}",
         "",
         "## Recommended files to inspect before editing",
     ]
@@ -266,6 +315,35 @@ def render_markdown(pack: dict[str, Any]) -> str:
         )
     else:
         lines.append("- (no completed backtest linked)")
+
+    lines += ["", "## Walk-forward validation"]
+    wf = pack.get("walkforward")
+    if wf:
+        mode = wf.get("mode") or "walkforward"
+        if mode != "walkforward":
+            lines.append(
+                f"- ⚠️ mode: {mode} (in-sample slicing — NOT gate-eligible)"
+            )
+        n = wf.get("n_windows")
+        n_prof = wf.get("n_windows_profitable")
+        pct = wf.get("pct_profitable")
+        pct_str = f"{float(pct) * 100:.1f}%" if pct is not None else "n/a"
+        lines.append(f"- windows: {n} | profitable: {n_prof}/{n} ({pct_str})")
+        lines.append(
+            f"- OOS Sharpe: {_fmt(wf.get('aggregate_sharpe'))} | "
+            f"OOS CAGR: {_fmt_pct(wf.get('aggregate_cagr'))} | "
+            f"max drawdown: {_fmt_pct(wf.get('aggregate_max_drawdown'))}"
+        )
+        p_value = wf.get("bootstrap_p_value")
+        if p_value is not None:
+            from agent_graph_system.ontology.policy import BOOTSTRAP_P_VALUE_THRESHOLD
+            mark = "✓" if float(p_value) <= BOOTSTRAP_P_VALUE_THRESHOLD else "✗"
+            sig = "significant" if float(p_value) <= BOOTSTRAP_P_VALUE_THRESHOLD else "not significant"
+            lines.append(f"- bootstrap p-value: {float(p_value):.3f} ({sig}) {mark}")
+        else:
+            lines.append("- bootstrap p-value: (not run)")
+    else:
+        lines.append("- (no walk-forward run linked)")
 
     lines += ["", "## Signals / modules detected"]
     lines.append(f"- signals: {', '.join(pack['signals']) or '(none)'}")
