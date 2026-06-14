@@ -34,6 +34,12 @@ log = logging.getLogger(__name__)
 # Files that are project documentation regardless of location.
 _DOC_NAMES = {"agents.md", "claude.md", "readme.md", "contributing.md"}
 
+# LEAN-generated output directories. Each holds result artifacts and a full
+# ``code/`` snapshot of the project at run time; walking into them double-counts
+# every signal/module/file against historical copies. They are not part of the
+# project's authoritative structure, so the parser skips them wholesale.
+_EXCLUDED_DIRS = {"backtests", "live", "optimizations"}
+
 # QCAlgorithm data-subscription methods.
 _SUBSCRIPTION_METHODS = {
     "AddEquity", "AddCrypto", "AddData", "AddForex",
@@ -74,7 +80,10 @@ def _iter_files(project_root: Path) -> list[tuple[str, str]]:
     for path in sorted(project_root.rglob("*")):
         if not path.is_file():
             continue
-        if "__pycache__" in path.parts or any(part.startswith(".") for part in path.parts):
+        parts = path.parts
+        if "__pycache__" in parts or any(part.startswith(".") for part in parts):
+            continue
+        if _EXCLUDED_DIRS.intersection(parts):
             continue
         rel = path.relative_to(project_root).as_posix()
         kind = _classify(rel)

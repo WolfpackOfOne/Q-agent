@@ -133,6 +133,25 @@ def _make_project(root: Path, name: str, ticker: str) -> Path:
     return proj
 
 
+def test_lean_output_dirs_are_excluded(tmp_path):
+    # LEAN writes a full code snapshot under backtests/<ts>/code/. The parser
+    # must not walk into it and double-count the snapshot's signals/modules.
+    proj = tmp_path / "Strat"
+    (proj / "domain" / "signals").mkdir(parents=True)
+    (proj / "domain" / "signals" / "sig.py").write_text("def my_signal(x):\n    return x\n")
+    (proj / "main.py").write_text("class StratAlgo:\n    pass\n")
+    # A backtest snapshot duplicating the whole project at a historical path.
+    snap = proj / "backtests" / "2026-05-27_00-00-00" / "code"
+    (snap / "domain" / "signals").mkdir(parents=True)
+    (snap / "domain" / "signals" / "sig.py").write_text("def my_signal(x):\n    return x\n")
+    (snap / "main.py").write_text("class StratAlgo:\n    pass\n")
+
+    inv = parser.parse_project(proj)
+    assert [s["name"] for s in inv["signals"]] == ["my_signal"]
+    assert [m["name"] for m in inv["modules"]] == ["StratAlgo"]
+    assert not any("backtests/" in f["path"] for f in inv["files"])
+
+
 def test_two_projects_do_not_share_file_nodes(tmp_path):
     # Both projects have a main.py and AGENTS.md at the same relative paths.
     proj_a = _make_project(tmp_path, "Alpha", "AAA")
