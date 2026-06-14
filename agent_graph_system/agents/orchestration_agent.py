@@ -21,6 +21,7 @@ class OrchestrationAgent(BaseAgent):
         Current rules:
           - Stale datasets → log for re-ingestion
           - Failed pipelines → log for restart
+          - Strategies needing walk-forward → queue a walk-forward run
         """
         actions: list[dict] = []
         log.info("[OrchestrationAgent] scanning graph for remediation tasks")
@@ -38,6 +39,17 @@ class OrchestrationAgent(BaseAgent):
             for p in failed_pipelines:
                 actions.append({"action": "restart_pipeline", "target": p["name"]})
                 log.info("[OrchestrationAgent] queuing restart for pipeline: %s", p["name"])
+
+            # Filter status in Python: a query string containing the literal
+            # 'needs_walkforward' is routed to the local backend's WalkforwardRun
+            # handler (its guard matches the "WALKFORWARD" substring), not the
+            # generic Strategy scan.
+            strategies = query("MATCH (s:Strategy) RETURN s.name AS name, s.status AS status")
+            for s in strategies:
+                if s.get("status") != "needs_walkforward" or not s.get("name"):
+                    continue
+                actions.append({"action": "run_walkforward", "target": s["name"]})
+                log.info("[OrchestrationAgent] queuing walk-forward for: %s", s["name"])
 
             self._mark_idle()
         except Exception as exc:
