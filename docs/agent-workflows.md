@@ -135,3 +135,8 @@ Potential future workflows:
 - reproducible research templates
 - agent evaluation workflows
 - shared project memory standards
+
+Deeper agent-layer design — agent contracts, memory conventions, context
+retrieval, and evaluation workflows — is tracked under the
+[Graph Architecture](architecture-hybrid-graph.md) doc and
+[issue #54](https://github.com/WolfpackOfOne/Q-agent/issues/54), not here.
