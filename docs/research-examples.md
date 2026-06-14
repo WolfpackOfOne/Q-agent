@@ -1,58 +1,107 @@
 # Research Examples
 
-## WRDS Equity Returns and EDGAR Fundamentals
+Research examples are broader themes that can become notebooks, recipes, or full LEAN strategy projects. For a complete worked example, start with the [Golden Path](golden-path.md) and the [ElectionIndustryBeta workflow](workflows/election-industry-beta.md).
+
+Use this page as an index. Use [Research Recipes](research-recipes.md) when you want a concrete hypothesis and starting checklist.
+
+---
+
+## Implemented example
+
+### Election & Industry Returns
 
 Combine:
 
-- Equity returns
+- committed Polymarket election probability data
+- yfinance sector and industry ETF returns
+- reusable election-beta signal logic
+- LEAN strategy implementation
+- ObjectStore diagnostics
+
+Start here:
+
+- [Running Notebooks](notebooks.md)
+- [Golden Path](golden-path.md)
+- [Canonical Workflow: ElectionIndustryBeta](workflows/election-industry-beta.md)
+
+---
+
+## Candidate research themes
+
+### WRDS Equity Returns and EDGAR Fundamentals
+
+Combine:
+
+- WRDS/CRSP equity returns
 - SEC filing metrics
-- Fundamental ratios
+- fundamental ratios
 
 Possible outputs:
 
-- Cross-sectional factor portfolios
-- Valuation diagnostics
-- Event studies
+- cross-sectional factor portfolios
+- valuation diagnostics
+- event studies
 
-## ETF Constituents and Liquidity
+Related recipe: [Piotroski F-Score Cross-Sectional Strategy](research-recipes.md#piotroski-f-score-cross-sectional-strategy)
+
+---
+
+### ETF Constituents and Liquidity
 
 Combine:
 
 - ETF holdings
-- Daily volume
-- Volatility estimates
+- daily volume
+- volatility estimates
 
 Possible outputs:
 
-- Fund crowding diagnostics
-- Liquidity stress metrics
-- Portfolio concentration metrics
+- fund crowding diagnostics
+- liquidity stress metrics
+- portfolio concentration metrics
 
-## Polymarket and Financial Markets
+Related recipe: [ETF Constituent Crowding](research-recipes.md#etf-constituent-crowding)
+
+---
+
+### Polymarket and Financial Markets
 
 Combine:
 
-- Prediction market probabilities
+- prediction market probabilities
 - ETF returns
-- Crypto market data
+- crypto market data
 
 Possible outputs:
 
-- Event sensitivity studies
-- Correlation analysis
-- Regime detection
+- event sensitivity studies
+- correlation analysis
+- regime detection
 
-## QuantConnect Backtest Diagnostics
+Related recipes:
+
+- [Fed Policy Probability vs. Equity Sectors](research-recipes.md#fed-policy-probability-vs-equity-sectors)
+- [Crypto Returns vs. Election Prediction Markets](research-recipes.md#crypto-returns-vs-election-prediction-markets)
+
+---
+
+### QuantConnect Backtest Diagnostics
 
 Combine:
 
 - LEAN backtest outputs
-- Notebook diagnostics
-- Risk analytics
+- ObjectStore logs
+- notebook diagnostics
+- risk analytics
 
 Possible outputs:
 
-- Rolling Sharpe analysis
-- Drawdown studies
-- Exposure decomposition
-- Trade attribution
+- rolling Sharpe analysis
+- drawdown studies
+- exposure decomposition
+- trade attribution
+
+Related recipes:
+
+- [Rolling Sharpe Stability](research-recipes.md#rolling-sharpe-stability)
+- [Trade Attribution](research-recipes.md#trade-attribution)

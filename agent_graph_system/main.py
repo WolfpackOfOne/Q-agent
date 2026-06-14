@@ -8,6 +8,7 @@ Entry point with subcommands:
   ingest-paper    Fetch an arXiv paper and write its sections into the graph
   context-pack    Build a project context pack for an agent (md | json)
   prune           Remove facts left behind by older ingest runs (dry-run by default)
+  walkforward     Run walk-forward validation for a project (md | json)
   query           Run a named Cypher query or GraphRAG search
   agent       Run a named agent (coding | monitoring | orchestration | research)
   api         Start the FastAPI server
@@ -61,6 +62,7 @@ def cmd_init(args: argparse.Namespace) -> None:
         ("CodingAgent", "coding"),
         ("MonitoringAgent", "monitoring"),
         ("OrchestrationAgent", "orchestration"),
+        ("WalkforwardAgent", "walkforward"),
     ]:
         gm.upsert_agent(name, role=role, status="idle")
 
@@ -179,6 +181,93 @@ def cmd_prune(args: argparse.Namespace) -> None:
     print(json.dumps(report, indent=2, default=str))
 
 
+def _render_walkforward_summary(payload: dict) -> str:
+    """Compact markdown summary of a walk-forward run payload."""
+    if payload.get("status") == "insufficient_data":
+        return (
+            f"## Walk-forward — {payload.get('strategy')}\n"
+            f"- status: insufficient_data\n- {payload.get('message', '')}\n"
+        )
+    n = payload.get("n_windows") or len(payload.get("windows", []))
+    pct = payload.get("pct_windows_profitable", 0.0)
+    mode = payload.get("mode") or "walkforward"
+    lines = [f"## Walk-forward validation — {payload.get('strategy')}"]
+    if mode != "walkforward":
+        lines.append(f"- ⚠️ mode: {mode} (in-sample slicing — NOT gate-eligible)")
+    lines += [
+        f"- windows: {n} | profitable: {pct * 100:.1f}%",
+        f"- OOS Sharpe: {payload.get('aggregate_sharpe', 0):.2f} | "
+        f"OOS CAGR: {payload.get('aggregate_cagr', 0) * 100:.1f}% | "
+        f"max drawdown: {payload.get('aggregate_max_drawdown', 0) * 100:.1f}%",
+    ]
+    p_value = payload.get("bootstrap_p_value")
+    if p_value is not None:
+        from agent_graph_system.ontology.policy import BOOTSTRAP_P_VALUE_THRESHOLD
+        sig = "significant" if p_value <= BOOTSTRAP_P_VALUE_THRESHOLD else "not significant"
+        lines.append(f"- bootstrap p-value: {p_value:.3f} ({sig})")
+    else:
+        lines.append("- bootstrap p-value: (not run)")
+    return "\n".join(lines) + "\n"
+
+
+def cmd_walkforward(args: argparse.Namespace) -> None:
+    """Run walk-forward validation for a project and persist it to the graph."""
+    from agent_graph_system.agents.research_agent import ResearchAgent
+    from agent_graph_system.graph.neo4j import graph_models as gm
+
+    path = Path(args.project).expanduser()
+    project_name = path.name if (path.exists() or "/" in args.project) else args.project
+
+    from agent_graph_system.analysis.returns import load_returns
+
+    # Two ways to supply OOS data:
+    #  --oos-window CSV (repeatable): genuine per-window out-of-sample returns,
+    #    each produced by a model trained only on its own window → mode=walkforward
+    #  --returns-csv: one precomputed series → mode=rolling_holdout (gate-ineligible)
+    returns = None
+    windows = None
+    if args.oos_window:
+        windows = []
+        for wp in args.oos_window:
+            p = Path(wp).expanduser()
+            if not p.exists():
+                log.error("OOS window file not found: %s", p)
+                sys.exit(1)
+            windows.append(load_returns(p))
+    elif args.returns_csv:
+        returns_path = Path(args.returns_csv).expanduser()
+        if not returns_path.exists():
+            log.error("Returns file not found: %s", returns_path)
+            sys.exit(1)
+        returns = load_returns(returns_path)
+    else:
+        log.error("Provide --returns-csv (rolling holdout) or one or more "
+                  "--oos-window CSVs (genuine walk-forward).")
+        sys.exit(1)
+
+    # Ensure a Strategy node exists so HAS_WALKFORWARD links cleanly.
+    from agent_graph_system.graph.local import engine
+    existing = engine.get_node(f"Strategy::{project_name}")
+    if existing is None:
+        gm.upsert_strategy(project_name, strategy_type="unknown")
+
+    payload = ResearchAgent().run(
+        mode="walkforward",
+        strategy=project_name,
+        returns=returns,
+        windows=windows,
+        train_months=args.train_months,
+        test_months=args.test_months,
+        step_months=args.step_months,
+        bootstrap=not args.no_bootstrap,
+    )
+
+    if args.format == "json":
+        print(json.dumps(payload, indent=2, default=str))
+    else:
+        print(_render_walkforward_summary(payload))
+
+
 def cmd_query(args: argparse.Namespace) -> None:
     """Run a named query or GraphRAG search."""
     from agent_graph_system.graph.cypher import queries as cq
@@ -216,6 +305,7 @@ def cmd_agent(args: argparse.Namespace) -> None:
         "monitoring":    ("agent_graph_system.agents.monitoring_agent", "MonitoringAgent"),
         "orchestration": ("agent_graph_system.agents.orchestration_agent", "OrchestrationAgent"),
         "research":      ("agent_graph_system.agents.research_agent", "ResearchAgent"),
+        "walkforward":   ("agent_graph_system.agents.walkforward_agent", "WalkforwardAgent"),
     }
     name = args.agent_name.lower()
     if name not in agents:
@@ -232,6 +322,8 @@ def cmd_agent(args: argparse.Namespace) -> None:
         kwargs["repo_path"] = args.repo or str(Path.cwd())
     if name == "research" and args.question:
         kwargs["question"] = args.question
+    if name == "walkforward" and getattr(args, "strategy", ""):
+        kwargs["strategy"] = args.strategy
 
     result = agent_cls().run(**kwargs)
     print(json.dumps(result, indent=2, default=str))
@@ -313,6 +405,23 @@ def build_parser() -> argparse.ArgumentParser:
     prune_p.add_argument("--apply", action="store_true",
                          help="Actually delete; without this, print a dry-run report")
 
+    # walkforward
+    wf = sub.add_parser("walkforward", help="Run walk-forward validation for a project")
+    wf.add_argument("project", help="Project path (or strategy name)")
+    wf.add_argument("--returns-csv",
+                    help="One precomputed series (CSV date+return/close, or LEAN "
+                         "result JSON). Rolling-holdout reporting — NOT gate-eligible.")
+    wf.add_argument("--oos-window", action="append", metavar="CSV",
+                    help="Per-window out-of-sample returns CSV (repeatable). Each "
+                         "window's returns must come from a model trained only on "
+                         "that window — produces a genuine, gate-eligible run.")
+    wf.add_argument("--train-months", type=int, default=12)
+    wf.add_argument("--test-months", type=int, default=3)
+    wf.add_argument("--step-months", type=int, default=3)
+    wf.add_argument("--no-bootstrap", action="store_true",
+                    help="Skip the bootstrap significance test")
+    wf.add_argument("--format", choices=["md", "json"], default="md", help="Output format")
+
     # query
     query_p = sub.add_parser("query", help="Run a named Cypher query or GraphRAG search")
     query_p.add_argument("query_name", help=(
@@ -323,10 +432,12 @@ def build_parser() -> argparse.ArgumentParser:
                          help="Question text (for 'rag' query type)")
 
     # agent
-    agent_p = sub.add_parser("agent", help="Run an agent: coding | monitoring | orchestration | research")
+    agent_p = sub.add_parser("agent", help="Run an agent: coding | monitoring | orchestration | research | walkforward")
     agent_p.add_argument("agent_name", help="Agent name")
     agent_p.add_argument("--repo", default="", help="Repo path (coding agent)")
     agent_p.add_argument("--question", default="", help="Question (research agent)")
+    agent_p.add_argument("--strategy", default="",
+                         help="Target a single strategy (walkforward agent); default scans all flagged")
 
     # api
     api_p = sub.add_parser("api", help="Start FastAPI server")
@@ -348,6 +459,7 @@ def main() -> None:
         "ingest-paper": cmd_ingest_paper,
         "context-pack":   cmd_context_pack,
         "prune":   cmd_prune,
+        "walkforward":    cmd_walkforward,
         "query":   cmd_query,
         "agent":   cmd_agent,
         "api":     cmd_api,

@@ -1,6 +1,6 @@
 # Crypto Pipeline
 
-OHLCV price data for BTC, ETH, and SOL from Coinbase and Kraken, written to LEAN-compatible CSV format.
+OHLCV price data for BTC, ETH, and SOL from Coinbase and Kraken, written to LEAN-compatible zip files.
 
 ## What it provides
 
@@ -35,29 +35,46 @@ python infrastructure/pipelines/crypto/scripts/run_pipeline.py --exchange coinba
 python infrastructure/pipelines/crypto/scripts/run_pipeline.py --exchange kraken --pairs SOL/USD SOL/USDT SOL/USDC
 ```
 
-Output lands in `infrastructure/pipelines/crypto/data/`.
+By default, output lands in:
+
+```text
+infrastructure/pipelines/crypto/lean-data/
+```
+
+Use `--lean-root` to write to a different LEAN data folder.
 
 ## Output schema
 
+Daily rows inside the generated LEAN zip files follow the pipeline's crypto data schema:
+
 ```
-Date,Open,High,Low,Close,Volume
-20240101,4301245000,4341230000,4289340000,4329870000,12847350000
+DateTime,Open,High,Low,Close,Volume
+20240101 00:00,42301.25,43412.30,42089.34,43298.70,12847.35
 ```
 
-Prices are multiplied by 10,000 per LEAN's internal format. Dates are `YYYYMMDD`.
+Prices are **real, unscaled** values rounded to 4 decimal places — LEAN's crypto
+convention does **not** scale prices (unlike equities). The first column is a
+`YYYYMMDD 00:00` timestamp. Files are headerless; the header above is shown only
+to name the columns.
 
 ## Using in a notebook
 
 ```python
 import pandas as pd
 
+# coinbase maps to LEAN's historical 'coinbasepro' market, under the crypto
+# asset-class folder. Check the path printed by the pipeline run to be sure.
+zip_path = "infrastructure/pipelines/crypto/lean-data/crypto/coinbasepro/daily/btcusd.zip"
 df = pd.read_csv(
-    "infrastructure/pipelines/crypto/data/coinbase/btcusd.csv",
-    names=["date", "open", "high", "low", "close", "volume"],
-    parse_dates=["date"]
+    zip_path,
+    names=["datetime", "open", "high", "low", "close", "volume"],
+    parse_dates=["datetime"],
 )
-df[["open", "high", "low", "close"]] /= 10_000
+# Prices are already real values — no /10_000 rescaling needed.
 ```
+
+!!! note
+    Check the exact generated path after running the pipeline. Exchange and resolution are part of the output path.
 
 ## Known issues
 

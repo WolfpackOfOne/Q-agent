@@ -60,13 +60,23 @@ def test_no_backtest_surfaces_as_risk():
 @pytest.mark.skipif(not _FIXTURE.is_dir(), reason="fixture missing")
 def test_backtest_metrics_appear_when_present():
     graph_writer.ingest_project(_FIXTURE)
-    # Link a passing backtest, mirroring what a real run would write.
+    # Link a passing backtest plus a significant walk-forward run, mirroring
+    # what a fully validated strategy would write.
     gm.upsert_backtest("bt_1", name="baseline", sharpe=1.2, drawdown=-0.1, cagr=0.18)
     gm.strategy_has_backtest("ElectionIndustryBeta", "bt_1")
+    gm.upsert_walkforward_run(
+        "wf_1", "ElectionIndustryBeta", status="completed",
+        n_windows=8, n_windows_profitable=6, pct_profitable=0.75,
+        aggregate_sharpe=0.7, aggregate_cagr=0.14, aggregate_max_drawdown=-0.11,
+        bootstrap_p_value=0.03, created_at="2026-05-01T00:00:00",
+    )
+    gm.strategy_has_walkforward("ElectionIndustryBeta", "wf_1")
 
     pack = cp.build_context_pack("ElectionIndustryBeta")
     assert pack["summary"]["has_completed_backtest"] is True
+    assert pack["summary"]["has_walkforward"] is True
     assert pack["backtest"]["sharpe"] == 1.2
+    assert pack["walkforward"]["bootstrap_p_value"] == 0.03
     assert not any("deployment_gate" in r for r in pack["known_risks"])
 
 

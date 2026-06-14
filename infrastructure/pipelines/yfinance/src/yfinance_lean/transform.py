@@ -23,6 +23,26 @@ def transform_daily_bars(df):
     return result
 
 
+def transform_forex_bars(df):
+    """Convert OHLC DataFrame to LEAN forex daily bar format.
+
+    Unlike equity bars, LEAN forex bars store prices as plain decimals
+    (no ×10000 scaling) and carry no volume column.
+
+    Input:  DataFrame with Open, High, Low, Close columns.
+    Output: DataFrame with columns date_str, open, high, low, close.
+    Date format: 'YYYYMMDD 00:00'
+    """
+    result = pd.DataFrame({
+        'date_str': df.index.strftime('%Y%m%d 00:00'),
+        'open':     df['Open'].round(5),
+        'high':     df['High'].round(5),
+        'low':      df['Low'].round(5),
+        'close':    df['Close'].round(5),
+    })
+    return result
+
+
 def transform_factor_file(df):
     """Compute LEAN factor file rows from yfinance data.
 

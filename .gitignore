@@ -45,6 +45,8 @@ MyProjects/*/
 !MyProjects/ElectionIndustryBeta/
 # Research package for the passive market instability extension notebook
 !MyProjects/PassiveMarketInstability/
+# QC strategy scaffold using passive-pressure diagnostics as a risk overlay
+!MyProjects/PassiveMarketInstabilityStrategy/
 
 # Exclude data/storage entirely — populate locally via `lean init` after cloning.
 # QC sample data (AlgoSeek-sourced) is not redistributed in this repo.
