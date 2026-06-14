@@ -43,9 +43,15 @@ If you add a "rule", do not wire enforcement unless you also set its status to
   `graph_writer.py`.
 - **Namespace per-project nodes.** `File`/`ResearchNotebook` are keyed
   `{project}/{rel}` (with `rel_path` for display) so projects don't collide.
-- **Re-ingest is merge-only.** Each run stamps a `run_ts` (`last_seen` +
-  Project `last_ingest_run`); context packs filter to the current run so stale
-  facts drop out. Don't add node deletion without discussing it.
+- **Re-ingest is merge-only; staleness is a read-time + prune-time concern.**
+  Each ingest run stamps a `run_ts` (provenance `last_seen` + `last_ingest_run`
+  on the `Project`/`Paper` parent). Read paths must filter to the parent's
+  current marker via `ontology.provenance.is_current` — see
+  `graph/context_pack.py` and `ingestion/papers/graph_writer.paper_sections`.
+  The **only** deletion path is `engine.prune_stale` behind the explicit
+  `prune` CLI command (dry-run by default, `--apply` to delete); never call it
+  from ingest, and don't add other deletion paths without discussion. Prune is
+  local-backend-only (a known Neo4j parity gap).
 
 ## Validate before committing
 
@@ -63,5 +69,6 @@ Golden fixture for ingestion/context-pack tests: `MyProjects/ElectionIndustryBet
 python -m agent_graph_system.main ingest-project MyProjects/ElectionIndustryBeta
 python -m agent_graph_system.main context-pack MyProjects/ElectionIndustryBeta --format md
 python -m agent_graph_system.main ingest-paper 2401.12345
+python -m agent_graph_system.main prune project ElectionIndustryBeta   # dry-run; add --apply to delete
 python -m agent_graph_system.main status
 ```

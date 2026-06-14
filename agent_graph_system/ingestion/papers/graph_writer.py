@@ -56,6 +56,10 @@ def _write_card(card: PaperCard) -> dict[str, Any]:
             "abstract": card.abstract,
             "published_at": card.published_at.isoformat() if card.published_at else None,
             "categories": list(card.categories),
+            # Run marker, mirroring Project.last_ingest_run: re-ingest is
+            # merge-only, so readers (paper_sections) and the prune CLI use
+            # this to tell current sections from ones a revision dropped.
+            "last_ingest_run": run_ts,
         },
         provenance=paper_prov,
     )
@@ -79,6 +83,7 @@ def _write_card(card: PaperCard) -> dict[str, Any]:
                 "content": section.content,
                 "kind": section.kind,
                 "index": i,
+                "paper": card.arxiv_id,
             },
             provenance=section_prov,
         )
@@ -96,6 +101,30 @@ def _write_card(card: PaperCard) -> dict[str, Any]:
         "methodology_count": len(card.methodology),
         "limitations_count": len(card.limitations),
     }
+
+
+def paper_sections(arxiv_id: str) -> list[dict[str, Any]]:
+    """Current sections of an ingested paper, in document order.
+
+    Re-ingest is merge-only, so a re-fetched revision with fewer sections
+    leaves the old trailing ``PaperSection`` nodes in the graph. Like the
+    project context pack, this reader filters ``HAS_SECTION`` edges to the
+    paper's current ``last_ingest_run`` so callers only see sections present
+    in the latest fetch. Reads the local backend (Neo4j parity is a known gap).
+    """
+    from agent_graph_system.graph.local import engine
+    from agent_graph_system.ontology.provenance import is_current
+
+    paper = engine.get_node(f"Paper::{arxiv_id}")
+    if paper is None:
+        return []
+    run_marker = paper.get("last_ingest_run")
+    sections = [
+        engine.get_node(target_id) or {}
+        for rel_type, target_id, edge in engine.out_relations(f"Paper::{arxiv_id}")
+        if rel_type == "HAS_SECTION" and is_current(edge, run_marker)
+    ]
+    return sorted(sections, key=lambda s: s.get("index", 0))
 
 
 def strategy_cites_paper(

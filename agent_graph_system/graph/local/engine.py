@@ -109,6 +109,88 @@ def merge_relationship(
     _save()
 
 
+def prune_stale(
+    root_ids: list[str],
+    run_marker: str,
+    *,
+    scope_prop: str | None = None,
+    scope_value: str | None = None,
+    apply: bool = False,
+) -> dict[str, Any]:
+    """Report (or with ``apply=True``, delete) facts left behind by older
+    ingest runs of one parent.
+
+    This is the engine's only deletion path, and it is **never called from
+    ingest** — re-ingest stays merge-only and read paths filter stale facts via
+    ``provenance.is_current``. Pruning is an explicit maintenance operation
+    (see the ``prune`` CLI command), dry-run by default.
+
+    A fact is *stale* when its ``prov_last_seen`` is set and differs from
+    ``run_marker`` (the parent's current ``last_ingest_run``). Facts without
+    stamped provenance are never pruned.
+
+    Scoping: only edges whose **source** is a root or a node with
+    ``props[scope_prop] == scope_value`` are considered, so an edge written by
+    another parent into a shared node (e.g. another project's ``DEFINES`` into
+    a shared ``Signal``) is untouched. A node is removed only when it is
+    scoped, stale, not a root, and left with no edges at all once the stale
+    edges go — shared nodes still referenced elsewhere always survive.
+
+    Local backend only — the Neo4j stub has no prune parity.
+    """
+    from agent_graph_system.ontology.provenance import PROV_PREFIX
+
+    last_seen_key = f"{PROV_PREFIX}last_seen"
+    roots = set(root_ids)
+
+    def _stale(props: dict[str, Any]) -> bool:
+        last_seen = props.get(last_seen_key)
+        return last_seen is not None and last_seen != run_marker
+
+    def _scoped(node_id: str) -> bool:
+        if scope_prop is None:
+            return False
+        return _G.nodes.get(node_id, {}).get(scope_prop) == scope_value
+
+    stale_edges = [
+        (u, v, k, data)
+        for u, v, k, data in _G.edges(keys=True, data=True)
+        if (u in roots or _scoped(u)) and _stale(data)
+    ]
+    stale_edge_keys = {(u, v, k) for u, v, k, _ in stale_edges}
+
+    stale_nodes: list[str] = []
+    for node_id, props in _G.nodes(data=True):
+        if node_id in roots or not _scoped(node_id) or not _stale(props):
+            continue
+        remaining = [
+            e
+            for e in list(_G.in_edges(node_id, keys=True)) + list(_G.out_edges(node_id, keys=True))
+            if e not in stale_edge_keys
+        ]
+        if not remaining:
+            stale_nodes.append(node_id)
+
+    report = {
+        "dry_run": not apply,
+        "run_marker": run_marker,
+        "edges": [
+            {"from": u, "type": data.get("_type", ""), "to": v,
+             "last_seen": data.get(last_seen_key)}
+            for u, v, _, data in stale_edges
+        ],
+        "nodes": sorted(stale_nodes),
+    }
+    if apply:
+        for u, v, k in stale_edge_keys:
+            _G.remove_edge(u, v, key=k)
+        _G.remove_nodes_from(stale_nodes)
+        _save()
+        log.info("Pruned %d stale edge(s), %d stale node(s) (run marker %s)",
+                 len(stale_edges), len(stale_nodes), run_marker)
+    return report
+
+
 def query(cypher: str, **params) -> list[dict[str, Any]]:
     """
     Lightweight Cypher interpreter for the named patterns we actually use.

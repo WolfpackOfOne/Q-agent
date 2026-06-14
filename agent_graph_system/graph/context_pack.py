@@ -19,6 +19,7 @@ from agent_graph_system.graph.local import engine
 from agent_graph_system.ontology.provenance import (
     DEFAULT_CONFIDENCE_THRESHOLD,
     PROV_PREFIX,
+    is_current,
     is_low_confidence,
 )
 
@@ -76,18 +77,11 @@ def build_context_pack(
     touched_nodes: set[str] = {project_id, strategy_id}
     edge_facts: list[tuple[str, dict[str, Any]]] = []
 
-    def _is_current(props: dict[str, Any]) -> bool:
-        """True unless the fact was last seen by an older ingest run."""
-        if run_marker is None:
-            return True
-        last_seen = props.get(f"{PROV_PREFIX}last_seen")
-        return last_seen is None or last_seen == run_marker
-
     def _visit(src_id: str) -> list[tuple[str, str, dict[str, Any]]]:
         """Follow only edges refreshed by the latest ingest run."""
         kept: list[tuple[str, str, dict[str, Any]]] = []
         for rel_type, target_id, edge in engine.out_relations(src_id):
-            if not _is_current(edge):
+            if not is_current(edge, run_marker):
                 continue
             touched_nodes.add(target_id)
             edge_facts.append((f"{src_id} -[{rel_type}]-> {target_id}", edge))
