@@ -1,5 +1,5 @@
 pytest>=7.4
-pytest-cov>=4.1
+pytest-cov>=7.1.0
 pytest-mock>=3.12
 pandas>=2.2.0
 
