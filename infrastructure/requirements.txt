@@ -1,4 +1,4 @@
-ccxt>=4.5.59
+ccxt>=4.5.60
 requests>=2.34.2
 pandas>=2.2.0
 numpy>=2.4.6
