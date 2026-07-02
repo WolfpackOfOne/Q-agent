@@ -5,4 +5,4 @@ numpy>=2.4.6
 python-dotenv>=1.2.2
 tenacity>=8.5.0
 tqdm>=4.68.3
-yfinance>=1.4.0
+yfinance>=1.5.1
