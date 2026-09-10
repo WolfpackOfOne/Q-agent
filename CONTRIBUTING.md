@@ -118,7 +118,7 @@ Document Polymarket fixture provenance
 
 ## Conduct and security
 
-Follow the [Code of Conduct](https://github.com/WolfpackOfOne/Q-agent/blob/main/CODE_OF_CONDUCT.md).
+Follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 Report vulnerabilities or
 credential exposure through [GitHub's private vulnerability form](https://github.com/WolfpackOfOne/Q-agent/security/advisories/new),
 never through a public issue.

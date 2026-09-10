@@ -73,7 +73,9 @@ nav:
       - Roadmap: roadmap.md
       - Public Release Checklist: release-checklist.md
 
-  - Contributing: contributing.md
+  - Community:
+      - Contributing: contributing.md
+      - Code of Conduct: CODE_OF_CONDUCT.md
 
 extra_css:
   - stylesheets/extra.css
