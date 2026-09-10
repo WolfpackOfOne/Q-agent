@@ -3,7 +3,7 @@
 neo4j>=5.0
 chromadb>=1.5.9
 sentence-transformers>=5.6.0
-fastapi>=0.110
+fastapi>=0.141.1
 uvicorn[standard]>=0.49.0
 pydantic>=2.0
 pyyaml>=6.0
