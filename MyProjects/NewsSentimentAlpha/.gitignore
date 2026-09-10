@@ -1,0 +1,50 @@
+# QuantConnect project .gitignore
+
+# Project config (contains organization-id, cloud-id)
+config.json
+
+# Backtest results (regeneratable)
+backtests/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+*.egg
+
+# Jupyter / research
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+*.local
+
+# Secrets (never commit these)
+*token*
+*secret*
+*password*
+*credential*
+*.pem
+*.key
+
+# NOTE: per-project `data/*.csv` IS committable — it's the bundled-data
+# convention (see workspace AGENTS.md § "Bundled Per-Project Data").
+# Do NOT add `data/` here. The GDELT sentiment_panel.csv the parent session
+# adds under data/ is expected to be committed.

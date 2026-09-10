@@ -90,6 +90,7 @@ These pipelines exist in `infrastructure/pipelines/` but documentation, schema s
 | `treasury_gov_rates` | US Treasury par yield rates (treasury.gov) | Maturity: **Experimental** |
 | `fixed_income` | Fixed-income and bond data | Maturity: **Experimental** |
 | `macro_rates` | Macro rate series (Fed, TIPS, OIS) | Maturity: **Experimental** |
+| [`news_events_sentiment`](../../infrastructure/pipelines/news_events_sentiment/README.md) | Daily news tone/volume per ticker (GDELT DOC 2.0 API, free, 2017-present) | Maturity: **Experimental** |
 
 ---
 

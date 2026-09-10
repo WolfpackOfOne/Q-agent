@@ -30,7 +30,8 @@ Q-agent/
 │       ├── polymarket/          # Polymarket metadata and prices pipeline
 │       ├── wrds/                # WRDS/CRSP pipeline
 │       ├── yfinance/            # Yahoo Finance OHLCV pipeline
-│       └── treasury_gov_rates/  # Treasury.gov daily par yield curve
+│       ├── treasury_gov_rates/  # Treasury.gov daily par yield curve
+│       └── news_events_sentiment/  # GDELT daily news tone/volume per ticker
 ├── References/              # Reference notes, papers, and repo index
 └── MyProjects/              # Active strategy code lives here (each project is typically its own Git repo)
     ├── lean.json            # LEAN CLI configuration (shared, gitignored)

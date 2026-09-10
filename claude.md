@@ -270,6 +270,7 @@ Then join freely against any calendar-date-indexed CSV. Pure-Python signal atoms
 - **Local (WRDS/CRSP)**: Full 30-stock equity universe + SPY + SGOV daily data (1998-present). Quarterly Compustat financial statements (income, balance sheet, cash flow; point-in-time via `rdq`) via `scripts/run_quarterly_fundamentals_pipeline.py` → `lean-data/alternative/fundamentals/quarterly_fundamentals.csv`. **Broad universe**: `scripts/run_broad_quarterly_pipeline.py` pulls every US filer ≥ $1B through the CRSP–Compustat link (point-in-time top-1000 universe + prices for all members, keyed on PERMNO). See `infrastructure/pipelines/wrds/claude.md`.
 - **Local WRDS (additional entitlements)**: Broader access via `--profile <additional>` — adds OptionMetrics European options (full, 2002–2023, daily + tick) and IBES analyst earnings estimates (1980–2026, 35M rows). US options, RavenPack, 13F ownership, and short interest are denied. No extraction pipelines built yet for additional-entitlement sources.
 - **Cloud**: Authoritative. Full equity history, options chains, alternative data. Use for final results.
+- **Local (GDELT news sentiment)**: Daily news tone/volume per ticker for the WRDS 30-stock universe, 2017-present, free/no credentials. See `infrastructure/pipelines/news_events_sentiment/`. Alternative data (not native LEAN price data) — output at `lean-data/alternative/news_sentiment/`.
 - **New pipeline**: Use the `new-pipeline-coder` agent to add any new data source. It always outputs LEAN-format files.
 
 ## ObjectStore

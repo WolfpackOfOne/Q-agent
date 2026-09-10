@@ -80,7 +80,11 @@ Planned pipelines:
 
 Status:
 
-- planned
+- GDELT news tone/volume -> scaffolded (`infrastructure/pipelines/news_events_sentiment/`)
+- Reddit -> planned
+- SEC filing NLP -> planned
+- earnings transcripts -> planned
+- news embeddings -> planned
 
 ---
 
