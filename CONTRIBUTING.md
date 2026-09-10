@@ -13,6 +13,8 @@ Individual trading strategies normally live in their own repositories. The
 central Q-agent repository accepts shared infrastructure, reusable signals,
 documentation, tests, and explicitly approved example strategies. Open a
 feature proposal before adding a new project under `MyProjects/`.
+Maintainers use the taxonomy in `.github/labels.md` to keep work discoverable
+and consistently prioritized.
 
 ## Set up your fork
 
