@@ -34,7 +34,8 @@ WRDS/
 │   ├── compare_tables.py          # Compare crsp.dsf vs crsp.crsp_daily_data
 │   ├── run_pipeline.py            # Daily equity pipeline CLI
 │   ├── run_etf_pipeline.py        # ETF constituent universe CLI
-│   ├── run_sector_pipeline.py     # Sector classification CLI
+│   ├── run_sector_pipeline.py     # Sector classification CLI (30-stock, current GICS, keyed on ticker)
+│   ├── run_broad_sector_pipeline.py  # Point-in-time GICS history for the broad universe (keyed on gvkey/permno)
 │   ├── run_fundamentals_pipeline.py  # Piotroski F-score pipeline CLI
 │   ├── run_quarterly_fundamentals_pipeline.py  # Quarterly financial statements CLI (30-stock universe)
 │   ├── run_broad_quarterly_pipeline.py  # All US filers >= $1B via CCM link + point-in-time top-N universe + prices
@@ -85,6 +86,10 @@ python scripts/run_sector_pipeline.py                          # Full equity uni
 python scripts/run_sector_pipeline.py --profile new_university
 python scripts/run_sector_pipeline.py --include-dia-history    # + historical DIA members
 python scripts/run_sector_pipeline.py --tickers AAPL MSFT GS   # Specific tickers
+
+# === Point-in-Time GICS for the Broad Universe (comp.co_hgic) ===
+export WRDS_USERNAME=<your-wrds-username>
+python scripts/run_broad_sector_pipeline.py                    # reads broad_quarterly_fundamentals.csv, ~5s
 
 # === Piotroski F-Score Pipeline (Compustat) ===
 python scripts/run_fundamentals_pipeline.py                    # Full equity universe (30 stocks, excludes ETFs)
@@ -284,6 +289,23 @@ CSV with header:
 Ticker,CompanyName,GICSSector,GICSIndustryGroup,GICSSubIndustry,SIC,MorningstarSectorCode,MorningstarSectorName
 AAPL,APPLE INC,45,452020,45202030,3663,311,Technology
 ```
+- Keyed on ticker, and carries each company's **current** classification only — fine for a snapshot, a look-ahead if used for a historical date.
+
+### Point-in-Time Sector Map (`alternative/sectors/broad_sector_map.csv`)
+
+`scripts/run_broad_sector_pipeline.py` — GICS classification *history* from
+`comp.co_hgic` for every gvkey in `broad_quarterly_fundamentals.csv`, keyed on
+gvkey and permno so it joins to CRSP prices directly.
+
+CSV with header:
+```
+gvkey,permno,Ticker,CompanyName,ValidFrom,ValidThrough,GICSSector,GICSIndustryGroup,GICSIndustry,GICSSubIndustry,SIC,MorningstarSectorCode,MorningstarSectorName
+001004,10517,AIR,AAR CORP,1999-06-30,,20,2010,201010,20101010,5080,310,Industrials
+```
+- **Join as-of a date**: a row applies when `ValidFrom <= date` and (`ValidThrough` is null or `>= date`). A null `ValidThrough` means still in effect.
+- **Why the history matters**: 2,453 of 6,176 permnos (40%) were reclassified at least once. The 2018 creation of the Communication Services sector moved a large block of names out of Information Technology and Consumer Discretionary, so a current-classification join misstates any pre-2018 date for those names.
+- Coverage: 9,995 rows over 6,176 permnos (97.9% of gvkeys carry GICS). On the top-300 trading universe, coverage is 100% of names and an as-of join resolves 99.3% of members per quarter across ~10.4 sectors.
+- Sector sizes in a top-300 cross-section run from about 9 (Real Estate) to 56 (Financial Services) names, which is large enough to demean a signal within sector.
 
 ## Validation
 

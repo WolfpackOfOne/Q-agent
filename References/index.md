@@ -1,6 +1,6 @@
 # References Index
 
-Last updated: 2026-05-14
+Last updated: 2026-09-03
 
 ## Books
 
@@ -14,7 +14,10 @@ Last updated: 2026-05-14
 
 ## Papers
 
-_No papers yet._
+| File | Title | Source | Topics |
+|---|---|---|---|
+| papers/101-formulaic-alphas/101-formulaic-alphas-kakushadze-2016.pdf | 101 Formulaic Alphas (Kakushadze, 2016) | arXiv:1601.00991 / Wilmott Magazine Vol. 84 | alpha-factors, formulaic-alphas, quantitative-trading, cross-sectional, time-series-operators, signal-construction, equities |
+| papers/oxford-man-newsletters.md | Oxford-Man Institute Quant Finance Research Newsletter Archive | Oxford-Man Institute | oxford-man, newsletter, quant-finance, research, papers, curated |
 
 ## Repos
 

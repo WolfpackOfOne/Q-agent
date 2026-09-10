@@ -47,6 +47,8 @@ MyProjects/*/
 !MyProjects/PassiveMarketInstability/
 # QC strategy scaffold using passive-pressure diagnostics as a risk overlay
 !MyProjects/PassiveMarketInstabilityStrategy/
+# Formulaic-alpha long/short — tracked here directly, not a nested repo
+!MyProjects/Alpha101Portfolio/
 # Quarterly-fundamentals long/short — tracked here directly, not a nested repo
 !MyProjects/FundamentalsPortfolio/
 

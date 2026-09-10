@@ -1,0 +1,1 @@
+../../../shared/signals/cross_sectional_rank.py

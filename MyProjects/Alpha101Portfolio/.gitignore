@@ -1,0 +1,51 @@
+# QuantConnect project .gitignore
+
+# Project config (contains organization-id, cloud-id)
+config.json
+
+# Backtest results (regeneratable)
+backtests/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+*.egg
+
+# Jupyter
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+*.local
+
+# Secrets (never commit these)
+*token*
+*secret*
+*password*
+*credential*
+*.pem
+*.key
+
+# NOTE: per-project `data/*.csv` IS committable — it's the bundled-data
+# convention (see workspace AGENTS.md § "Bundled Per-Project Data").
+# The workspace-level .gitignore that excludes `MyProjects/data/` applies
+# to the SHARED dir at MyProjects/data/, not your project's own data/.
+# Do NOT add `data/` here.
