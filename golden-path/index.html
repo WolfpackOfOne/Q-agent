@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1699,15 +1699,15 @@ QuantConnect account to run the cloud backtest. The point is to show the
 <p>A signal is pure Python in the <code>domain/</code> layer: no LEAN imports, unit-testable with plain <code>pytest</code>. The rolling-beta math from the notebook is extracted into a reusable signal at <code>MyProjects/shared/signals/election_beta.py</code> and consumed via a symlink (see <a href="../architecture/#shared-signals-library">Architecture</a>).</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># MyProjects/shared/signals/election_beta.py  (excerpt — pure pandas/numpy)</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">rolling_beta</span><span class="p">(</span><span class="n">returns</span><span class="p">,</span> <span class="n">delta_prob</span><span class="p">,</span> <span class="n">lookback</span><span class="p">):</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Latest-window OLS beta of each return column on delta_prob.</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="sd">"""Latest-window OLS beta of each return column on delta_prob.</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="sd">    No LEAN, no I/O — importable from a plain Python env and unit-testable.</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="sd">    """</span>
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="o">...</span>
 <a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>
 <a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="k">def</span><span class="w"> </span><span class="nf">top_bottom_k_betaweighted</span><span class="p">(</span><span class="n">betas</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Long the K largest betas, short the K smallest, weights ∝ beta,</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="sd">    normalised so gross exposure (sum of |weights|) == 1.&quot;&quot;&quot;</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="sd">"""Long the K largest betas, short the K smallest, weights ∝ beta,</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="sd">    normalised so gross exposure (sum of |weights|) == 1."""</span>
 <a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="o">...</span>
 </code></pre></div>
 <p>Because the functions are pure, they run in CI alongside every other <code>pytest -m "not integration"</code> test — no algorithm instance required.</p>
@@ -1738,8 +1738,8 @@ QuantConnect account to run the cloud backtest. The point is to show the
 <hr />
 <h2 id="stage-5-backtest-in-the-cloud">Stage 5 — Backtest in the cloud<a class="headerlink" href="#stage-5-backtest-in-the-cloud" title="Permanent link">&para;</a></h2>
 <p>Push the project and run a named backtest. This needs a free QuantConnect account and the LEAN CLI (see <a href="../getting-started/">LEAN &amp; QuantConnect Setup</a>).</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>lean<span class="w"> </span>cloud<span class="w"> </span>push<span class="w"> </span>--project<span class="w"> </span><span class="s2">&quot;ElectionIndustryBeta&quot;</span><span class="w"> </span>--force
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>lean<span class="w"> </span>cloud<span class="w"> </span>backtest<span class="w"> </span><span class="s2">&quot;ElectionIndustryBeta&quot;</span><span class="w"> </span>--name<span class="w"> </span><span class="s2">&quot;baseline&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>lean<span class="w"> </span>cloud<span class="w"> </span>push<span class="w"> </span>--project<span class="w"> </span><span class="s2">"ElectionIndustryBeta"</span><span class="w"> </span>--force
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>lean<span class="w"> </span>cloud<span class="w"> </span>backtest<span class="w"> </span><span class="s2">"ElectionIndustryBeta"</span><span class="w"> </span>--name<span class="w"> </span><span class="s2">"baseline"</span>
 </code></pre></div>
 <p><code>lean cloud push</code> follows the signal symlink, so QuantConnect cloud sees an ordinary file. The strategy logs daily snapshots, positions, and trades to the ObjectStore via <code>PortfolioLogger</code> for the next stage.</p>
 <hr />
@@ -1829,7 +1829,7 @@ QuantConnect account to run the cloud backtest. The point is to show the
       <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "search.suggest", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

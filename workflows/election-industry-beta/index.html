@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../../assets/logo.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -31,7 +31,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1802,8 +1802,8 @@
 <hr />
 <h2 id="4-run-the-lean-strategy">4. Run the LEAN strategy<a class="headerlink" href="#4-run-the-lean-strategy" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nb">cd</span><span class="w"> </span>MyProjects
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>lean<span class="w"> </span>cloud<span class="w"> </span>push<span class="w"> </span>--project<span class="w"> </span><span class="s2">&quot;ElectionIndustryBeta&quot;</span><span class="w"> </span>--force
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>lean<span class="w"> </span>cloud<span class="w"> </span>backtest<span class="w"> </span><span class="s2">&quot;ElectionIndustryBeta&quot;</span><span class="w"> </span>--name<span class="w"> </span><span class="s2">&quot;baseline&quot;</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>lean<span class="w"> </span>cloud<span class="w"> </span>push<span class="w"> </span>--project<span class="w"> </span><span class="s2">"ElectionIndustryBeta"</span><span class="w"> </span>--force
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>lean<span class="w"> </span>cloud<span class="w"> </span>backtest<span class="w"> </span><span class="s2">"ElectionIndustryBeta"</span><span class="w"> </span>--name<span class="w"> </span><span class="s2">"baseline"</span>
 </code></pre></div>
 <p>The strategy:</p>
 <ol>
@@ -1826,9 +1826,9 @@ artifacts down to local storage:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nb">cd</span><span class="w"> </span>MyProjects
 <a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>storage/electionbeta
 <a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>lean<span class="w"> </span>cloud<span class="w"> </span>object-store<span class="w"> </span>get<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span><span class="s2">&quot;electionbeta/daily_snapshots.csv&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span><span class="s2">&quot;electionbeta/positions.csv&quot;</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span><span class="s2">&quot;electionbeta/trades.csv&quot;</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span><span class="s2">"electionbeta/daily_snapshots.csv"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span><span class="s2">"electionbeta/positions.csv"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span><span class="s2">"electionbeta/trades.csv"</span><span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">  </span>--destination-folder<span class="w"> </span>storage/electionbeta
 <a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="c1"># Confirm the three CSVs landed at storage/electionbeta/&lt;name&gt;.csv</span>
 <a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="c1"># (move them there if `get` nested them under the key path).</span>
@@ -1933,7 +1933,7 @@ where the <code>QuantBook().ObjectStore</code> fallback is available.</p>
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.top", "search.highlight", "search.suggest", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
