@@ -56,7 +56,10 @@ Q-agent/
 - `infrastructure/pipelines/` subdirectories are workspace-managed pipeline code unless a nested `.git/` proves otherwise
 - The `Lean/` directory is an engine checkout and is **out of scope for edits**
 - All projects use the shared `venv/` Python environment
-- A workspace-level Docker image is published to `ghcr.io/wolfpackofone/q-agent:latest` on every push to `main`. Use it as a reproducible runtime; do not bake credentials into derivative images. See `docs/docker.md` and `.claude/skills/docker-workflow/SKILL.md`.
+- A workspace-level Docker image is published on every push to `main`. Course
+  users should use the tagged release documented in `README.md`; `:latest` is a
+  moving development image. Do not bake credentials into derivative images. See
+  `docs/docker.md` and `.claude/skills/docker-workflow/SKILL.md`.
 - Project-level documentation takes precedence over workspace-level guidelines
 
 ---
@@ -255,7 +258,7 @@ When making changes:
    ```bash
    # For the 30-stock equity universe: pull fresh WRDS data first (see infrastructure/pipelines/wrds/claude.md)
    # Ensure lean.json data-folder points to infrastructure/pipelines/wrds/lean-data or "data"
-   cd ~/Documents/Q-agent && source venv/bin/activate && cd MyProjects
+   cd /path/to/Q-agent && source venv/bin/activate && cd MyProjects
    lean backtest "<ProjectName>"
    ```
 
@@ -389,11 +392,13 @@ remote: - Changes must be made through a pull request.
 
 The required workflow:
 ```bash
-git checkout -b feature/<descriptive-name>
+git switch -c feature/<descriptive-name>
 # ... commits ...
 git push -u q-agent feature/<descriptive-name>
 gh pr create --repo WolfpackOfOne/Q-agent --base main --head feature/<descriptive-name> --title "..." --body "..."
-# Merge via the GitHub UI (or `gh pr merge --merge` once CI passes)
+# A different trusted reviewer approves the latest push after required CI passes.
+# Merge with the repository's squash policy.
+gh pr merge --squash --delete-branch
 ```
 
 If a rebase puts work onto local `main` by accident, the recovery is:

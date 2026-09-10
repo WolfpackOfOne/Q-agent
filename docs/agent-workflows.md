@@ -57,7 +57,9 @@ Use this pattern when asking an AI coding agent to change Q-agent:
 Example prompt:
 
 ```text
-Review issue #73 and make the smallest PR that adds issue templates and strengthens the PR template. Do not change unrelated docs. Run or describe the docs checks needed before merge.
+Review a `status:ready` issue and make the smallest PR that addresses its
+acceptance criteria. Do not change unrelated files. Run the checks listed in
+the PR template before requesting review.
 ```
 
 This keeps the agent from rewriting too much of the repo at once and makes PR review easier.

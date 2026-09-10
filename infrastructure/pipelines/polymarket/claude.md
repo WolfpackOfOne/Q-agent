@@ -8,7 +8,7 @@ Default filter keeps **crypto + macro + elections** markets; pass `--filter all`
 
 ```bash
 # One-time: build the shared venv at infrastructure/.venv
-cd ~/Documents/Q-agent/infrastructure && bash setup.sh
+cd /path/to/Q-agent/infrastructure && bash setup.sh
 source .venv/bin/activate
 
 cd polymarket

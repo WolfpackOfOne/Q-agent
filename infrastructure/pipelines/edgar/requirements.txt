@@ -1,2 +1,4 @@
+-c ../../../constraints-course.txt
+
 edgartools>=3.0
 pandas>=2.2.0

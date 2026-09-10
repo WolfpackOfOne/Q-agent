@@ -22,7 +22,7 @@ python -c "import wrds; db = wrds.Connection()"
 ## Running the pipeline
 
 ```bash
-source ~/Documents/Q-agent/infrastructure/.venv/bin/activate
+source /path/to/Q-agent/infrastructure/.venv/bin/activate
 
 # Pull daily price data
 python infrastructure/pipelines/wrds/scripts/run_pipeline.py

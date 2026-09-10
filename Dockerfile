@@ -47,14 +47,14 @@ p = pathlib.Path(lean.__file__).parent / 'modules-1.14.json'; \
 p.write_text(json.dumps({'modules': []}))"
 
 # Copy only requirements files first to maximise layer caching.
-COPY requirements-dev.txt /tmp/requirements-dev.txt
-COPY infrastructure/requirements.txt /tmp/requirements-infra.txt
-COPY infrastructure/marimo/requirements.txt /tmp/requirements-marimo.txt
+COPY requirements-dev.txt constraints-course.txt /tmp/q-agent/
+COPY infrastructure/requirements.txt /tmp/q-agent/infrastructure/requirements.txt
+COPY infrastructure/marimo/requirements.txt /tmp/q-agent/infrastructure/marimo/requirements.txt
 
 RUN pip install \
-        -r /tmp/requirements-dev.txt \
-        -r /tmp/requirements-infra.txt \
-        -r /tmp/requirements-marimo.txt
+        -r /tmp/q-agent/requirements-dev.txt \
+        -r /tmp/q-agent/infrastructure/requirements.txt \
+        -r /tmp/q-agent/infrastructure/marimo/requirements.txt
 
 # ---------- runtime stage: slim image with venv + repo ----------
 FROM python:${PYTHON_VERSION}-slim AS runtime

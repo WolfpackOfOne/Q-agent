@@ -15,7 +15,7 @@ Example QuantConnect strategy for the Q-agent workspace.
 ## Quick start
 
 ```bash
-cd ~/Documents/Q-agent
+cd /path/to/Q-agent
 source venv/bin/activate
 cd MyProjects/ElectionIndustryBeta
 

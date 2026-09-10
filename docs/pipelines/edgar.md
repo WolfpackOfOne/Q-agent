@@ -14,7 +14,7 @@ Quarterly fundamental data — income statements, balance sheets, and cash flow 
 No credentials required. SEC EDGAR is a public database.
 
 ```bash
-cd ~/Documents/Q-agent/infrastructure
+cd /path/to/Q-agent/infrastructure
 bash setup.sh
 source .venv/bin/activate
 ```

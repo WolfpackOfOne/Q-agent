@@ -1,4 +1,4 @@
-name: docker
+name: Docker
 
 on:
   pull_request:
@@ -8,57 +8,63 @@ on:
 
 permissions:
   contents: read
-  packages: write
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: wolfpackofone/q-agent
 
 jobs:
-  build-and-publish:
+  changes:
+    name: Detect image changes
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.filter.outputs.image }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      - name: Decide whether a PR needs an image build
+        id: filter
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" != "pull_request" ]; then
+            echo "image=true" >> "$GITHUB_OUTPUT"
+          elif git diff --quiet "$BASE_SHA...HEAD" -- \
+            Dockerfile .dockerignore requirements-dev.txt constraints-course.txt \
+            infrastructure/requirements.txt \
+            infrastructure/marimo/requirements.txt \
+            .github/workflows/docker.yml; then
+            echo "image=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "image=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  build:
+    name: Build and smoke-test image
+    needs: changes
+    if: needs.changes.outputs.image == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - name: Set up QEMU (enables linux/arm64 emulation for the multi-arch push)
-        uses: docker/setup-qemu-action@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a # v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
 
-      - name: Log in to GHCR
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v4
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Compute image tags
-        id: tags
-        run: |
-          tags=""
-          # PR builds: only a local dev tag (we don't push these).
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            tags="${REGISTRY}/${IMAGE_NAME}:pr-${{ github.event.number }}"
-          else
-            # Push to main → :latest + :sha-<short>
-            if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-              tags="${REGISTRY}/${IMAGE_NAME}:latest"
-              tags="$tags,${REGISTRY}/${IMAGE_NAME}:sha-${GITHUB_SHA:0:7}"
-            fi
-            # Version tag push → :vX.Y.Z (and also bump :latest)
-            if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-              version="${GITHUB_REF#refs/tags/}"
-              tags="${REGISTRY}/${IMAGE_NAME}:${version},${REGISTRY}/${IMAGE_NAME}:latest"
-            fi
-          fi
-          echo "tags=$tags" >> "$GITHUB_OUTPUT"
-          echo "Computed tags: $tags"
-
-      - name: Build image (load locally for smoke tests)
-        uses: docker/build-push-action@v7
+      - name: Build image locally for smoke tests
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
           context: .
           platforms: linux/amd64
@@ -67,44 +73,96 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Smoke test — lean CLI loads
+      - name: Smoke test LEAN CLI
         run: docker run --rm q-agent:ci lean --help | head -5
 
-      - name: Smoke test — infrastructure imports
-        run: |
-          docker run --rm q-agent:ci python -c \
-            "import ccxt, pandas, numpy, yfinance, tenacity, tqdm, dotenv, requests; print('OK')"
+      - name: Smoke test infrastructure imports
+        run: >-
+          docker run --rm q-agent:ci python -c
+          "import ccxt, pandas, numpy, yfinance, tenacity, tqdm, dotenv, requests; print('OK')"
 
-      - name: Smoke test — marimo imports
+      - name: Smoke test marimo imports
         run: docker run --rm q-agent:ci python -c "import marimo; print(marimo.__version__)"
 
-      - name: Smoke test — pytest (skip git-dependent hygiene tests)
-        run: |
-          docker run --rm q-agent:ci pytest \
-            -m "not integration" \
-            --ignore=tests/hygiene \
-            -p no:cacheprovider \
-            -q
+      - name: Run tests inside image
+        run: >-
+          docker run --rm q-agent:ci pytest
+          -m "not integration"
+          --ignore=tests/hygiene
+          -p no:cacheprovider
+          -q
 
-      - name: Smoke test — ElectionIndustryBeta demo project shipped
+      - name: Verify demo project is shipped
         run: docker run --rm q-agent:ci test -d /workspace/MyProjects/ElectionIndustryBeta
 
-      - name: Secrets-in-layers check
+      - name: Check image history for secret references
+        shell: bash
         run: |
+          set -euo pipefail
           if docker history q-agent:ci | grep -iE 'lean\.json|\.env|credentials|\.key'; then
-            echo "FAIL: secret reference found in image layers"
+            echo "Blocked: secret reference found in image history"
             exit 1
           fi
-          echo "OK: no secret references in image history"
 
-      - name: Push image
-        if: github.event_name != 'pull_request' && steps.tags.outputs.tags != ''
-        uses: docker/build-push-action@v7
+  docker-gate:
+    name: Docker
+    if: always()
+    needs: [changes, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify image check
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+        run: |
+          test "$CHANGES_RESULT" = "success"
+          test "$BUILD_RESULT" = "success" -o "$BUILD_RESULT" = "skipped"
+
+  publish:
+    name: Publish image
+    needs: [changes, build, docker-gate]
+    if: >-
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    permissions:
+      contents: read
+      packages: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a # v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute immutable image tags
+        id: tags
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+            short_sha="${GITHUB_SHA:0:7}"
+            tags="${REGISTRY}/${IMAGE_NAME}:latest,${REGISTRY}/${IMAGE_NAME}:sha-${short_sha}"
+          else
+            version="${GITHUB_REF#refs/tags/}"
+            tags="${REGISTRY}/${IMAGE_NAME}:${version}"
+          fi
+          echo "tags=$tags" >> "$GITHUB_OUTPUT"
+
+      - name: Publish multi-architecture image
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
           context: .
-          # Multi-arch: native amd64 + emulated arm64 so Apple Silicon can pull
-          # without --platform. The smoke-test build above stays amd64-only
-          # because `load: true` cannot load a multi-arch manifest locally.
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.tags.outputs.tags }}

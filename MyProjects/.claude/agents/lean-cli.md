@@ -12,15 +12,15 @@ You are a QuantConnect LEAN CLI specialist for projects under `MyProjects/`.
 Before ANY lean command, you MUST activate the virtual environment:
 
 ```bash
-cd ~/Documents/Q-agent && source venv/bin/activate && cd MyProjects
+cd /path/to/Q-agent && source venv/bin/activate && cd MyProjects
 ```
 
-Verify with: `which lean` should output `~/Documents/Q-agent/venv/bin/lean`.
+Verify with: `which lean` should output `/path/to/Q-agent/venv/bin/lean`.
 
 **If the venv does not exist yet** (`source venv/bin/activate` fails or `which lean` is empty), create it once per machine — the venv is not checked in:
 
 ```bash
-cd ~/Documents/Q-agent
+cd /path/to/Q-agent
 python3 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
@@ -32,7 +32,7 @@ Then continue from "Verify with…". Full first-time setup including QC auth: `d
 Run `bash scripts/check-prereqs.sh` if you're unsure whether the workspace is ready.
 
 ## Directory Structure
-- **Working directory**: `~/Documents/Q-agent/MyProjects`
+- **Working directory**: `/path/to/Q-agent/MyProjects`
 - **Project directory**: `<ProjectName>/` (e.g. `_template/` for the scaffold)
 
 ## Core Commands
@@ -66,7 +66,7 @@ lean cloud status --project "<ProjectName>"
 `lean backtest` mounts only the project dir into Docker. Any symlink in `<Project>/domain/signals/` pointing to `../../../shared/signals/` dangles inside the container (`No module named 'domain.signals.<name>'`). Use the workspace wrapper:
 
 ```bash
-bash ~/Documents/Q-agent/scripts/lean-backtest.sh "<ProjectName>"
+bash /path/to/Q-agent/scripts/lean-backtest.sh "<ProjectName>"
 ```
 
 It appends `--extra-docker-config` to mount `MyProjects/shared` at `/shared` inside the container. Cloud backtests are unaffected — `lean cloud push` resolves the symlink before upload.
@@ -108,7 +108,7 @@ lean research "<ProjectName>"
 
 ```bash
 # 1. Activate environment and navigate
-cd ~/Documents/Q-agent && source venv/bin/activate && cd MyProjects
+cd /path/to/Q-agent && source venv/bin/activate && cd MyProjects
 
 # 2. Push code to cloud
 lean cloud push --project "<ProjectName>"

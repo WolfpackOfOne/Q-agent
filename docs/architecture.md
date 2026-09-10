@@ -216,7 +216,7 @@ Full reference and CLI: see `agent_graph_system/README.md` and `agent_graph_syst
 The workspace publishes a single runtime image to GitHub Container Registry on every push to `main`:
 
 ```
-ghcr.io/wolfpackofone/q-agent:latest   # tracks main
+ghcr.io/wolfpackofone/q-agent:v0.1.0   # fixed course baseline
 ghcr.io/wolfpackofone/q-agent:sha-<x>  # per-commit
 ghcr.io/wolfpackofone/q-agent:vX.Y.Z   # version tags
 ```

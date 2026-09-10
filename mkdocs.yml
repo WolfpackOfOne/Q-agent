@@ -48,6 +48,8 @@ nav:
       - LEAN & QuantConnect: getting-started.md
       - Running Notebooks: notebooks.md
       - Docker: docker.md
+      - Project Map: project-map.md
+      - Testing and Required Checks: testing.md
 
   - Data Pipelines:
       - Overview: pipelines/index.md
@@ -89,6 +91,10 @@ markdown_extensions:
       alternate_style: true
   - admonition
   - pymdownx.details
+  - pymdownx.snippets:
+      base_path:
+        - .
+      check_paths: true
   - attr_list
   - md_in_html
   - toc:

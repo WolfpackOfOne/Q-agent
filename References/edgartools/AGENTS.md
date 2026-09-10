@@ -29,7 +29,7 @@ The upstream complete guide was last observed as "Last updated: February 2026". 
 This guide applies inside:
 
 ```text
-~/Documents/Q-agent
+/path/to/Q-agent
 ```
 
 It does not replace the workspace-level `AGENTS.md`. It supplements it for EDGAR and `edgartools` work.
@@ -123,7 +123,7 @@ Do not uninstall or install packages in the shared environment without user appr
 Preferred environment in this workspace:
 
 ```bash
-cd ~/Documents/Q-agent
+cd /path/to/Q-agent
 source venv/bin/activate
 python -c "import edgar; print(edgar.__file__)"
 ```
@@ -937,7 +937,7 @@ python -m py_compile path/to/script.py
 For import and installed-version checks:
 
 ```bash
-cd ~/Documents/Q-agent
+cd /path/to/Q-agent
 source venv/bin/activate
 python - <<'PY'
 import edgar

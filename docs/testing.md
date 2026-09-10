@@ -1,131 +1,92 @@
-# Testing
+# Testing and required checks
 
-Q-agent's testing strategy is intentionally narrow: cover the **workspace-level infrastructure** that every project depends on, and let `lean cloud backtest` serve as the integration test for strategy-specific logic.
+Q-agent tests shared infrastructure, the graph subsystem, repository hygiene,
+the project scaffold, and selected LEAN data transformations. A cloud backtest
+remains the authoritative integration test for QuantConnect-specific strategy
+behavior.
 
-## Scope
+## Local test suite
 
-Tests live in this repository to protect the shared contracts. They do **not** validate individual strategy math, signal-specific behavior, or anything under `MyProjects/<ProjectName>/`.
-
-### In scope
-
-1. **LEAN data format compliance** — outputs of `infrastructure/pipelines/`
-2. **QuantConnect integration contracts** — config files and CLI smoke tests
-3. **Repository hygiene** — no committed secrets, `.gitignore` enforcement, symlink integrity
-4. **Template validity** — `MyProjects/_template/` remains a usable starting point
-
-### Out of scope
-
-- Strategy logic in any `MyProjects/<ProjectName>/` directory
-- Project-specific signals, position sizing, or rebalancing rules
-- The `agent_graph_system/` module (separate concern, separate tests)
-- Live backtest results — covered by `lean cloud backtest`
-
-### Gray area: `shared/signals/`
-
-The `MyProjects/shared/signals/` library contains pure-Python signal atoms reused across projects. It is workspace infrastructure, not project code. **Decision pending** on whether to include unit tests for these atoms.
-
-## Framework
-
-- **pytest** as the test runner
-- **pytest-cov** for coverage reporting
-- **pytest-mock** for lightweight mocking
-- Markers: `@pytest.mark.integration` for anything needing live services (Neo4j, Chroma, QuantConnect cloud)
-
-Configuration lives in `pyproject.toml` under `[tool.pytest.ini_options]`. Dev dependencies live in `requirements-dev.txt`.
-
-## Test surface
-
-### 1. LEAN data format compliance
-
-Verify that every pipeline in `infrastructure/pipelines/` writes files matching LEAN's expected format.
-
-Assertions per pipeline:
-
-- Column order matches LEAN spec
-- Date format is `yyyyMMdd HH:mm`
-- Equity prices are scaled by 10000
-- Zip archive structure is `{ticker}.zip` containing `{date}_{ticker}_{resolution}_{market}.csv`
-- Trade vs. quote schemas use the correct columns
-
-Method: feed each pipeline a small synthetic dataframe and assert the bytes of the output file match the LEAN spec.
-
-### 2. QuantConnect integration contracts
-
-Validate the artifacts that surround the LEAN CLI — not the CLI's network calls themselves.
-
-- Every `MyProjects/<X>/config.json` is valid JSON with required keys (`project-id`, `algorithm-language`)
-- `lean.json` (when present) has a valid structure
-- Smoke test: `lean --version` succeeds in the CI environment
-
-### 3. Repository hygiene
-
-Defend the public/private boundary between Q-agent and the private QuantConnect workspace.
-
-- No secret patterns (API keys, tokens, `.env` content, AWS keys) appear in tracked files
-- `.gitignore` excludes `lean.json`, `data/`, `storage/`, `.env`, and other sensitive paths
-- Every `MyProjects/<X>/domain/signals/*.py` symlink resolves to a real file under `MyProjects/shared/signals/`
-
-### 4. Template validity
-
-Ensure `MyProjects/_template/` stays a working scaffold.
-
-- Required structure exists: `main.py`, `models/`, `domain/`
-- `python -m py_compile` succeeds on every `.py` file in the template
-- A fresh copy can be initialized without manual fixes
-
-## Directory layout
-
-```
-Q-agent/
-├── pyproject.toml              # [tool.pytest.ini_options]
-├── requirements-dev.txt        # pytest, pytest-cov, pytest-mock
-├── tests/
-│   ├── __init__.py
-│   ├── conftest.py             # shared fixtures
-│   ├── lean_format/
-│   │   ├── test_yfinance_writer.py
-│   │   ├── test_wrds_writer.py
-│   │   └── ...
-│   ├── qc_integration/
-│   │   ├── test_config_schema.py
-│   │   └── test_lean_cli_smoke.py
-│   ├── hygiene/
-│   │   ├── test_no_secrets.py
-│   │   ├── test_gitignore.py
-│   │   └── test_signal_symlinks.py
-│   └── template/
-│       └── test_template_structure.py
-```
-
-The `agent_graph_system/` knowledge-graph subsystem is tested separately under `tests/agent_graph_system/` (ontology rules, deployment gate, provenance, QuantConnect ingestion, context packs). It uses its own fixtures (`conftest.py`) and an isolated in-memory graph. See `agent_graph_system/README.md`.
-
-## Continuous integration
-
-A GitHub Actions workflow at `.github/workflows/tests.yml` runs the default (non-integration) test suite on every pull request.
-
-- Python versions: 3.10, 3.11, 3.12
-- Steps: install `requirements-dev.txt`, run `pytest -m "not integration"`
-- Upload coverage report as a build artifact
-
-Integration tests requiring live services are excluded from CI and run locally only.
-
-## Running tests locally
+Configuration lives in `pyproject.toml`; development dependencies live in
+`requirements-dev.txt`.
 
 ```bash
-cd ~/Documents/Q-agent
-source venv/bin/activate
-pip install -r requirements-dev.txt
+python -m venv venv
+source venv/bin/activate  # Windows PowerShell: venv\Scripts\Activate.ps1
+python -m pip install -r requirements-dev.txt
 
-# Fast unit tests only
-pytest
+# Same Python suite used in CI
+pytest -m "not integration"
 
-# Including integration tests
+# Repository-wide file, syntax, data-size, and project-structure policy
+python scripts/check_repository_policy.py --all
+
+# Explicitly include tests that need live tools or services
 pytest -m ""
-
-# With coverage
-pytest --cov=infrastructure --cov-report=term-missing
 ```
 
-## Adding new tests
+The default suite currently covers:
 
-When you add a new pipeline, a new template file, or a new repository convention, add a corresponding test under the matching directory above. Do **not** add tests for changes inside `MyProjects/<ProjectName>/` — those belong with the project, or are validated by a backtest.
+- `tests/agent_graph_system/`: graph ontology, context, provenance, ingestion,
+  walk-forward analysis, and deployment gates;
+- `tests/hygiene/`: ignored credential paths, coarse secret detection, repository
+  policy, and scaffold rendering;
+- `tests/lean_format/`: selected LEAN-compatible transformations;
+- `tests/qc_integration/`: integration-marked LEAN CLI smoke tests;
+- `tests/template/`: template structure and Python syntax expectations.
+
+Do not assume every pipeline or student strategy is comprehensively tested.
+New shared behavior needs focused unit tests. New strategy PRs must at minimum
+pass syntax and structure checks and should include pure-Python tests for signal,
+constraint, and sizing logic.
+
+## Pull-request checks
+
+Every PR reports stable gate names used by the `main` ruleset:
+
+| Required check | What it protects |
+|---|---|
+| `Tests` | pytest on Python 3.11 and 3.12 |
+| `Docs` | strict MkDocs build and internal/external link check |
+| `Security` | Gitleaks and personal-path scanning |
+| `Repository policy` | forbidden files, Python syntax, new-project structure, and data-size limits |
+| `Docker` | image build and smoke tests when image inputs change; otherwise an explicit pass |
+| `CodeQL` | Python static security analysis |
+| `Dependency review` | newly introduced high-severity dependency vulnerabilities |
+
+Required checks must pass on a branch that is current with `main`. A new push
+cancels obsolete runs and starts a new review cycle.
+
+## Repository policy limits
+
+The policy checker rejects:
+
+- credential-bearing files such as `.env`, `lean.json`, and project
+  `config.json`;
+- private-key formats and generated backtest artifacts;
+- individual files larger than 6 MiB;
+- CSV or TSV fixtures with more than 50,000 rows;
+- Python syntax errors outside the unrendered source template;
+- newly added strategy projects missing `main.py`, `README.md`, `AGENTS.md`,
+  `domain/`, or `models/`.
+
+Larger public datasets should be generated by a documented script and stored in
+an instructor-approved external location. Commit only a small test fixture.
+
+## Documentation checks
+
+```bash
+python -m pip install -r docs/requirements-docs.txt
+mkdocs build --strict
+```
+
+GitHub additionally runs Lychee over root and `docs/` Markdown. A successful
+link check proves that links resolve, not that the surrounding instructions are
+factually current; update documentation whenever behavior changes.
+
+## Docker checks
+
+PRs rebuild the image only when the Dockerfile, Docker ignore rules,
+requirements, or Docker workflow change. Pushes to `main` build and publish the
+development image after smoke tests. Release tags publish a separate immutable
+version tag.

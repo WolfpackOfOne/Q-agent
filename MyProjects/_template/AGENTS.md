@@ -2,7 +2,7 @@
 
 This file defines project-specific instructions for AI agents working on this strategy.
 
-For workspace-level guidelines, see `~/Documents/Q-agent/AGENTS.md`.
+For workspace-level guidelines, see `/path/to/Q-agent/AGENTS.md`.
 
 ## Project Summary
 
@@ -31,7 +31,7 @@ main.py              # Composition Root - wires models together
 
 This template ships `models/{alpha,portfolio,execution}.py` as framework subclasses (`AlphaModel`, `PortfolioConstructionModel`, `ExecutionModel`). That's the right shape for production strategies that need the full QC alpha-streaming + insight lifecycle.
 
-**For teaching / example projects, demote them to plain helper classes** called directly from a scheduled `_rebalance(self)` method in `main.py`. This is the workspace-wide rule from `~/Documents/Q-agent/CLAUDE.md` — the QC framework lifecycle (with coarse universe) is hard to follow when explaining a strategy. Direct `SetHoldings` keeps the wiring obvious.
+**For teaching / example projects, demote them to plain helper classes** called directly from a scheduled `_rebalance(self)` method in `main.py`. This is the workspace-wide rule from `/path/to/Q-agent/CLAUDE.md` — the QC framework lifecycle (with coarse universe) is hard to follow when explaining a strategy. Direct `SetHoldings` keeps the wiring obvious.
 
 - **Production pattern (this template default)**: classes subclass `AlphaModel` / `PortfolioConstructionModel` / `ExecutionModel`; wired via `SetAlpha` / `SetPortfolioConstruction` / `SetExecution`.
 - **Teaching pattern**: same files, same layer roles, but classes are plain Python (no `AlphaModel` parent). `main.py::_rebalance` calls `alpha.compute_signals(...)` → `portfolio.to_targets(...)` → `executor.execute(...)` → `SetHoldings(...)`. Worked example: `MyProjects/ElectionIndustryBeta/`.
@@ -57,7 +57,7 @@ Keep these keys stable unless migration is explicitly requested:
 ## Development Workflow
 
 ```bash
-cd ~/Documents/Q-agent
+cd /path/to/Q-agent
 source venv/bin/activate
 cd MyProjects
 lean cloud push --project "{{PROJECT_NAME}}" --force

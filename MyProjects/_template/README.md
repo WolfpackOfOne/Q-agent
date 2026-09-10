@@ -2,11 +2,15 @@
 
 {{STRATEGY_DESCRIPTION}}
 
+> Do not copy this directory directly: it contains template tokens. From the
+> Q-agent repository root, render a complete copy with
+> `python scripts/create_strategy.py {{PROJECT_NAME}}`.
+
 ## Quick Start
 
 ```bash
 # Activate environment
-cd ~/Documents/Q-agent
+cd /path/to/Q-agent
 source venv/bin/activate
 cd MyProjects
 

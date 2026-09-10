@@ -67,7 +67,7 @@ WRDS/
 ## Quick Start
 
 ```bash
-cd ~/Documents/Q-agent/MyProjects/WRDS
+cd /path/to/Q-agent/MyProjects/WRDS
 source venv/bin/activate
 
 # === Daily Equity Pipeline (CRSP) ===
@@ -336,5 +336,5 @@ Run with `--validate` to compare generated data against existing LEAN reference 
 
 After running the pipeline, update `MyProjects/lean.json` line 2:
 ```json
-"data-folder": "~/Documents/Q-agent/MyProjects/WRDS/lean-data"
+"data-folder": "/path/to/Q-agent/MyProjects/WRDS/lean-data"
 ```

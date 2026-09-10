@@ -12,7 +12,7 @@ Prediction market metadata and YES-token price history from Polymarket's Gamma a
 No credentials required. Polymarket provides public APIs.
 
 ```bash
-cd ~/Documents/Q-agent/infrastructure
+cd /path/to/Q-agent/infrastructure
 bash setup.sh
 source .venv/bin/activate
 ```

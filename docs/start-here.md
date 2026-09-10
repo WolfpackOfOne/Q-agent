@@ -30,7 +30,7 @@ Or skip the venv entirely with the Docker image (see [Docker](docker.md)):
 
 ```bash
 docker run --rm -it -p 2719:2719 -v "$(pwd):/workspace" \
-  ghcr.io/wolfpackofone/q-agent:latest \
+  ghcr.io/wolfpackofone/q-agent:v0.1.0 \
   marimo run --host 0.0.0.0 --port 2719 --no-token \
   infrastructure/marimo/notebooks/election_industry_returns.py
 ```
@@ -49,12 +49,15 @@ You want to write a systematic trading strategy, backtest it with real data, and
 4. [Data Pipelines Overview](pipelines/index.md) — know what local data is available
 5. [Agent Workflows](agent-workflows.md) — use Claude Code to accelerate strategy development safely
 
-**First action:** Create a project using the `_template` directory and run your first cloud backtest.
+**First action:** Render a project from the tested template and make it a
+separate student repository. Do not copy `_template` directly; its source files
+contain rendering tokens.
 
 ```bash
-source ~/Documents/Q-agent/venv/bin/activate
-cd ~/Documents/Q-agent/MyProjects
-cp -r _template MyFirstStrategy
+python scripts/create_strategy.py MyFirstStrategy
+cd MyProjects/MyFirstStrategy
+git init
+source ../../venv/bin/activate
 lean cloud push --project "MyFirstStrategy" --force
 lean cloud backtest "MyFirstStrategy" --name "baseline"
 ```
@@ -65,7 +68,7 @@ Prefer a containerised LEAN CLI? Mount your QuantConnect credentials read-only i
 docker run --rm -it \
   -v "$(pwd):/workspace" \
   -v "$HOME/.lean:/home/qagent/.lean:ro" \
-  ghcr.io/wolfpackofone/q-agent:latest \
+  ghcr.io/wolfpackofone/q-agent:v0.1.0 \
   bash -c "cd MyProjects && lean cloud push --project MyFirstStrategy --force \
                        && lean cloud backtest MyFirstStrategy --name baseline"
 ```
@@ -106,14 +109,14 @@ You want to use Claude Code or other AI agents to work on strategies, pipelines,
 3. Read `claude.md` — workspace-specific rules, gotchas, and memory system documentation
 
 **Key patterns:**
-- Always activate the venv before running commands: `source ~/Documents/Q-agent/venv/bin/activate`
+- Run commands from the repository root and activate the venv with `source venv/bin/activate`
 - Use `lean cloud push --force` after agent edits to validate in the cloud
 - Agent memory lives in `.claude/memory/` — durable learnings persist across sessions
 
 **First action:** Open the project in Claude Code and ask it to explain the architecture.
 
 ```bash
-cd ~/Documents/Q-agent
+cd /path/to/Q-agent
 claude "Walk me through the architecture of this workspace"
 ```
 
@@ -135,11 +138,16 @@ You want to improve the project — add a pipeline, write a notebook, improve do
 - Record a real terminal walkthrough to replace one of the synthetic recordings
 - Add a notebook that demonstrates a research idea from [Research Examples](research-examples.md)
 
-**First action:** Fork the repo, create a feature branch, and open a PR.
+**First action:** Follow the complete [fork workflow](contributing.md). Students
+work in personal forks; only the instructor merges upstream changes.
 
 ```bash
-git checkout -b feature/my-contribution
+git switch main
+git pull --ff-only upstream main
+git switch -c feature/my-contribution
 # make your changes
-git push origin feature/my-contribution
+pytest -m "not integration"
+python scripts/check_repository_policy.py --all
+git push -u origin feature/my-contribution
 # open a PR on GitHub
 ```
