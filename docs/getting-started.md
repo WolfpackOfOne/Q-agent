@@ -8,7 +8,7 @@ This guide explains how to set up the Q-agent workspace locally.
 > manage host venvs, run:
 >
 > ```bash
-> docker run --rm -it -v "$(pwd):/workspace" ghcr.io/wolfpackofone/q-agent:latest
+> docker run --rm -it -v "$(pwd):/workspace" ghcr.io/wolfpackofone/q-agent:v0.1.0
 > ```
 >
 > The host setup below is required only if you want to run `lean backtest`
@@ -30,6 +30,9 @@ git clone https://github.com/WolfpackOfOne/Q-agent.git
 cd Q-agent
 ```
 
+Contributors should clone their own fork and add this repository as `upstream`;
+see [Contributing](contributing.md).
+
 ## Create a Virtual Environment
 
 ```bash
@@ -37,13 +40,15 @@ python3.11 -m venv venv
 source venv/bin/activate
 ```
 
+Windows PowerShell: `venv\Scripts\Activate.ps1`.
+
 If your system exposes Python 3.11 as `python` or `python3`, use that command instead.
 
 ## Install LEAN CLI
 
 ```bash
 pip install --upgrade pip
-pip install lean
+pip install lean==1.0.225
 ```
 
 ## Configure QuantConnect
@@ -69,3 +74,5 @@ lean --version
 - Keep reusable code in domain modules
 - Avoid committing local data
 - Use feature branches for experimental work
+- Render new strategies with `python scripts/create_strategy.py ProjectName`;
+  do not copy `_template` directly

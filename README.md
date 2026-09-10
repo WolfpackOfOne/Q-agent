@@ -1,156 +1,112 @@
 # Q-agent
 
+[![Tests](https://github.com/WolfpackOfOne/Q-agent/actions/workflows/tests.yml/badge.svg)](https://github.com/WolfpackOfOne/Q-agent/actions/workflows/tests.yml)
+[![Docs](https://github.com/WolfpackOfOne/Q-agent/actions/workflows/docs.yml/badge.svg)](https://github.com/WolfpackOfOne/Q-agent/actions/workflows/docs.yml)
+[![Security](https://github.com/WolfpackOfOne/Q-agent/actions/workflows/secret-scan.yml/badge.svg)](https://github.com/WolfpackOfOne/Q-agent/actions/workflows/secret-scan.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](CONTRIBUTING.md)
-[![Security Policy](https://img.shields.io/badge/security-policy-blue.svg)](SECURITY.md)
 
-Q-agent is an open-source teaching and research workspace for quantitative finance, QuantConnect, LEAN CLI workflows, and reproducible trading strategy development.
+Q-agent is an open-source teaching and research workspace for quantitative
+finance, QuantConnect, LEAN CLI workflows, and reproducible trading-strategy
+development.
 
-The project is designed for students, researchers, and practitioners who want to learn how professional quantitative research codebases are organized. It combines strategy scaffolding, agent guidelines, notebook workflows, dataset research ideas, and QuantConnect development practices in one workspace.
+It gives students a professional repository structure, runnable research
+examples, data-pipeline patterns, strategy scaffolding, automated checks, and
+guardrails for AI-assisted development.
 
-## What This Repository Is
+## Start here
 
-This repository is a master workspace for:
+- **New student:** follow [GETTING_STARTED.md](GETTING_STARTED.md).
+- **Browse the course documentation:** visit the
+  [Q-agent documentation site](https://wolfpackofone.github.io/Q-agent/).
+- **Contribute to Q-agent:** read [CONTRIBUTING.md](CONTRIBUTING.md) and work
+  through a personal fork.
+- **Create your own strategy repository:** render the tested scaffold:
 
-- QuantConnect and LEAN CLI development
-- Reproducible quantitative finance research
-- Teaching students professional repository workflows
-- Organizing research notebooks and strategy examples
-- Building modular trading strategy prototypes
-- Using AI coding agents safely and consistently
+  ```bash
+  python scripts/create_strategy.py MyFirstStrategy
+  ```
 
-Individual strategy projects may live in their own repositories, while this repository provides the shared structure, documentation, templates, and workflow conventions.
+Individual student strategies normally live in their own repositories. This
+central repository accepts shared infrastructure, reusable signals,
+documentation, tests, and instructor-approved example strategies.
 
-## Who This Is For
+## Reproducible Docker environment
 
-- Masters students learning quantitative finance and systematic trading
-- Students building public GitHub portfolios
-- Researchers prototyping trading strategies
-- Instructors teaching applied financial technology
-- Developers learning QuantConnect and LEAN CLI workflows
-- AI-assisted coding users who want a controlled project structure
+For the course baseline, use the immutable release image rather than the moving
+`latest` development tag:
 
-## Repository Map
+```bash
+docker pull ghcr.io/wolfpackofone/q-agent:v0.1.0
+docker run --rm -it -v "$(pwd):/workspace" \
+  ghcr.io/wolfpackofone/q-agent:v0.1.0
+```
+
+The image supports both `linux/amd64` and `linux/arm64`, including Apple Silicon,
+without a `--platform` override. The `latest` tag follows `main` and is intended
+for testing upcoming changes.
+
+Host installs use `constraints-course.txt` to pin direct course dependencies.
+The versioned container is the authoritative fully resolved environment.
+
+See [docs/docker.md](docs/docker.md) for mounted development, credentials,
+pipelines, notebooks, and LEAN limitations.
+
+## Repository map
 
 ```text
 Q-agent/
-|-- README.md
-|-- LICENSE
-|-- CONTRIBUTING.md
-|-- SECURITY.md
-|-- CREDENTIALS.md
-|-- AGENTS.md
-|-- claude.md
-|-- .env.example
-|-- docs/
-|   |-- getting-started.md
-|   |-- project-map.md
-|   |-- research-examples.md
-|   |-- architecture.md
-|   |-- release-checklist.md
-|-- MyProjects/
-|   |-- _template/
-|   |-- .claude/agents/
-|   |-- data/             # gitignored; populate via `lean init`
-|   |-- storage/          # gitignored
-|   |-- lean.json         # gitignored
-|   |-- <ProjectName>/
-|-- infrastructure/
-|   |-- pipelines/        # crypto, edgar, polymarket, wrds, yfinance, ...
-|-- References/
-|   |-- books/
-|   |-- papers/
-|   |-- notes/
-|   |-- repos/
-|-- .github/
-|   |-- pull_request_template.md
-|   |-- workflows/
+├── .github/              # PR policy, issue forms, ownership, CI and security
+├── docs/                 # Published student and contributor documentation
+├── infrastructure/       # Shared pipelines and marimo notebooks
+├── MyProjects/
+│   ├── _template/        # Rendered by scripts/create_strategy.py
+│   ├── shared/           # Reusable pure-Python signals
+│   └── ...               # Instructor-approved examples only
+├── References/           # Curated research notes and source index
+├── scripts/              # Scaffolding, policy checks, and LEAN helpers
+├── tests/                # Workspace, graph, template, and hygiene tests
+├── AGENTS.md              # Repository-wide AI agent guardrails
+├── CREDENTIALS.md         # Credential setup without secret values
+└── SECURITY.md            # Private reporting and security controls
 ```
 
-## Architecture Overview
-
-Projects in this workspace follow an atomic structure:
+Projects follow an atomic dependency flow:
 
 ```text
-main.py
-  |
-  v
-models/
-  |
-  v
-domain/
-  |
-  v
-pure functions, DTOs, config, validation, metrics
+main.py → models/ → domain/ → pure functions, DTOs, and configuration
 ```
 
-The goal is to keep the composition root thin, isolate orchestration logic, and place reusable business logic in testable modules.
+See [docs/architecture.md](docs/architecture.md) for the complete model.
 
-See [docs/architecture.md](docs/architecture.md) for the full architecture guide.
+## Included research example
 
-## Getting Started
-
-The fastest path is the Docker image — one command, no host venvs:
+The Election & Industry Returns notebook combines a committed Polymarket
+probability fixture with live yfinance ETF prices:
 
 ```bash
-docker pull ghcr.io/wolfpackofone/q-agent:latest
-docker run --rm -it -v "$(pwd):/workspace" ghcr.io/wolfpackofone/q-agent:latest
+python -m venv infrastructure/marimo/venv
+source infrastructure/marimo/venv/bin/activate
+python -m pip install -r infrastructure/marimo/requirements.txt
+marimo run infrastructure/marimo/notebooks/election_industry_returns.py --port 2719
 ```
 
-That image bundles the LEAN CLI, the infrastructure pipelines, and marimo.
-Apple Silicon hosts add `--platform linux/amd64`.
-
-For host-based setup (three separate Python venvs), see
-[GETTING_STARTED.md](GETTING_STARTED.md). Full Docker instructions —
-mounted dev workflow, credentials, building locally — live in
-[docs/docker.md](docs/docker.md).
-
-## Daily Workflow
-
-```bash
-cd ~/Documents/Q-agent
-source venv/bin/activate
-cd MyProjects
-lean cloud push --project "<ProjectName>" --force
-lean cloud backtest "<ProjectName>" --name "Description"
-```
-
-## Research Examples
-
-One runnable notebook is included:
-
-| Notebook | Data sources | Local data required |
-|---|---|---|
-| [Election & Industry Returns](infrastructure/marimo/notebooks/election_industry_returns.py) | Committed `trump_prob.csv` (Polymarket CLOB), yfinance sector ETFs (XLE, XLF, XLV, XLI, XLK, XLP, XLY, XLU, XLB, XLRE, XLC, XOP, ITA, KBE, IBB, ICLN, TAN, GDX, ITB) | No — committed CSV plus live yfinance. |
-
-See [GETTING_STARTED.md](GETTING_STARTED.md) for how to run it. For broader research directions see [docs/research-examples.md](docs/research-examples.md).
-
-## Documentation
-
-| Document | Purpose |
-|---|---|
-| [GETTING_STARTED.md](GETTING_STARTED.md) | First-time setup and running the example notebooks |
-| [docs/docker.md](docs/docker.md) | Docker image + GHCR workflow |
-| [docs/project-map.md](docs/project-map.md) | Repository layout and responsibilities |
-| [docs/research-examples.md](docs/research-examples.md) | Research project ideas |
-| [docs/architecture.md](docs/architecture.md) | Atomic architecture guide |
-| [docs/release-checklist.md](docs/release-checklist.md) | Public release checklist |
-| [CREDENTIALS.md](CREDENTIALS.md) | All credentials/API keys used by the workspace |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution workflow |
-| [SECURITY.md](SECURITY.md) | Security policy |
+Windows PowerShell activation:
+`infrastructure\marimo\venv\Scripts\Activate.ps1`.
 
 ## Requirements
 
-- Python 3.11+
+- Python 3.11 or 3.12
 - Git
-- For the example notebooks: `pip install -r infrastructure/marimo/requirements.txt`
-- For QuantConnect/LEAN work: QuantConnect account, LEAN CLI, Docker Desktop
-- Optional: WRDS institutional access (one notebook section; skipped automatically if unavailable)
+- Docker Desktop for the container or local LEAN workflow
+- A QuantConnect account for cloud or LEAN strategy work
+- Optional institutional credentials only for the pipelines that document them
 
-## Open Source License
+Never commit credentials, account identifiers, private data, generated
+backtests, or large datasets. See [CREDENTIALS.md](CREDENTIALS.md) and
+[SECURITY.md](SECURITY.md).
 
-This project is released under the MIT License. See [LICENSE](LICENSE).
+## License and disclaimer
 
-## Important Disclaimer
-
-This repository is for education and research. Nothing in this repository is investment advice. Trading strategies can lose money, and backtests may not reflect live trading results.
+Q-agent is released under the [MIT License](LICENSE). It is for education and
+research, not investment advice. Trading strategies can lose money, and
+backtests may not represent live results.

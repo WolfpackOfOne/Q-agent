@@ -6,7 +6,7 @@
 
 ```bash
 # One-time: build the shared venv at infrastructure/.venv
-cd ~/Documents/Q-agent/infrastructure && bash setup.sh
+cd /path/to/Q-agent/infrastructure && bash setup.sh
 source .venv/bin/activate
 
 # Pull defaults (BTC/ETH/SOL × USD/USDT/USDC) at daily resolution

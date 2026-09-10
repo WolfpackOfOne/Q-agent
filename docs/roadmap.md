@@ -15,11 +15,16 @@ Q-agent aims to become a reproducible, AI-compatible quantitative research works
 
 # Recently Shipped
 
-- **Docker / GHCR image** ([#20](https://github.com/WolfpackOfOne/Q-agent/issues/20), [#25](https://github.com/WolfpackOfOne/Q-agent/pull/25)). Public image at `ghcr.io/wolfpackofone/q-agent:latest` bundles LEAN CLI + infrastructure pipelines + marimo. CI builds on every PR, publishes on every push to `main`. See [Docker](docker.md).
+- **Docker / GHCR image** ([#20](https://github.com/WolfpackOfOne/Q-agent/issues/20), [#25](https://github.com/WolfpackOfOne/Q-agent/pull/25)). Public multi-architecture images bundle LEAN CLI, infrastructure pipelines, and marimo. Course users pin a release tag; `:latest` tracks `main`. See [Docker](docker.md).
 - **Multi-arch Docker image** — the published manifest supports both `linux/amd64` and `linux/arm64`, so Apple Silicon hosts can pull natively. See [Docker](docker.md).
 - **Workflow-first documentation site** — mkdocs at <https://wolfpackofone.github.io/Q-agent/> with linkcheck on every PR.
 - **Personal-paths CI scanner** — `.github/workflows/secret-scan.yml` blocks PRs that leak host home directories.
 - **Pipeline maturity table** — the data-pipeline catalog distinguishes stable, committed-data, and experimental pipelines.
+- **Student contribution governance** — fork-only workflow, CODEOWNERS, issue
+  forms, expanded PR template, code of conduct, repository-policy checks, and
+  private security reporting.
+- **Required merge gates** — stable Tests, Docs, Security, Repository policy,
+  Docker, CodeQL, and Dependency review checks.
 
 ---
 
@@ -33,17 +38,12 @@ Q-agent aims to become a reproducible, AI-compatible quantitative research works
 - improve agent workflow examples
 - keep onboarding commands copy-pasteable
 
-## Repo Hygiene / Public Launch
+## Repo Hygiene / Course Operations
 
-Tracked in [#73](https://github.com/WolfpackOfOne/Q-agent/issues/73):
-
-- issue templates
-- stronger PR template
-- CODEOWNERS
-- CODE_OF_CONDUCT
-- label and milestone taxonomy
-- README status badges
-- dependency policy
+- review the label and milestone taxonomy each term
+- add trusted TA reviewers before the instructor needs to submit a PR
+- keep course instructions pinned to a tested semantic release
+- periodically audit permissions, required checks, dependencies, and stale docs
 
 ## Docker Followups
 

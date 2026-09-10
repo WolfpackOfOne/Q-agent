@@ -11,7 +11,7 @@ Data sources live under `infrastructure/pipelines/`.
 Start a marimo session, then use `/marimo-pair` to collaborate:
 
 ```bash
-cd ~/Documents/Q-agent/infrastructure/marimo
+cd /path/to/Q-agent/infrastructure/marimo
 source venv/bin/activate
 marimo edit notebooks/election_industry_returns.py --no-token
 ```

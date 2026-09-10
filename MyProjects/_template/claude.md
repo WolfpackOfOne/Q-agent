@@ -61,7 +61,7 @@
 ### Setup (Run Once Per Terminal Session)
 
 ```bash
-cd ~/Documents/Q-agent
+cd /path/to/Q-agent
 source venv/bin/activate
 cd MyProjects
 ```
@@ -87,7 +87,7 @@ lean cloud pull --project "{{PROJECT_NAME}}"
 ### Full Workflow
 
 ```bash
-cd ~/Documents/Q-agent
+cd /path/to/Q-agent
 source venv/bin/activate
 cd MyProjects
 lean cloud push --project "{{PROJECT_NAME}}" --force
@@ -159,7 +159,7 @@ lean cloud push --project "{{PROJECT_NAME}}" --force
 ### "lean: command not found"
 
 ```bash
-source ~/Documents/Q-agent/venv/bin/activate
+source /path/to/Q-agent/venv/bin/activate
 ```
 
 ### Data not available locally

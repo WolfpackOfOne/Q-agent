@@ -1,0 +1,12 @@
+# The instructor is the default reviewer for every contribution.
+* @WolfpackOfOne
+
+# Changes to governance, automation, releases, or credential boundaries always
+# require explicit instructor review.
+/.github/ @WolfpackOfOne
+/AGENTS.md @WolfpackOfOne
+/SECURITY.md @WolfpackOfOne
+/CREDENTIALS.md @WolfpackOfOne
+/Dockerfile @WolfpackOfOne
+/.dockerignore @WolfpackOfOne
+/.gitignore @WolfpackOfOne

@@ -1,6 +1,6 @@
 # Architecture
 
-ElectionIndustryBeta follows the workspace-standard **atomic structure** described in `~/Documents/Q-agent/AGENTS.md`.
+ElectionIndustryBeta follows the workspace-standard **atomic structure** described in `/path/to/Q-agent/AGENTS.md`.
 
 ## Layer map
 

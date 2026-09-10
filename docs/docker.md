@@ -3,25 +3,29 @@
 Q-agent ships a single workspace image bundling the LEAN CLI, the
 infrastructure pipelines (crypto / Polymarket / EDGAR / WRDS / yfinance), and
 marimo. The image is built and published to GitHub Container Registry by
-`.github/workflows/docker.yml` on every push to `main`.
+`.github/workflows/docker.yml` after smoke tests on every push to `main`.
+Concurrent runs for the same ref are cancelled so an older build cannot
+overwrite a newer image.
 
 ## Quickstart
 
 ```bash
-docker pull ghcr.io/wolfpackofone/q-agent:latest
+docker pull ghcr.io/wolfpackofone/q-agent:v0.1.0
 
 # Drop into an interactive shell with lean, marimo, python, and pytest ready.
-docker run --rm -it ghcr.io/wolfpackofone/q-agent:latest
+docker run --rm -it ghcr.io/wolfpackofone/q-agent:v0.1.0
 
 # Or run a specific tool one-off.
-docker run --rm -it ghcr.io/wolfpackofone/q-agent:latest lean --help
-docker run --rm -it ghcr.io/wolfpackofone/q-agent:latest marimo --help
+docker run --rm -it ghcr.io/wolfpackofone/q-agent:v0.1.0 lean --help
+docker run --rm -it ghcr.io/wolfpackofone/q-agent:v0.1.0 marimo --help
 ```
 
 The image is published as a multi-arch manifest for `linux/amd64` and
 `linux/arm64`, so `docker pull` works natively on both x86 servers and Apple
-Silicon Macs (no `--platform` flag needed). The `latest` tag tracks `main`;
-short-SHA tags (`sha-abc1234`) and version tags (`v1.2.3`) are also published.
+Silicon Macs (no `--platform` flag needed). The `latest` tag tracks `main` and
+short-SHA tags identify development builds. Version tags such as `v0.1.0` are
+published separately and never move `latest`; course instructions use a fixed
+version tag.
 
 ## What's inside
 
@@ -32,6 +36,8 @@ short-SHA tags (`sha-abc1234`) and version tags (`v1.2.3`) are also published.
   (`ccxt`, `pandas`, `numpy`, `yfinance`, `tenacity`, `tqdm`, `python-dotenv`,
   `requests`), marimo + its plotting stack (`matplotlib`, `plotly`, `seaborn`,
   `scipy`, `nbformat`), and dev tools (`pytest`, `pytest-cov`, `pytest-mock`)
+- Direct dependency versions constrained by `constraints-course.txt`; the
+  versioned image captures the fully resolved transitive environment
 - The repository copied into `/workspace` (everything in `.dockerignore` is
   excluded — no credentials, no per-user data, no `.git/`)
 - The `MyProjects/ElectionIndustryBeta/` demo project as a worked example
@@ -44,7 +50,7 @@ Mount your local checkout to keep edits in sync with the host:
 ```bash
 docker run --rm -it \
   -v "$(pwd):/workspace" \
-  ghcr.io/wolfpackofone/q-agent:latest
+  ghcr.io/wolfpackofone/q-agent:v0.1.0
 ```
 
 The bind mount overrides the baked-in `/workspace`, so you work against your
@@ -56,7 +62,7 @@ reproducible Python environment without managing three host venvs.
 ```bash
 docker run --rm -it \
   -v "$(pwd):/workspace" \
-  ghcr.io/wolfpackofone/q-agent:latest \
+  ghcr.io/wolfpackofone/q-agent:v0.1.0 \
   python infrastructure/pipelines/crypto/scripts/run_pipeline.py --help
 ```
 
@@ -69,7 +75,7 @@ because of the bind mount, they appear on the host too.
 docker run --rm -it \
   -p 2718:2718 \
   -v "$(pwd):/workspace" \
-  ghcr.io/wolfpackofone/q-agent:latest \
+  ghcr.io/wolfpackofone/q-agent:v0.1.0 \
   marimo edit --host 0.0.0.0 --port 2718 --no-token \
   infrastructure/marimo/notebooks/election_industry_returns.py
 ```
@@ -86,7 +92,7 @@ The image supports the **cloud** LEAN workflow out of the box:
 docker run --rm -it \
   -v "$(pwd):/workspace" \
   -v "$HOME/.lean:/home/qagent/.lean:ro" \
-  ghcr.io/wolfpackofone/q-agent:latest \
+  ghcr.io/wolfpackofone/q-agent:v0.1.0 \
   bash -c "cd MyProjects && lean cloud push --project ElectionIndustryBeta --force && lean cloud backtest ElectionIndustryBeta"
 ```
 
@@ -106,7 +112,7 @@ image there is no daemon to talk to, so you would have to either:
 - **Docker-in-Docker** — run a second daemon inside the container. Heavier
   image, more moving parts.
 
-Neither is enabled by default, so `:latest` stays minimal-privilege. Tracking
+Neither is enabled by default, so the course image stays minimal-privilege. Tracking
 issue: [#27](https://github.com/WolfpackOfOne/Q-agent/issues/27) (deferred
 until there is real demand).
 

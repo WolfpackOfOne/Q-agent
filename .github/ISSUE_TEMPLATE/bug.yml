@@ -1,0 +1,41 @@
+name: Bug report
+description: Report a reproducible problem in Q-agent.
+title: "[Bug]: "
+labels: ["bug", "status:needs-review"]
+body:
+  - type: markdown
+    attributes:
+      value: Do not include credentials, tokens, private datasets, or account identifiers.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the observed behavior and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      placeholder: Include the smallest commands or example that reproduce the problem.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: macOS/Windows/Linux, Python version, Docker or host setup
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant sanitized logs
+      render: shell
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed credentials, tokens, private data, and personal paths.
+          required: true

@@ -1,6 +1,6 @@
 # ElectionIndustryBeta — Agent Instructions
 
-For workspace-level guidelines, see `~/Documents/Q-agent/AGENTS.md`.
+For workspace-level guidelines, see `/path/to/Q-agent/AGENTS.md`.
 
 ## Project Summary
 
@@ -49,7 +49,7 @@ Schemas: see `docs/objectstore.md`.
 ## Development Workflow
 
 ```bash
-cd ~/Documents/Q-agent
+cd /path/to/Q-agent
 source venv/bin/activate            # or: source infrastructure/marimo/venv/bin/activate
 cd MyProjects
 
@@ -64,7 +64,7 @@ lean cloud backtest "ElectionIndustryBeta" --name "Description"
 ## Validation
 
 ```bash
-cd ~/Documents/Q-agent/MyProjects/ElectionIndustryBeta
+cd /path/to/Q-agent/MyProjects/ElectionIndustryBeta
 python -m py_compile main.py models/*.py domain/*.py domain/signals/*.py tools/*.py
 ```
 

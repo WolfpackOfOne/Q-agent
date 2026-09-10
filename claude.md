@@ -43,8 +43,8 @@ Architecture guidelines live in `AGENTS.md`. Push detailed playbooks to skills r
 - Never introduce secrets (API keys, tokens, credentials) in code, logs, or docs.
 - Never run destructive actions (dropping data, force-pushing, deleting projects) without explicit confirmation.
 - Do not edit files inside `Lean/` (reference-only engine repo).
-- Always activate the venv before running CLI commands: `source ~/Documents/Q-agent/venv/bin/activate`.
-- **`main` is branch-protected on the workspace repo.** Direct pushes are rejected by GitHub policy (`GH013: Changes must be made through a pull request`). Always: branch → commit → push the branch → `gh pr create` → merge via the GitHub UI.
+- Run commands from the repository root and activate the venv with `source venv/bin/activate`.
+- **`main` is branch-protected on the workspace repo.** Direct pushes are rejected. Required CI, a current branch, resolved conversations, and approval of the latest push by a different trusted reviewer are required before squash merge.
 - **The workspace has two GitHub remotes — push to the right one.** `q-agent` (`WolfpackOfOne/Q-agent`) is the canonical workspace repo and what local `main` tracks. `origin` (`WolfpackOfOne/QuantConnect_Master`) is a separate, divergent repo and should not be the default target. When creating PRs with `gh`, always pass `--repo WolfpackOfOne/Q-agent`. Verify with `git remote -v` and `git branch -vv` before pushing.
 
 ## Prerequisites (first-time setup)
@@ -62,7 +62,7 @@ After `git clone`, these resources don't exist yet — create them once per mach
 One-shot validator: `bash scripts/check-prereqs.sh`.
 
 **Skip the prerequisites entirely** by running the published image:
-`docker run --rm -it -v "$(pwd):/workspace" ghcr.io/wolfpackofone/q-agent:latest`.
+`docker run --rm -it -v "$(pwd):/workspace" ghcr.io/wolfpackofone/q-agent:v0.1.0`.
 See the **Docker / GHCR image** section below.
 
 ---
@@ -109,7 +109,7 @@ Q-agent/
 
 ```bash
 # Session setup
-cd ~/Documents/Q-agent && source venv/bin/activate && cd MyProjects
+cd /path/to/Q-agent && source venv/bin/activate && cd MyProjects
 
 # Cloud workflow
 lean cloud push --project "<Project>" --force
@@ -125,15 +125,14 @@ Validation: `python -m py_compile main.py models/*.py`
 
 ## Docker / GHCR image
 
-The workspace ships a public image at `ghcr.io/wolfpackofone/q-agent:latest`
-bundling LEAN CLI + infrastructure pipelines + marimo. Published to GHCR by
-`.github/workflows/docker.yml` on every push to `main`. Tags: `:latest` (tracks
-main), `:sha-<short>` (per commit), `:vX.Y.Z` (version tags). `linux/amd64`
-only — Apple Silicon hosts need `--platform linux/amd64`.
+The workspace ships a public multi-architecture image bundling LEAN CLI,
+infrastructure pipelines, and marimo. Course users pin `:v0.1.0`; `:latest`
+tracks `main`, and `:sha-<short>` identifies a development commit. Both
+`linux/amd64` and `linux/arm64` are supported.
 
 ```bash
-docker pull ghcr.io/wolfpackofone/q-agent:latest
-docker run --rm -it -v "$(pwd):/workspace" ghcr.io/wolfpackofone/q-agent:latest
+docker pull ghcr.io/wolfpackofone/q-agent:v0.1.0
+docker run --rm -it -v "$(pwd):/workspace" ghcr.io/wolfpackofone/q-agent:v0.1.0
 ```
 
 Rules:
@@ -146,7 +145,7 @@ pointers, six known gotchas) lives in the `/docker-workflow` skill at
 `.claude/skills/docker-workflow/SKILL.md`. User-facing docs: `docs/docker.md`.
 
 # Agent graph system
-cd ~/Documents/Q-agent/agent_graph_system
+cd /path/to/Q-agent/agent_graph_system
 docker compose up -d                                   # start Neo4j + ChromaDB
 python -m agent_graph_system.main init                 # bootstrap graph indexes
 python -m agent_graph_system.main ingest --repo <path> # parse a repo into the graph
@@ -255,13 +254,13 @@ Then join freely against any calendar-date-indexed CSV. Pure-Python signal atoms
 
 | Error | Fix |
 |---|---|
-| `lean: command not found` | `source ~/Documents/Q-agent/venv/bin/activate`; if venv missing, follow `docs/getting-started.md:22-32` |
+| `lean: command not found` | From the repo root run `source venv/bin/activate`; if venv is missing, follow `docs/getting-started.md` |
 | `lean.json not found` | `cd MyProjects && lean init` (creates it; gitignored) |
 | collaboration lock | add `--force` to `lean cloud push` |
 | `is not a Lean project` | directory has no `config.json` — use `lean project-create` |
 | No data in local backtest | use cloud: `lean cloud backtest "<ProjectName>"` |
 | Docker errors | make sure Docker Desktop is running |
-| `no matching manifest for linux/arm64/v8` on GHCR pull | `docker pull --platform linux/amd64 ghcr.io/wolfpackofone/q-agent:latest` (image is amd64-only; tracked in issue #26) |
+| `no matching manifest` on GHCR pull | Confirm the documented release tag exists and run `docker pull ghcr.io/wolfpackofone/q-agent:v0.1.0`; both amd64 and arm64 are published |
 | `lean --help` errors with `FileNotFoundError: modules-1.14.json` inside container | rebuild — `Dockerfile` pre-caches this file as root before dropping to `qagent` user; symptom means the pre-cache step regressed |
 
 ## Data sources

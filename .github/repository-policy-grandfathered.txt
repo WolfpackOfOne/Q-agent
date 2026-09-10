@@ -1,0 +1,4 @@
+# Immutable exceptions for oversized files merged before repository policy enforcement.
+# Any content change invalidates the exception and requires replacing the dataset with
+# a small fixture plus a reproducible refresh script.
+73c4ca9ddac5391af62f3ac12b2e7ba2ab404cf540b483bd65cc1b3318099c2b  MyProjects/Alpha101Portfolio/data/alpha_scores.csv

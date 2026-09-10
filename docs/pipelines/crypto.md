@@ -18,7 +18,7 @@ OHLCV price data for BTC, ETH, and SOL from Coinbase and Kraken, written to LEAN
 No credentials required. Both exchanges provide public market data APIs via [ccxt](https://github.com/ccxt/ccxt).
 
 ```bash
-cd ~/Documents/Q-agent/infrastructure
+cd /path/to/Q-agent/infrastructure
 bash setup.sh
 source .venv/bin/activate
 ```

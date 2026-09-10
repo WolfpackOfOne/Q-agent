@@ -1,0 +1,31 @@
+name: Feature proposal
+description: Propose a focused repository, pipeline, notebook, or strategy improvement.
+title: "[Feature]: "
+labels: ["enhancement", "status:needs-review"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or learning objective
+      description: Explain the need before describing the implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Identify the files or architecture layers likely to change.
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: Data and external services
+      description: List sources, licenses, credentials, expected file sizes, and reproducibility constraints.
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation plan
+      description: Describe tests, documentation, and backtests that would demonstrate completion.
+    validations:
+      required: true

@@ -17,7 +17,7 @@ Daily OHLCV price data for tickers covered by Yahoo Finance, written to LEAN-com
 No credentials required.
 
 ```bash
-cd ~/Documents/Q-agent/infrastructure
+cd /path/to/Q-agent/infrastructure
 bash setup.sh
 source .venv/bin/activate
 ```

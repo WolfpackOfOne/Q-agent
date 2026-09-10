@@ -1,0 +1,22 @@
+name: Documentation improvement
+description: Report unclear, stale, missing, or incorrect documentation.
+title: "[Docs]: "
+labels: ["documentation", "area:docs", "status:needs-review"]
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Page or file
+      placeholder: docs/start-here.md or a documentation URL
+    validations:
+      required: true
+  - type: textarea
+    id: issue
+    attributes:
+      label: What is unclear or incorrect?
+    validations:
+      required: true
+  - type: textarea
+    id: suggested
+    attributes:
+      label: Suggested improvement

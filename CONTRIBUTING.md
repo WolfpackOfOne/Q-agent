@@ -1,59 +1,124 @@
-# Contributing
+# Contributing to Q-agent
 
-Thank you for contributing to Q-agent.
+Q-agent is a teaching and research workspace. Contributions should be focused,
+reviewable, reproducible, and understandable by another student.
 
-This repository is designed as an open-source educational and research workspace focused on quantitative finance, QuantConnect workflows, financial datasets, and systematic trading research.
+## Contribution model
 
-## Goals
+Students contribute through personal forks. Students should not be granted
+write access to the upstream repository. The instructor reviews and merges all
+changes to `main`.
 
-- Teach professional quantitative development workflows
-- Encourage reproducible research
-- Build reusable infrastructure for strategy research
-- Maintain high-quality documentation and code standards
+Individual trading strategies normally live in their own repositories. The
+central Q-agent repository accepts shared infrastructure, reusable signals,
+documentation, tests, and explicitly approved example strategies. Open a
+feature proposal before adding a new project under `MyProjects/`.
 
-## Development Principles
+## Set up your fork
 
-- Keep architecture modular and composable
-- Prefer pure functions for core calculations
-- Document assumptions clearly
-- Avoid hard-coded paths and credentials
-- Keep notebooks reproducible
-- Write code that students can learn from
+1. Fork `WolfpackOfOne/Q-agent` on GitHub.
+2. Clone your fork and register this repository as `upstream`:
 
-## Pull Request Workflow
+   ```bash
+   git clone https://github.com/YOUR-USERNAME/Q-agent.git
+   cd Q-agent
+   git remote add upstream https://github.com/WolfpackOfOne/Q-agent.git
+   git fetch upstream
+   ```
 
-1. Create a feature branch
-2. Make focused changes
-3. Update documentation where appropriate
-4. Ensure no secrets or credentials are committed
-5. Open a pull request into main
+3. Create one branch per focused change:
 
-## Commit Style
+   ```bash
+   git switch main
+   git pull --ff-only upstream main
+   git switch -c feature/short-description
+   ```
 
-Examples:
+Never commit directly to `main` in either repository.
 
-- Add WRDS sector pipeline
-- Refactor LEAN notebook utilities
-- Add Polymarket ingestion example
-- Improve ETF constituent documentation
+## Make and validate a change
 
-## Prohibited Content
+Keep architecture modular, prefer pure functions for calculations, document
+assumptions, and add tests for new behavior.
 
-Do not commit:
+Run the checks relevant to the change:
 
-- API keys
-- Passwords
-- QuantConnect credentials
-- WRDS credentials
-- Large raw datasets
-- Proprietary research material without permission
+```bash
+python -m venv venv
+source venv/bin/activate  # Windows PowerShell: venv\Scripts\Activate.ps1
+python -m pip install -r requirements-dev.txt
+pytest -m "not integration"
+python scripts/check_repository_policy.py --all
+```
 
-## Student Contributions
+Documentation contributors should also run:
 
-Students are encouraged to:
+```bash
+python -m pip install -r docs/requirements-docs.txt
+mkdocs build --strict
+```
 
-- Build research notebooks
-- Add datasets and ingestion pipelines
-- Improve documentation
-- Create reproducible strategy examples
-- Add testing and validation tools
+Requirements files apply `constraints-course.txt`. Update that baseline and all
+affected requirements together in a dedicated dependency PR.
+
+## Open the pull request
+
+```bash
+git push -u origin feature/short-description
+```
+
+Open a PR from your fork into `WolfpackOfOne/Q-agent:main` and complete every
+section of the PR template. Link the related issue when one exists.
+
+First-time contributors must wait for the instructor to approve the GitHub
+Actions run. After CI starts, a PR cannot merge until all required checks pass,
+the branch is current with `main`, review conversations are resolved, and the
+instructor approves the latest revision. Pushing new commits dismisses an old
+approval.
+
+## Data and notebook policy
+
+Do not commit credentials, account identifiers, raw vendor data, proprietary
+research, generated backtests, or large notebook outputs.
+
+- Each committed file must be at most 6 MiB.
+- CSV and TSV fixtures must contain at most 50,000 rows.
+- A previously merged oversized dataset is exempt only while its exact SHA-256
+  remains listed in `.github/repository-policy-grandfathered.txt`; contributors
+  may not add to that list through ordinary feature PRs.
+- Commit only the smallest fixture needed for tests or a reproducible example.
+- Include a refresh script and document source, license, date range, and schema.
+- Inspect notebook output and metadata before committing.
+- Use an approved external store or release asset for larger public datasets.
+
+## Creating a strategy
+
+Render the template; do not copy `_template` directly:
+
+```bash
+python scripts/create_strategy.py MyFirstStrategy
+cd MyProjects/MyFirstStrategy
+git init
+```
+
+The generated directory is intentionally ignored by the Q-agent workspace and
+should normally become its own repository. Do not edit the workspace
+`.gitignore` to add it to Q-agent unless the instructor approved it as a shared
+example first.
+
+## Commit style
+
+Use short, imperative messages such as:
+
+```text
+Add WRDS sector pipeline
+Fix LEAN data timestamp normalization
+Document Polymarket fixture provenance
+```
+
+## Conduct and security
+
+Follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+Report vulnerabilities or
+credential exposure through [GitHub's private vulnerability form](https://github.com/WolfpackOfOne/Q-agent/security/advisories/new),
+never through a public issue.

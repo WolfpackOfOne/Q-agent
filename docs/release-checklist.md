@@ -1,61 +1,50 @@
-# Public Release Checklist
+# Course Release Checklist
 
-## Repository Hygiene
+Use this checklist before publishing a version that students will share.
 
-- Review commit history
-- Remove sensitive files
-- Remove credentials
-- Remove local machine paths
-- Remove proprietary datasets
+## Repository controls
 
-## Documentation
+- [ ] `main` requires a pull request, one approval, approval of the latest push,
+      resolved conversations, and a current branch.
+- [ ] `Tests`, `Docs`, `Security`, `Repository policy`, `Docker`, `CodeQL`, and
+      `Dependency review` are required checks.
+- [ ] Force pushes and deletion are blocked; there are no student bypass actors.
+- [ ] Students use forks; only trusted instructors or TAs receive upstream write
+      access.
+- [ ] CODEOWNERS, issue forms, PR template, code of conduct, support, and private
+      security reporting are present.
+- [ ] GitHub Actions use immutable SHAs and least-privilege tokens.
+- [ ] Dependency alerts, security updates, secret scanning, push protection, and
+      code scanning are enabled.
 
-- README updated
-- Architecture documented
-- Setup instructions verified
-- Contribution rules added
-- Security guidance added
+## Content and documentation
 
-## Open Source Standards
+- [ ] Onboarding commands were tested from a clean clone on each supported OS.
+- [ ] `python scripts/create_strategy.py ReleaseSmokeTest` produces valid Python
+      without unresolved tokens.
+- [ ] README, Getting Started, Docker, contribution, testing, credential, and
+      security guidance describe current behavior.
+- [ ] Dataset sources and redistribution terms are documented.
+- [ ] No credentials, personal paths, proprietary data, generated backtests, or
+      unnecessary notebook output are tracked.
 
-- License added
-- Pull request template added
-- Issue templates added
-- CI workflows added
+## Engineering validation
 
-## Student Experience
+- [ ] `pytest -m "not integration"` passes on Python 3.11 and 3.12.
+- [ ] `python scripts/check_repository_policy.py --all` passes.
+- [ ] `mkdocs build --strict` and the GitHub link check pass.
+- [ ] CodeQL and dependency review pass.
+- [ ] The Docker image builds, imports its core packages, runs tests, contains the
+      demo project, and has no secret references in its layers.
+- [ ] Relevant LEAN cloud backtests and example notebooks were run manually.
 
-- Reproducible examples available
-- Notebook workflows documented
-- Clear project structure
-- Research examples documented
+## Publish
 
-## Engineering Validation
-
-These map to the CI workflows under `.github/workflows/` — confirm each is
-green on the release commit:
-
-- Tests pass — `tests.yml` (`pytest -m "not integration"`, plus the
-  `tests/hygiene/` checks that shell out to git)
-- Docs build clean — `docs.yml` runs `mkdocs build --strict` (fails on missing
-  nav pages or broken internal refs)
-- Docs links resolve — `docs.yml` runs the `lychee` link-checker (`fail: true`)
-  over `docs/**/*.md` and root markdown
-- Docker image builds and smoke-tests pass — `docker.yml` (lean CLI loads,
-  infrastructure/marimo imports, in-image pytest, demo project present,
-  no secrets in layers)
-- No secrets committed — `secret-scan.yml`
-- Dependencies resolve from a clean environment — `pip install` of
-  `requirements-dev.txt`, `infrastructure/requirements.txt`, and
-  `infrastructure/marimo/requirements.txt`
-- LEAN compatibility — `LEAN_VERSION` build arg pins the CLI; confirm the
-  pinned version still pushes/backtests in the cloud
-- Example notebook executes headless — run the marimo `.py` as a script and
-  confirm no cell raises
-
-## Final Review
-
-- Test clone from a clean machine
-- Verify onboarding steps
-- Verify links
-- Verify ignored files
+1. Merge the release PR after required review and checks.
+2. Create a semantic version tag such as `v0.1.0` from the verified `main` commit.
+3. Wait for the versioned multi-architecture GHCR image to publish.
+4. Create GitHub release notes that identify the commit, image tag, supported
+   Python versions, known limitations, and student upgrade instructions.
+5. Pull the versioned image from a clean machine and run the quickstart.
+6. Keep course material pinned to the version tag; use `latest` only for
+   development.

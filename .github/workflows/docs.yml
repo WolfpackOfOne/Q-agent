@@ -1,26 +1,32 @@
-name: Deploy docs
+name: Docs
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
+    name: Build docs
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
-          python-version: "3.x"
+          python-version: "3.12"
+          cache: pip
 
       - name: Install docs dependencies
         run: pip install -r docs/requirements-docs.txt
@@ -29,12 +35,14 @@ jobs:
         run: mkdocs build --strict
 
   linkcheck:
+    name: Check links
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Check links in docs and root markdown
-        uses: lycheeverse/lychee-action@v2
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2
         with:
           args: >-
             --no-progress
@@ -44,20 +52,37 @@ jobs:
             './*.md'
           fail: true
 
+  docs-gate:
+    name: Docs
+    if: always()
+    needs: [build, linkcheck]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify documentation checks
+        env:
+          BUILD_RESULT: ${{ needs.build.result }}
+          LINKCHECK_RESULT: ${{ needs.linkcheck.result }}
+        run: |
+          test "$BUILD_RESULT" = "success"
+          test "$LINKCHECK_RESULT" = "success"
+
   deploy:
-    needs: build
+    name: Deploy docs
+    needs: docs-gate
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: write
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
-          python-version: "3.x"
+          python-version: "3.12"
+          cache: pip
 
       - name: Install docs dependencies
         run: pip install -r docs/requirements-docs.txt

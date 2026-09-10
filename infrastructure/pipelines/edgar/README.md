@@ -15,7 +15,7 @@ Output: `MyProjects/data/edgar/fundamentals_annual.csv` (and `fundamentals_quart
 ## Usage
 
 ```bash
-cd ~/Documents/Q-agent && source venv/bin/activate
+cd /path/to/Q-agent && source venv/bin/activate
 
 # Full 30-stock equity universe, annual only
 python infrastructure/edgar/pipeline.py
