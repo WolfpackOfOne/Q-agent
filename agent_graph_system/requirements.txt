@@ -13,5 +13,5 @@ pandas>=2.0
 sqlalchemy>=2.0.51
 watchdog>=4.0
 python-dotenv>=1.2.2
-arxiv>=2.1
+arxiv>=4.0.1
 pypdf>=6.13.3
