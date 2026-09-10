@@ -441,17 +441,18 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="../contributing/" class="md-tabs__link">
-        
-  
-  
     
+    
+      <li class="md-tabs__item">
+        <a href="../contributing/" class="md-tabs__link">
+          
   
-  Contributing
+  
+  Community
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -790,6 +791,62 @@
     
   
     Docker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project-map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Map
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing and Required Checks
   
 
     
@@ -1573,6 +1630,58 @@
   
   
   
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Community
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Community
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
       <a href="../contributing/" class="md-nav__link">
         
@@ -1590,6 +1699,42 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CODE_OF_CONDUCT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -1949,7 +2094,7 @@
 <hr />
 <h2 id="runtime-artifact-the-workspace-docker-image">Runtime artifact: the workspace Docker image<a class="headerlink" href="#runtime-artifact-the-workspace-docker-image" title="Permanent link">&para;</a></h2>
 <p>The workspace publishes a single runtime image to GitHub Container Registry on every push to <code>main</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>ghcr.io/wolfpackofone/q-agent:latest   # tracks main
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>ghcr.io/wolfpackofone/q-agent:v0.1.0   # fixed course baseline
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>ghcr.io/wolfpackofone/q-agent:sha-&lt;x&gt;  # per-commit
 <a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>ghcr.io/wolfpackofone/q-agent:vX.Y.Z   # version tags
 </code></pre></div>

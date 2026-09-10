@@ -441,17 +441,18 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="../contributing/" class="md-tabs__link">
-        
-  
-  
     
+    
+      <li class="md-tabs__item">
+        <a href="../contributing/" class="md-tabs__link">
+          
   
-  Contributing
+  
+  Community
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -919,6 +920,62 @@
     
   
     Docker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project-map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Map
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing and Required Checks
   
 
     
@@ -1511,6 +1568,58 @@
   
   
   
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Community
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Community
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
       <a href="../contributing/" class="md-nav__link">
         
@@ -1528,6 +1637,42 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CODE_OF_CONDUCT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -1662,7 +1807,7 @@
 infrastructure pipelines, and marimo into one container. If you don't need
 local <code>lean backtest</code> (host-only — see Docker page) and prefer not to
 manage host venvs, run:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>-v<span class="w"> </span><span class="s2">"</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">:/workspace"</span><span class="w"> </span>ghcr.io/wolfpackofone/q-agent:latest
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>-it<span class="w"> </span>-v<span class="w"> </span><span class="s2">"</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span><span class="s2">:/workspace"</span><span class="w"> </span>ghcr.io/wolfpackofone/q-agent:v0.1.0
 </code></pre></div>
 <p>The host setup below is required only if you want to run <code>lean backtest</code>
 locally or develop without containers.</p>
@@ -1679,14 +1824,17 @@ locally or develop without containers.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/WolfpackOfOne/Q-agent.git
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">cd</span><span class="w"> </span>Q-agent
 </code></pre></div>
+<p>Contributors should clone their own fork and add this repository as <code>upstream</code>;
+see <a href="../contributing/">Contributing</a>.</p>
 <h2 id="create-a-virtual-environment">Create a Virtual Environment<a class="headerlink" href="#create-a-virtual-environment" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python3.11<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">source</span><span class="w"> </span>venv/bin/activate
 </code></pre></div>
+<p>Windows PowerShell: <code>venv\Scripts\Activate.ps1</code>.</p>
 <p>If your system exposes Python 3.11 as <code>python</code> or <code>python3</code>, use that command instead.</p>
 <h2 id="install-lean-cli">Install LEAN CLI<a class="headerlink" href="#install-lean-cli" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>pip<span class="w"> </span>install<span class="w"> </span>lean
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">lean</span><span class="o">==</span><span class="m">1</span>.0.225
 </code></pre></div>
 <h2 id="configure-quantconnect">Configure QuantConnect<a class="headerlink" href="#configure-quantconnect" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">cd</span><span class="w"> </span>MyProjects
@@ -1704,6 +1852,8 @@ locally or develop without containers.</p>
 <li>Keep reusable code in domain modules</li>
 <li>Avoid committing local data</li>
 <li>Use feature branches for experimental work</li>
+<li>Render new strategies with <code>python scripts/create_strategy.py ProjectName</code>;
+  do not copy <code>_template</code> directly</li>
 </ul>
 
 

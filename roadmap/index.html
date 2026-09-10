@@ -441,17 +441,18 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="../contributing/" class="md-tabs__link">
-        
-  
-  
     
+    
+      <li class="md-tabs__item">
+        <a href="../contributing/" class="md-tabs__link">
+          
   
-  Contributing
+  
+  Community
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -790,6 +791,62 @@
     
   
     Docker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project-map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Map
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing and Required Checks
   
 
     
@@ -1445,6 +1502,58 @@
   
   
   
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Community
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Community
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
       <a href="../contributing/" class="md-nav__link">
         
@@ -1462,6 +1571,42 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CODE_OF_CONDUCT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -1537,11 +1682,16 @@
 <hr />
 <h1 id="recently-shipped">Recently Shipped<a class="headerlink" href="#recently-shipped" title="Permanent link">&para;</a></h1>
 <ul>
-<li><strong>Docker / GHCR image</strong> (<a href="https://github.com/WolfpackOfOne/Q-agent/issues/20">#20</a>, <a href="https://github.com/WolfpackOfOne/Q-agent/pull/25">#25</a>). Public image at <code>ghcr.io/wolfpackofone/q-agent:latest</code> bundles LEAN CLI + infrastructure pipelines + marimo. CI builds on every PR, publishes on every push to <code>main</code>. See <a href="../docker/">Docker</a>.</li>
+<li><strong>Docker / GHCR image</strong> (<a href="https://github.com/WolfpackOfOne/Q-agent/issues/20">#20</a>, <a href="https://github.com/WolfpackOfOne/Q-agent/pull/25">#25</a>). Public multi-architecture images bundle LEAN CLI, infrastructure pipelines, and marimo. Course users pin a release tag; <code>:latest</code> tracks <code>main</code>. See <a href="../docker/">Docker</a>.</li>
 <li><strong>Multi-arch Docker image</strong> — the published manifest supports both <code>linux/amd64</code> and <code>linux/arm64</code>, so Apple Silicon hosts can pull natively. See <a href="../docker/">Docker</a>.</li>
 <li><strong>Workflow-first documentation site</strong> — mkdocs at <a href="https://wolfpackofone.github.io/Q-agent/">https://wolfpackofone.github.io/Q-agent/</a> with linkcheck on every PR.</li>
 <li><strong>Personal-paths CI scanner</strong> — <code>.github/workflows/secret-scan.yml</code> blocks PRs that leak host home directories.</li>
 <li><strong>Pipeline maturity table</strong> — the data-pipeline catalog distinguishes stable, committed-data, and experimental pipelines.</li>
+<li><strong>Student contribution governance</strong> — fork-only workflow, CODEOWNERS, issue
+  forms, expanded PR template, code of conduct, repository-policy checks, and
+  private security reporting.</li>
+<li><strong>Required merge gates</strong> — stable Tests, Docs, Security, Repository policy,
+  Docker, CodeQL, and Dependency review checks.</li>
 </ul>
 <hr />
 <h1 id="near-term-priorities">Near-Term Priorities<a class="headerlink" href="#near-term-priorities" title="Permanent link">&para;</a></h1>
@@ -1553,16 +1703,12 @@
 <li>improve agent workflow examples</li>
 <li>keep onboarding commands copy-pasteable</li>
 </ul>
-<h2 id="repo-hygiene-public-launch">Repo Hygiene / Public Launch<a class="headerlink" href="#repo-hygiene-public-launch" title="Permanent link">&para;</a></h2>
-<p>Tracked in <a href="https://github.com/WolfpackOfOne/Q-agent/issues/73">#73</a>:</p>
+<h2 id="repo-hygiene-course-operations">Repo Hygiene / Course Operations<a class="headerlink" href="#repo-hygiene-course-operations" title="Permanent link">&para;</a></h2>
 <ul>
-<li>issue templates</li>
-<li>stronger PR template</li>
-<li>CODEOWNERS</li>
-<li>CODE_OF_CONDUCT</li>
-<li>label and milestone taxonomy</li>
-<li>README status badges</li>
-<li>dependency policy</li>
+<li>review the label and milestone taxonomy each term</li>
+<li>add trusted TA reviewers before the instructor needs to submit a PR</li>
+<li>keep course instructions pinned to a tested semantic release</li>
+<li>periodically audit permissions, required checks, dependencies, and stale docs</li>
 </ul>
 <h2 id="docker-followups">Docker Followups<a class="headerlink" href="#docker-followups" title="Permanent link">&para;</a></h2>
 <ul>

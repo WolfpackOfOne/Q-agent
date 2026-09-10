@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://wolfpackofone.github.io/Q-agent/pipelines/">
       
       
-        <link rel="prev" href="../docker/">
+        <link rel="prev" href="../testing/">
       
       
         <link rel="next" href="crypto/">
@@ -441,17 +441,18 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href="../contributing/" class="md-tabs__link">
-        
-  
-  
     
+    
+      <li class="md-tabs__item">
+        <a href="../contributing/" class="md-tabs__link">
+          
   
-  Contributing
+  
+  Community
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -790,6 +791,62 @@
     
   
     Docker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project-map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Map
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing and Required Checks
   
 
     
@@ -1544,6 +1601,58 @@
   
   
   
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Community
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Community
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
       <a href="../contributing/" class="md-nav__link">
         
@@ -1561,6 +1670,42 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CODE_OF_CONDUCT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -1982,6 +2127,11 @@
 <td>Macro rate series (Fed, TIPS, OIS)</td>
 <td>Maturity: <strong>Experimental</strong></td>
 </tr>
+<tr>
+<td><a href="https://github.com/WolfpackOfOne/Q-agent/blob/main/infrastructure/pipelines/news_events_sentiment/README.md"><code>news_events_sentiment</code></a></td>
+<td>Daily news tone/volume per ticker (GDELT DOC 2.0 API, free, 2017-present)</td>
+<td>Maturity: <strong>Experimental</strong></td>
+</tr>
 </tbody>
 </table>
 <hr />
@@ -2036,7 +2186,7 @@
 <hr />
 <h2 id="infrastructure-venv">Infrastructure venv<a class="headerlink" href="#infrastructure-venv" title="Permanent link">&para;</a></h2>
 <p>All pipelines share a single virtual environment:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">cd</span><span class="w"> </span>~/Documents/Q-agent/infrastructure
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">cd</span><span class="w"> </span>/path/to/Q-agent/infrastructure
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>bash<span class="w"> </span>setup.sh<span class="w">                  </span><span class="c1"># one-time bootstrap</span>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nb">source</span><span class="w"> </span>.venv/bin/activate<span class="w">      </span><span class="c1"># activate before running any pipeline</span>
 </code></pre></div>
