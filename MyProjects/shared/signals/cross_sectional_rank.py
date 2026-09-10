@@ -1,32 +1,43 @@
 """
-Cross-sectional ranking signal atoms.
+Cross-sectional rank portfolio construction.
 
-Layer: ATOM (pure Python — no LEAN imports, no I/O, no external dependencies).
+Pure Python. No LEAN imports — must remain importable from a plain
+Python environment so it can be symlinked into any QuantConnect project
+and unit-tested locally.
 
-Used by any strategy that ranks a cross-section of securities by a score and
-trades the extremes: long the top fraction, short the bottom fraction,
-equal-weighted within each side, dollar-neutral overall.
-
-Run this file directly for a sanity check:
-    python MyProjects/shared/signals/cross_sectional_rank.py
+Functions:
+    tercile_long_short_targets(scores, frac, gross)
+        Rank tickers by a model score; long the top `frac` of names,
+        short the bottom `frac`, equal-weighted within each side,
+        dollar-neutral, total gross exposure = `gross`.
 """
 
+from __future__ import annotations
 
-def tercile_long_short_targets(scores, frac=1.0 / 3.0, gross=1.0, min_names=6):
-    """Dollar-neutral long/short target weights from a cross-section of scores.
+
+def tercile_long_short_targets(
+    scores: dict[str, float],
+    frac: float = 1.0 / 3.0,
+    gross: float = 1.0,
+    min_names: int = 6,
+) -> dict[str, float]:
+    """Equal-weight long top-`frac` / short bottom-`frac` by score.
 
     Args:
-        scores: {symbol: score} for the securities scored on this rebalance.
-        frac: fraction of the cross-section to take on each side (1/3 = terciles,
-            0.2 = quintiles, 0.1 = deciles).
-        gross: total gross exposure; half goes long and half short.
-        min_names: below this many scored names the cross-section is too thin to
-            rank meaningfully and the book goes flat.
+        scores: ticker -> model score (higher = more attractive), already
+            filtered to tickers with a valid score for this rebalance.
+        frac: fraction of the scored universe held on *each* side. The
+            default third gives 10 long / 10 short on a 30-name universe.
+        gross: total gross exposure (sum of |weight|); split half long,
+            half short so the book is dollar-neutral.
+        min_names: below this many scored tickers, return {} (flat) —
+            a cross-section this thin isn't worth ranking.
 
     Returns:
-        {symbol: weight}, positive for longs and negative for shorts, summing to
-        zero net and `gross` in absolute value. Empty when the cross-section is
-        thinner than `min_names`.
+        dict[ticker, weight]: +gross/(2k) for the top k, -gross/(2k) for
+        the bottom k, where k = max(1, round(len(scores) * frac)) capped
+        at half the universe so sides never overlap. Tickers in the
+        middle are omitted (weight 0).
     """
     n = len(scores)
     if n < min_names:
@@ -37,23 +48,30 @@ def tercile_long_short_targets(scores, frac=1.0 / 3.0, gross=1.0, min_names=6):
     shorts, longs = ranked[:k], ranked[-k:]
 
     w = gross / (2 * k)
-    targets = {t: -w for t in shorts}
-    targets.update({t: w for t in longs})
+    targets = {ticker: -w for ticker in shorts}
+    targets.update({ticker: w for ticker in longs})
     return targets
 
 
 if __name__ == "__main__":
-    demo = {"AAA": 5.0, "BBB": 4.0, "CCC": 3.0, "DDD": 2.0, "EEE": 1.0, "FFF": 0.0}
+    # Synthetic-data sanity check — run with a plain venv:
+    #   python shared/signals/cross_sectional_rank.py
+    scores = {f"T{i}": float(i) for i in range(30)}          # T0 lowest ... T29 highest
+    t = tercile_long_short_targets(scores)
+    longs = {k for k, v in t.items() if v > 0}
+    shorts = {k for k, v in t.items() if v < 0}
+    assert longs == {f"T{i}" for i in range(20, 30)}, longs
+    assert shorts == {f"T{i}" for i in range(0, 10)}, shorts
+    assert abs(sum(abs(v) for v in t.values()) - 1.0) < 1e-9
+    assert abs(sum(t.values())) < 1e-9, "must be dollar-neutral"
+    assert all(abs(v) == 0.05 for v in t.values())
 
-    t = tercile_long_short_targets(demo, frac=1.0 / 3.0)
-    assert set(t) == {"AAA", "BBB", "EEE", "FFF"}, t
-    assert abs(sum(t.values())) < 1e-12, "book must be dollar-neutral"
-    assert abs(sum(abs(v) for v in t.values()) - 1.0) < 1e-12, "gross must be 1.0"
+    # Thin cross-section -> flat.
+    assert tercile_long_short_targets({"A": 1.0, "B": 2.0}) == {}
 
-    d = tercile_long_short_targets(demo, frac=0.1)
-    assert set(d) == {"AAA", "FFF"}, d
-    assert abs(d["AAA"] - 0.5) < 1e-12 and abs(d["FFF"] + 0.5) < 1e-12, d
+    # Sides never overlap on a tiny-but-allowed universe.
+    six = {f"S{i}": float(i) for i in range(6)}
+    t6 = tercile_long_short_targets(six, frac=0.5)
+    assert len(t6) == 6 and sum(1 for v in t6.values() if v > 0) == 3
 
-    assert tercile_long_short_targets({"AAA": 1.0}) == {}, "thin cross-section goes flat"
-
-    print("cross_sectional_rank: all checks passed")
+    print("cross_sectional_rank.py: all checks passed")

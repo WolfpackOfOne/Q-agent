@@ -1,8 +1,8 @@
-ccxt>=4.5.59
+ccxt>=4.5.60
 requests>=2.34.2
 pandas>=2.2.0
-numpy>=2.4.6
+numpy>=2.5.0
 python-dotenv>=1.2.2
-tenacity>=8.5.0
+tenacity>=9.1.4
 tqdm>=4.68.3
-yfinance>=1.4.0
+yfinance>=1.5.1
