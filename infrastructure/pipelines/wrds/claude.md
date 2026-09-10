@@ -25,6 +25,7 @@ WRDS/
 │   ├── etf_constituents.py        # ETF constituent extraction (crsp.holdings)
 │   ├── sectors.py                 # Sector classification (Compustat GICS -> Morningstar)
 │   ├── fundamentals.py            # Piotroski F-score (comp.funda annual fundamentals)
+│   ├── quarterly_fundamentals.py  # Quarterly income statement / balance sheet / cash flow (comp.fundq)
 │   ├── macro.py                   # FRB FX/rates, Fama-French, global factors
 │   ├── ownership.py               # TR 13F holdings and summary data
 │   ├── ratios.py                  # WRDS precomputed financial ratios
@@ -35,6 +36,8 @@ WRDS/
 │   ├── run_etf_pipeline.py        # ETF constituent universe CLI
 │   ├── run_sector_pipeline.py     # Sector classification CLI
 │   ├── run_fundamentals_pipeline.py  # Piotroski F-score pipeline CLI
+│   ├── run_quarterly_fundamentals_pipeline.py  # Quarterly financial statements CLI (30-stock universe)
+│   ├── run_broad_quarterly_pipeline.py  # All US filers >= $1B via CCM link + point-in-time top-N universe + prices
 │   ├── run_macro_pipeline.py      # Macro, FX, and factor data CLI
 │   ├── run_13f_pipeline.py        # Institutional ownership CLI
 │   ├── run_finratio_pipeline.py   # Financial ratios CLI
@@ -50,6 +53,7 @@ WRDS/
     │   └── sector_map.csv         # Ticker -> Morningstar sector mapping
     ├── alternative/fundamentals/  # Annual fundamental signals
     │   ├── piotroski_scores.csv   # Point-in-time Piotroski F-scores (0-9)
+    │   ├── quarterly_fundamentals.csv  # Quarterly statements, point-in-time via rdq
     │   └── wrds_financial_ratios.csv
     ├── alternative/macro/         # FRB FX and rates
     ├── alternative/factors/       # FF and global factors
@@ -87,6 +91,18 @@ python scripts/run_fundamentals_pipeline.py                    # Full equity uni
 python scripts/run_fundamentals_pipeline.py --profile new_university
 python scripts/run_fundamentals_pipeline.py --tickers AAPL MSFT GS   # Specific tickers
 python scripts/run_fundamentals_pipeline.py --start-year 2000  # From 2000 onward
+
+# === Quarterly Financial Statements Pipeline (Compustat comp.fundq) ===
+export WRDS_USERNAME=<your-wrds-username>   # the wrds package prompts otherwise; password comes from ~/.pgpass
+python scripts/run_quarterly_fundamentals_pipeline.py                    # Full equity universe (30 stocks)
+python scripts/run_quarterly_fundamentals_pipeline.py --tickers AAPL MSFT # Specific tickers
+python scripts/run_quarterly_fundamentals_pipeline.py --start-year 2000   # From fiscal 2000
+
+# === Broad Quarterly Fundamentals + Top-N Universe (comp.fundq × CCM link × CRSP) ===
+export WRDS_USERNAME=<your-wrds-username>
+caffeinate -dims python scripts/run_broad_quarterly_pipeline.py             # all USD filers >= $1B, top-1000 universe, prices (~15 min)
+python scripts/run_broad_quarterly_pipeline.py --fundamentals-only          # phases 1-2 only, no CRSP price pull
+python scripts/run_broad_quarterly_pipeline.py --top-n 500 --min-mktcap 2000
 
 # === IBES Earnings Pipeline ===
 python scripts/run_ibes_pipeline.py                            # Full equity universe (30 stocks)
@@ -200,6 +216,44 @@ CurrentAssets,CurrentLiabilities,SharesOutstanding,GrossProfit,Revenue
 - **FiscalYearEnd**: actual fiscal year end (datadate) — do not use directly; causes look-ahead
 - All 9 signal columns are 0/1 integers; F_Score is their sum (0–9)
 - Raw financial values included for research decomposition
+
+### Quarterly Fundamentals (`alternative/fundamentals/quarterly_fundamentals.csv`)
+
+CSV with header, one row per (Ticker, fiscal quarter), ~49 columns:
+```
+Ticker,CompanyName,gvkey,AvailableDate,ReportDate,FiscalQuarterEnd,FiscalYear,FiscalQuarter,FiscalYearEndMonth,
+saleq,revtq,cogsq,xsgaq,xrdq,oibdpq,dpq,xintq,piq,txtq,ibq,niq,epspxq,cshprq,          # income statement (quarterly flows)
+atq,actq,cheq,rectq,invtq,ppentq,gdwlq,intanq,ltq,lctq,apq,dlttq,dlcq,ceqq,seqq,req,cshoq,  # balance sheet (levels)
+oancfy,capxy,dvy,sstky,prstkcy,fincfy,ivncfy,                                          # cash flow — FISCAL-YEAR-TO-DATE
+prccq,mkvaltq                                                                          # quarter-end price, market value
+```
+- **AvailableDate**: point-in-time date — `rdq` (earnings release) when present, else `FiscalQuarterEnd` + 45 days (Q1–Q3) / + 90 days (Q4). Use this for backtesting, never `FiscalQuarterEnd`.
+- **`*y` cash-flow columns are year-to-date cumulative** — difference within (Ticker, FiscalYear) to get single-quarter flows (Q1 = as-is). Fiscal years end in different months per company (`FiscalYearEndMonth`), so do this on each company's own fiscal clock.
+- `mkvaltq` is ~30% missing; use `prccq * cshoq`. `xrdq`, `gdwlq`, `intanq` are null when not reported — treat as 0.
+- Restated filings: one row per (Ticker, FiscalQuarterEnd) is kept (latest `rdq`).
+
+### Broad Quarterly Fundamentals (`alternative/fundamentals/broad_*.csv`)
+
+`scripts/run_broad_quarterly_pipeline.py` — every USD-reporting company in
+`comp.fundq` with quarter-end market cap ≥ `--min-mktcap` ($1B default),
+joined to a CRSP PERMNO through `crsp_a_ccm.ccmxpf_lnkhist` (primary LU/LC
+links valid on `datadate`). ~173k company-quarters, ~6k PERMNOs, 2004–2024.
+
+| File | Contents |
+|---|---|
+| `broad_quarterly_fundamentals.csv` | Same columns as `quarterly_fundamentals.csv` plus `permno`; de-duplicated on (gvkey, datadate) and (permno, datadate) |
+| `broad_universe.csv` | `quarter_end,permno,gvkey,Ticker,mktcap,rank` — the `--top-n` (1000) largest companies at each calendar quarter-end by the most recently **reported** market cap (filing `rdq` ≤ quarter-end, ≤ 200 days stale). Point-in-time, so no survivorship bias in eligibility |
+| `broad_permno_map.csv` | `permno,lean_ticker,comp_ticker` — one unique alphanumeric LEAN ticker per PERMNO (latest CRSP ticker; `{ticker}{permno}` on collision) |
+| `broad_monthly_tri.csv` | `permno,date,tri,raw_close` — month-end total-return index compounded from CRSP daily `ret` (dividends included; **delisting returns not included**) |
+
+Prices for every universe member are also published as LEAN daily zips /
+factor files / map files under `equity/usa/` named by `lean_ticker`
+(`--price-start 1998-01-01`, so the 30-stock files are regenerated as
+identical supersets). **Key research on PERMNO**, not ticker — CRSP
+tickers are reused across companies. No SIC / sector column yet, so
+financials are not excluded. Worked example:
+`infrastructure/marimo/notebooks/fundamentals_portfolio.py` →
+`MyProjects/FundamentalsPortfolio`.
 
 ### IBES Consensus (`alternative/earnings/ibes_consensus.csv`)
 
