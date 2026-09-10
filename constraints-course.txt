@@ -1,7 +1,7 @@
 # Direct dependency baseline for the v0.1.0 course release.
 # The immutable GHCR image is the authoritative fully resolved environment.
 lean==1.0.225
-pytest==9.0.3
+pytest==9.1.1
 pytest-cov==7.1.0
 pytest-mock==3.15.1
 pandas==3.0.3
