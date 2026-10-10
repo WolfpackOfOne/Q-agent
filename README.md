@@ -58,6 +58,7 @@ Q-agent/
 ├── .github/              # PR policy, issue forms, ownership, CI and security
 ├── docs/                 # Published student and contributor documentation
 ├── infrastructure/       # Shared pipelines and marimo notebooks
+├── obsidian/            # Obsidian code vault (python scripts/build_obsidian_vault.py)
 ├── MyProjects/
 │   ├── _template/        # Rendered by scripts/create_strategy.py
 │   ├── shared/           # Reusable pure-Python signals

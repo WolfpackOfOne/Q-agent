@@ -1,0 +1,202 @@
+---
+path: ".github/workflows/docker.yml"
+hub: "CI workflows"
+tags:
+  - "code/yaml"
+  - "areas/CI-workflows"
+github: "https://github.com/WolfpackOfOne/Q-agent/blob/main/.github/workflows/docker.yml"
+---
+# docker.yml
+
+`.github/workflows/docker.yml` · hub [[Hubs/Areas/CI workflows|CI workflows]] · [GitHub](https://github.com/WolfpackOfOne/Q-agent/blob/main/.github/workflows/docker.yml)
+
+**Triggers:**
+
+```yaml
+pull_request:
+  push:
+    branches: [main]
+    tags: ["v*.*.*"]
+```
+
+**Jobs:** `changes`, `build`, `docker-gate`, `publish`
+
+## Source
+
+> [!example]- .github/workflows/docker.yml
+> ```yaml
+> name: Docker
+>
+> on:
+>   pull_request:
+>   push:
+>     branches: [main]
+>     tags: ["v*.*.*"]
+>
+> permissions:
+>   contents: read
+>
+> concurrency:
+>   group: docker-${{ github.ref }}
+>   cancel-in-progress: true
+>
+> env:
+>   REGISTRY: ghcr.io
+>   IMAGE_NAME: wolfpackofone/q-agent
+>
+> jobs:
+>   changes:
+>     name: Detect image changes
+>     runs-on: ubuntu-latest
+>     outputs:
+>       image: ${{ steps.filter.outputs.image }}
+>     steps:
+>       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+>         with:
+>           fetch-depth: 0
+>
+>       - name: Decide whether a PR needs an image build
+>         id: filter
+>         shell: bash
+>         env:
+>           EVENT_NAME: ${{ github.event_name }}
+>           BASE_SHA: ${{ github.event.pull_request.base.sha }}
+>         run: |
+>           set -euo pipefail
+>           if [ "$EVENT_NAME" != "pull_request" ]; then
+>             echo "image=true" >> "$GITHUB_OUTPUT"
+>           elif git diff --quiet "$BASE_SHA...HEAD" -- \
+>             Dockerfile .dockerignore requirements-dev.txt constraints-course.txt \
+>             infrastructure/requirements.txt \
+>             infrastructure/marimo/requirements.txt \
+>             .github/workflows/docker.yml; then
+>             echo "image=false" >> "$GITHUB_OUTPUT"
+>           else
+>             echo "image=true" >> "$GITHUB_OUTPUT"
+>           fi
+>
+>   build:
+>     name: Build and smoke-test image
+>     needs: changes
+>     if: needs.changes.outputs.image == 'true'
+>     runs-on: ubuntu-latest
+>     timeout-minutes: 30
+>     steps:
+>       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+>
+>       - name: Set up QEMU
+>         uses: docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a # v4
+>
+>       - name: Set up Docker Buildx
+>         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
+>
+>       - name: Build image locally for smoke tests
+>         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+>         with:
+>           context: .
+>           platforms: linux/amd64
+>           load: true
+>           tags: q-agent:ci
+>           cache-from: type=gha
+>           cache-to: type=gha,mode=max
+>
+>       - name: Smoke test LEAN CLI
+>         run: docker run --rm q-agent:ci lean --help | head -5
+>
+>       - name: Smoke test infrastructure imports
+>         run: >-
+>           docker run --rm q-agent:ci python -c
+>           "import ccxt, pandas, numpy, yfinance, tenacity, tqdm, dotenv, requests; print('OK')"
+>
+>       - name: Smoke test marimo imports
+>         run: docker run --rm q-agent:ci python -c "import marimo; print(marimo.__version__)"
+>
+>       - name: Run tests inside image
+>         run: >-
+>           docker run --rm q-agent:ci pytest
+>           -m "not integration"
+>           --ignore=tests/hygiene
+>           -p no:cacheprovider
+>           -q
+>
+>       - name: Verify demo project is shipped
+>         run: docker run --rm q-agent:ci test -d /workspace/MyProjects/ElectionIndustryBeta
+>
+>       - name: Check image history for secret references
+>         shell: bash
+>         run: |
+>           set -euo pipefail
+>           if docker history q-agent:ci | grep -iE 'lean\.json|\.env|credentials|\.key'; then
+>             echo "Blocked: secret reference found in image history"
+>             exit 1
+>           fi
+>
+>   docker-gate:
+>     name: Docker
+>     if: always()
+>     needs: [changes, build]
+>     runs-on: ubuntu-latest
+>     steps:
+>       - name: Verify image check
+>         env:
+>           CHANGES_RESULT: ${{ needs.changes.result }}
+>           BUILD_RESULT: ${{ needs.build.result }}
+>         run: |
+>           test "$CHANGES_RESULT" = "success"
+>           test "$BUILD_RESULT" = "success" -o "$BUILD_RESULT" = "skipped"
+>
+>   publish:
+>     name: Publish image
+>     needs: [changes, build, docker-gate]
+>     if: >-
+>       github.event_name == 'push' &&
+>       (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+>     permissions:
+>       contents: read
+>       packages: write
+>     runs-on: ubuntu-latest
+>     timeout-minutes: 30
+>     steps:
+>       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+>
+>       - name: Set up QEMU
+>         uses: docker/setup-qemu-action@1f40c72289eff860ee54a304f1438e3cff362e0a # v4
+>
+>       - name: Set up Docker Buildx
+>         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
+>
+>       - name: Log in to GHCR
+>         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+>         with:
+>           registry: ${{ env.REGISTRY }}
+>           username: ${{ github.actor }}
+>           password: ${{ secrets.GITHUB_TOKEN }}
+>
+>       - name: Compute immutable image tags
+>         id: tags
+>         shell: bash
+>         run: |
+>           set -euo pipefail
+>           if [ "$GITHUB_REF" = "refs/heads/main" ]; then
+>             short_sha="${GITHUB_SHA:0:7}"
+>             tags="${REGISTRY}/${IMAGE_NAME}:latest,${REGISTRY}/${IMAGE_NAME}:sha-${short_sha}"
+>           else
+>             version="${GITHUB_REF#refs/tags/}"
+>             tags="${REGISTRY}/${IMAGE_NAME}:${version}"
+>           fi
+>           echo "tags=$tags" >> "$GITHUB_OUTPUT"
+>
+>       - name: Publish multi-architecture image
+>         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+>         with:
+>           context: .
+>           platforms: linux/amd64,linux/arm64
+>           push: true
+>           tags: ${{ steps.tags.outputs.tags }}
+>           cache-from: type=gha
+>           cache-to: type=gha,mode=max
+>           labels: |
+>             org.opencontainers.image.source=https://github.com/${{ github.repository }}
+>             org.opencontainers.image.revision=${{ github.sha }}
+>             org.opencontainers.image.created=${{ github.event.repository.pushed_at }}
+> ```

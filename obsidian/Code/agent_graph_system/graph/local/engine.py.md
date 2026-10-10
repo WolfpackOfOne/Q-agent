@@ -1,0 +1,792 @@
+---
+path: "agent_graph_system/graph/local/engine.py"
+hub: "Agent Graph System"
+lines: 571
+tags:
+  - "code/python"
+  - "areas/Agent-Graph-System"
+github: "https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py"
+---
+# engine.py
+
+`agent_graph_system/graph/local/engine.py` · hub [[Hubs/Areas/Agent Graph System|Agent Graph System]] · [GitHub](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py)
+
+## Purpose
+
+In-process graph engine backed by networkx.
+Implements the same merge_node / merge_relationship / query interface
+as graph_models so the rest of the system is backend-agnostic.
+
+## Dependencies
+
+**Imports (workspace):** [[Code/agent_graph_system/ontology/provenance.py|provenance.py]]
+
+**Imports (external):** [[Indexes/External packages#__future__|__future__]], [[Indexes/External packages#datetime|datetime]], [[Indexes/External packages#json|json]], [[Indexes/External packages#logging|logging]], [[Indexes/External packages#networkx|networkx]], [[Indexes/External packages#pathlib|pathlib]], [[Indexes/External packages#pickle|pickle]], [[Indexes/External packages#re|re]], [[Indexes/External packages#typing|typing]]
+
+**Imported by:** [[Code/agent_graph_system/graph/backend.py|backend.py]], [[Code/agent_graph_system/graph/context_pack.py|context_pack.py]], [[Code/agent_graph_system/ingestion/papers/graph_writer.py|graph_writer.py]], [[Code/agent_graph_system/main.py|main.py]], [[Code/tests/agent_graph_system/conftest.py|conftest.py]], [[Code/tests/agent_graph_system/test_context_pack.py|test_context_pack.py]], [[Code/tests/agent_graph_system/test_latest_backtest.py|test_latest_backtest.py]], [[Code/tests/agent_graph_system/test_paper_ingestion.py|test_paper_ingestion.py]], [[Code/tests/agent_graph_system/test_provenance.py|test_provenance.py]], [[Code/tests/agent_graph_system/test_prune.py|test_prune.py]], [[Code/tests/agent_graph_system/test_quantconnect_ingestion.py|test_quantconnect_ingestion.py]], [[Code/tests/agent_graph_system/test_walkforward_agent.py|test_walkforward_agent.py]], [[Code/tests/agent_graph_system/test_walkforward_agent_phase2.py|test_walkforward_agent_phase2.py]]
+
+## Constants
+
+| Name | Value | Line |
+|---|---|---|
+| `_PERSIST_PATH` | `Path(__file__).parent.parent.parent / '.local_graph.pkl'` | [23](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L23) |
+| `_INVALID_BACKTEST_STATUSES` | `frozenset({'failed', 'running'})` | [26](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L26) |
+| `_G` | `nx.MultiDiGraph()` | [29](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L29) |
+
+## Functions
+
+### `_load()`
+
+```python
+def _load() -> None
+```
+[line 32](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L32)
+
+### `_save()`
+
+```python
+def _save() -> None
+```
+[line 46](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L46)
+
+### `merge_node()`
+
+```python
+def merge_node(label: str, key: str, key_value: str, props: dict[str, Any] | None=None, *, provenance: 'Provenance | None'=None) -> None
+```
+[line 58](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L58)
+
+### `merge_relationship()`
+
+```python
+def merge_relationship(from_label: str, from_key: str, from_val: str, rel_type: str, to_label: str, to_key: str, to_val: str, props: dict[str, Any] | None=None, *, provenance: 'Provenance | None'=None) -> None
+```
+[line 79](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L79)
+
+### `prune_stale()`
+
+```python
+def prune_stale(root_ids: list[str], run_marker: str, *, scope_prop: str | None=None, scope_value: str | None=None, apply: bool=False) -> dict[str, Any]
+```
+[line 112](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L112)
+
+Report (or with ``apply=True``, delete) facts left behind by older
+ingest runs of one parent.
+
+This is the engine's only deletion path, and it is **never called from
+ingest** — re-ingest stays merge-only and read paths filter stale facts via
+``provenance.is_current``. Pruning is an explicit maintenance operation
+(see the ``prune`` CLI command), dry-run by default.
+
+A fact is *stale* when its ``prov_last_seen`` is set and differs from
+``run_marker`` (the parent's current ``last_ingest_run``). Facts without
+stamped provenance are never pruned.
+
+Scoping: only edges whose **source** is a root or a node with
+``props[scope_prop] == scope_value`` are considered, so an edge written by
+another parent into a shared node (e.g. another project's ``DEFINES`` into
+a shared ``Signal``) is untouched. A node is removed only when it is
+scoped, stale, not a root, and left with no edges at all once the stale
+edges go — shared nodes still referenced elsewhere always survive.
+
+Local backend only — the Neo4j stub has no prune parity.
+
+### `query()`
+
+```python
+def query(cypher: str, **params) -> list[dict[str, Any]]
+```
+[line 194](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L194)
+
+Lightweight Cypher interpreter for the named patterns we actually use.
+Handles the specific queries in graph/cypher/queries.py.
+
+### `_extract_label_from_match()`
+
+```python
+def _extract_label_from_match(cypher: str) -> str
+```
+[line 390](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L390)
+
+Pull the first :Label from a MATCH clause.
+
+### `latest_backtest_for_strategy()`
+
+```python
+def latest_backtest_for_strategy(strategy: str) -> dict[str, Any] | None
+```
+[line 397](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L397)
+
+Return the latest valid backtest linked to ``strategy``, or None.
+
+A backtest is linked either via a ``Strategy -[HAS_BACKTEST]-> Backtest``
+edge or by carrying a ``strategy`` property. Failed/running backtests are
+excluded; "latest" is the max over completed_at / run_date / created_at /
+updated_at. Results are de-duplicated by run_id.
+
+### `latest_walkforward_for_strategy()`
+
+```python
+def latest_walkforward_for_strategy(strategy: str) -> dict[str, Any] | None
+```
+[line 439](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L439)
+
+Return the latest completed walk-forward run linked to ``strategy``.
+
+Mirrors :func:`latest_backtest_for_strategy`: a run is linked via a
+``Strategy -[HAS_WALKFORWARD]-> WalkforwardRun`` edge or by carrying a
+``strategy`` property. Only ``status == 'completed'`` runs qualify
+(insufficient_data / failed runs never satisfy the gate); "latest" is the
+max over created_at / updated_at. De-duplicated by run_id.
+
+### `_walkforward_dict()`
+
+```python
+def _walkforward_dict(node_id: str, node: dict[str, Any]) -> dict[str, Any]
+```
+[line 476](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L476)
+
+Materialize a WalkforwardRun node, resolving its VALIDATES target.
+
+``validates_backtest`` is the run_id of the Backtest this run was computed
+against (via the ``VALIDATES`` edge), so the deployment gate can confirm a
+run validates the *exact* backtest being gated rather than just the newest
+run for the strategy.
+
+### `_walkforward_ts()`
+
+```python
+def _walkforward_ts(node: dict[str, Any]) -> str
+```
+[line 495](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L495)
+
+### `latest_walkforward_for_backtest()`
+
+```python
+def latest_walkforward_for_backtest(backtest_run_id: str) -> dict[str, Any] | None
+```
+[line 502](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L502)
+
+Return the latest completed walk-forward run that VALIDATES the backtest.
+
+Stricter than :func:`latest_walkforward_for_strategy`: only runs linked by a
+``WalkforwardRun -[VALIDATES]-> Backtest`` edge to *this* ``backtest_run_id``
+qualify. The deployment gate uses this so a stale run that validated an older
+backtest cannot green-light a newer one.
+
+### `nodes()`
+
+```python
+def nodes(label: str | None=None) -> list[tuple[str, dict[str, Any]]]
+```
+[line 526](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L526)
+
+``(node_id, props)`` for every node, optionally filtered by label.
+
+### `out_relations()`
+
+```python
+def out_relations(node_id: str) -> list[tuple[str, str, dict[str, Any]]]
+```
+[line 535](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L535)
+
+``(rel_type, target_id, edge_props)`` for edges leaving ``node_id``.
+
+### `get_node()`
+
+```python
+def get_node(node_id: str) -> dict[str, Any] | None
+```
+[line 545](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L545)
+
+Props for a single node by id (``Label::key``), or None.
+
+### `graph_stats()`
+
+```python
+def graph_stats() -> dict[str, Any]
+```
+[line 550](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L550)
+
+### `create_indexes()`
+
+```python
+def create_indexes() -> None
+```
+[line 569](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/graph/local/engine.py#L569)
+
+## Source
+
+> [!example]- agent_graph_system/graph/local/engine.py (571 lines)
+> ```python
+> """
+> In-process graph engine backed by networkx.
+> Implements the same merge_node / merge_relationship / query interface
+> as graph_models so the rest of the system is backend-agnostic.
+> """
+>
+> from __future__ import annotations
+>
+> import json
+> import logging
+> import pickle
+> from datetime import datetime
+> from pathlib import Path
+> from typing import TYPE_CHECKING, Any
+>
+> import networkx as nx
+>
+> if TYPE_CHECKING:
+>     from agent_graph_system.ontology.provenance import Provenance
+>
+> log = logging.getLogger(__name__)
+>
+> _PERSIST_PATH = Path(__file__).parent.parent.parent / ".local_graph.pkl"
+>
+> # Backtest statuses that never count as a valid completed backtest.
+> _INVALID_BACKTEST_STATUSES = frozenset({"failed", "running"})
+>
+> # MultiDiGraph: multiple edge types between same pair of nodes
+> _G: nx.MultiDiGraph = nx.MultiDiGraph()
+>
+>
+> def _load() -> None:
+>     global _G
+>     if _PERSIST_PATH.exists():
+>         try:
+>             with open(_PERSIST_PATH, "rb") as f:
+>                 _G = pickle.load(f)
+>             log.info("Local graph loaded — %d nodes, %d edges", _G.number_of_nodes(), _G.number_of_edges())
+>         except Exception as exc:
+>             log.warning("Could not load persisted graph (%s), starting fresh", exc)
+>             _G = nx.MultiDiGraph()
+>     else:
+>         log.info("Local graph starting fresh")
+>
+>
+> def _save() -> None:
+>     with open(_PERSIST_PATH, "wb") as f:
+>         pickle.dump(_G, f)
+>
+>
+> _load()
+>
+>
+> # ---------------------------------------------------------------------------
+> # Core operations
+> # ---------------------------------------------------------------------------
+>
+> def merge_node(
+>     label: str,
+>     key: str,
+>     key_value: str,
+>     props: dict[str, Any] | None = None,
+>     *,
+>     provenance: "Provenance | None" = None,
+> ) -> None:
+>     node_id = f"{label}::{key_value}"
+>     existing = dict(_G.nodes.get(node_id, {}))
+>     existing.update(props or {})
+>     existing["_label"] = label
+>     existing[key] = key_value
+>     existing["updated_at"] = datetime.utcnow().isoformat()
+>     if provenance is not None:
+>         from agent_graph_system.ontology.provenance import merge_provenance_props
+>         existing.update(merge_provenance_props(existing, provenance))
+>     _G.add_node(node_id, **existing)
+>     _save()
+>
+>
+> def merge_relationship(
+>     from_label: str, from_key: str, from_val: str,
+>     rel_type: str,
+>     to_label: str, to_key: str, to_val: str,
+>     props: dict[str, Any] | None = None,
+>     *,
+>     provenance: "Provenance | None" = None,
+> ) -> None:
+>     from_id = f"{from_label}::{from_val}"
+>     to_id = f"{to_label}::{to_val}"
+>     if from_id not in _G or to_id not in _G:
+>         log.debug("merge_relationship: node(s) not found — %s, %s", from_id, to_id)
+>         return
+>     # Check if this exact (from, rel_type, to) triple already exists
+>     for _, v, data in _G.out_edges(from_id, data=True):
+>         if data.get("_type") == rel_type and v == to_id:
+>             data.update(props or {})
+>             data["updated_at"] = datetime.utcnow().isoformat()
+>             if provenance is not None:
+>                 from agent_graph_system.ontology.provenance import merge_provenance_props
+>                 data.update(merge_provenance_props(data, provenance))
+>             _save()
+>             return
+>     edge_props = dict(props or {})
+>     edge_props["_type"] = rel_type
+>     edge_props["updated_at"] = datetime.utcnow().isoformat()
+>     if provenance is not None:
+>         from agent_graph_system.ontology.provenance import merge_provenance_props
+>         edge_props.update(merge_provenance_props({}, provenance))
+>     _G.add_edge(from_id, to_id, **edge_props)
+>     _save()
+>
+>
+> def prune_stale(
+>     root_ids: list[str],
+>     run_marker: str,
+>     *,
+>     scope_prop: str | None = None,
+>     scope_value: str | None = None,
+>     apply: bool = False,
+> ) -> dict[str, Any]:
+>     """Report (or with ``apply=True``, delete) facts left behind by older
+>     ingest runs of one parent.
+>
+>     This is the engine's only deletion path, and it is **never called from
+>     ingest** — re-ingest stays merge-only and read paths filter stale facts via
+>     ``provenance.is_current``. Pruning is an explicit maintenance operation
+>     (see the ``prune`` CLI command), dry-run by default.
+>
+>     A fact is *stale* when its ``prov_last_seen`` is set and differs from
+>     ``run_marker`` (the parent's current ``last_ingest_run``). Facts without
+>     stamped provenance are never pruned.
+>
+>     Scoping: only edges whose **source** is a root or a node with
+>     ``props[scope_prop] == scope_value`` are considered, so an edge written by
+>     another parent into a shared node (e.g. another project's ``DEFINES`` into
+>     a shared ``Signal``) is untouched. A node is removed only when it is
+>     scoped, stale, not a root, and left with no edges at all once the stale
+>     edges go — shared nodes still referenced elsewhere always survive.
+>
+>     Local backend only — the Neo4j stub has no prune parity.
+>     """
+>     from agent_graph_system.ontology.provenance import PROV_PREFIX
+>
+>     last_seen_key = f"{PROV_PREFIX}last_seen"
+>     roots = set(root_ids)
+>
+>     def _stale(props: dict[str, Any]) -> bool:
+>         last_seen = props.get(last_seen_key)
+>         return last_seen is not None and last_seen != run_marker
+>
+>     def _scoped(node_id: str) -> bool:
+>         if scope_prop is None:
+>             return False
+>         return _G.nodes.get(node_id, {}).get(scope_prop) == scope_value
+>
+>     stale_edges = [
+>         (u, v, k, data)
+>         for u, v, k, data in _G.edges(keys=True, data=True)
+>         if (u in roots or _scoped(u)) and _stale(data)
+>     ]
+>     stale_edge_keys = {(u, v, k) for u, v, k, _ in stale_edges}
+>
+>     stale_nodes: list[str] = []
+>     for node_id, props in _G.nodes(data=True):
+>         if node_id in roots or not _scoped(node_id) or not _stale(props):
+>             continue
+>         remaining = [
+>             e
+>             for e in list(_G.in_edges(node_id, keys=True)) + list(_G.out_edges(node_id, keys=True))
+>             if e not in stale_edge_keys
+>         ]
+>         if not remaining:
+>             stale_nodes.append(node_id)
+>
+>     report = {
+>         "dry_run": not apply,
+>         "run_marker": run_marker,
+>         "edges": [
+>             {"from": u, "type": data.get("_type", ""), "to": v,
+>              "last_seen": data.get(last_seen_key)}
+>             for u, v, _, data in stale_edges
+>         ],
+>         "nodes": sorted(stale_nodes),
+>     }
+>     if apply:
+>         for u, v, k in stale_edge_keys:
+>             _G.remove_edge(u, v, key=k)
+>         _G.remove_nodes_from(stale_nodes)
+>         _save()
+>         log.info("Pruned %d stale edge(s), %d stale node(s) (run marker %s)",
+>                  len(stale_edges), len(stale_nodes), run_marker)
+>     return report
+>
+>
+> def query(cypher: str, **params) -> list[dict[str, Any]]:
+>     """
+>     Lightweight Cypher interpreter for the named patterns we actually use.
+>     Handles the specific queries in graph/cypher/queries.py.
+>     """
+>     c = cypher.strip().upper()
+>
+>     # --- notebooks using WRDS ---
+>     if "WRDS" in c and "NOTEBOOK" in c and "DATASET" in c:
+>         results = []
+>         for u, v, data in _G.edges(data=True):
+>             if data.get("_type") != "USES":
+>                 continue
+>             nb = _G.nodes.get(u, {})
+>             ds = _G.nodes.get(v, {})
+>             if nb.get("_label") == "Notebook" and ds.get("_label") == "Dataset" and ds.get("source") == "WRDS":
+>                 results.append({
+>                     "notebook": nb.get("name", u),
+>                     "path": nb.get("path", ""),
+>                     "dataset": ds.get("name", v),
+>                     "data_status": ds.get("status", "unknown"),
+>                 })
+>         return results
+>
+>     # --- stale dataset dependencies (strategy->dataset traversal) ---
+>     if "STALE" in c and "STRATEGY" in c and ("USES" in c or "DEPENDS" in c):
+>         results = []
+>         for u, v, data in _G.edges(data=True):
+>             if data.get("_type") not in ("USES", "DEPENDS_ON"):
+>                 continue
+>             src = _G.nodes.get(u, {})
+>             dst = _G.nodes.get(v, {})
+>             if dst.get("status") == "stale":
+>                 results.append({
+>                     "strategy": src.get("name", u),
+>                     "strategy_status": src.get("status", ""),
+>                     "stale_dataset": dst.get("name", v),
+>                     "last_updated": dst.get("last_updated", ""),
+>                 })
+>         return results
+>
+>     # --- active deployments ---
+>     if "DEPLOYS_TO" in c:
+>         results = []
+>         for u, v, data in _G.edges(data=True):
+>             if data.get("_type") == "DEPLOYS_TO":
+>                 s = _G.nodes.get(u, {})
+>                 a = _G.nodes.get(v, {})
+>                 results.append({
+>                     "strategy": s.get("name", u),
+>                     "broker": a.get("name", v),
+>                     "env": data.get("environment", ""),
+>                     "deployed_at": data.get("deployed_at", ""),
+>                 })
+>         return results
+>
+>     # --- pipeline health ---
+>     if "PIPELINE" in c and "PRODUCES" in c:
+>         results = []
+>         for node_id, data in _G.nodes(data=True):
+>             if data.get("_label") != "Pipeline":
+>                 continue
+>             outputs = [
+>                 _G.nodes[v].get("name", v)
+>                 for _, v, ed in _G.out_edges(node_id, data=True)
+>                 if ed.get("_type") == "PRODUCES"
+>             ]
+>             results.append({
+>                 "pipeline": data.get("name", node_id),
+>                 "status": data.get("status", ""),
+>                 "last_run": data.get("last_run", ""),
+>                 "output_datasets": outputs,
+>             })
+>         return results
+>
+>     # --- dataset dependents ---
+>     if "DEPEND" in c or ("USES" in c and "DATASET" in c):
+>         ds_name = params.get("name", "")
+>         results = []
+>         for u, v, data in _G.edges(data=True):
+>             if data.get("_type") not in ("USES", "DEPENDS_ON", "FEEDS"):
+>                 continue
+>             dst = _G.nodes.get(v, {})
+>             if ds_name and dst.get("name") != ds_name:
+>                 continue
+>             src = _G.nodes.get(u, {})
+>             results.append({
+>                 "entity_type": src.get("_label", ""),
+>                 "entity": src.get("name", u),
+>                 "status": src.get("status", ""),
+>             })
+>         return results
+>
+>     # --- agent task graph ---
+>     if "MONITORS" in c and "AGENT" in c:
+>         results = []
+>         for u, v, data in _G.edges(data=True):
+>             if data.get("_type") == "MONITORS":
+>                 a = _G.nodes.get(u, {})
+>                 t = _G.nodes.get(v, {})
+>                 results.append({
+>                     "agent": a.get("name", u),
+>                     "role": a.get("role", ""),
+>                     "watching_type": t.get("_label", ""),
+>                     "watching": t.get("name", v),
+>                     "target_status": t.get("status", ""),
+>                 })
+>         return results
+>
+>     # --- neighbourhood (full context) ---
+>     if "*1.." in c or "path" in c.lower():
+>         name = params.get("name", "")
+>         label = _extract_label_from_match(cypher)
+>         if not name or not label:
+>             return []
+>         seed_id = f"{label}::{name}"
+>         if seed_id not in _G:
+>             return []
+>         results = []
+>         for nbr in nx.ego_graph(_G, seed_id, radius=2).nodes():
+>             if nbr == seed_id:
+>                 continue
+>             nd = _G.nodes.get(nbr, {})
+>             rel = next(
+>                 (ed.get("_type", "") for _, v, ed in _G.out_edges(seed_id, data=True) if v == nbr),
+>                 "RELATED"
+>             )
+>             results.append({
+>                 "node_type": nd.get("_label", ""),
+>                 "name": nd.get("name", nbr),
+>                 "via_relationship": rel,
+>             })
+>         return results
+>
+>     # --- backtest lineage ---
+>     if "LINEAGE" in c or ("BACKTEST" in c and "STRATEGY" in c):
+>         name = params.get("name", "")
+>         results = []
+>         for node_id, data in _G.nodes(data=True):
+>             if data.get("_label") == "Backtest" and data.get("strategy") == name:
+>                 results.append({
+>                     "strategy": name,
+>                     "dataset": "",
+>                     "notebook": "",
+>                     "backtest_id": data.get("run_id", node_id),
+>                     "sharpe": data.get("sharpe", 0),
+>                     "cagr": data.get("cagr", 0),
+>                 })
+>         return results
+>
+>     # --- walk-forward runs for a strategy ---
+>     if "WALKFORWARD" in c and "STRATEGY" in c:
+>         name = params.get("name", "")
+>         results = []
+>         for node_id, data in _G.nodes(data=True):
+>             if data.get("_label") != "WalkforwardRun":
+>                 continue
+>             linked = data.get("strategy") == name or _G.has_edge(f"Strategy::{name}", node_id)
+>             if name and not linked:
+>                 continue
+>             results.append({
+>                 "strategy": data.get("strategy", name),
+>                 "run_id": data.get("run_id", node_id),
+>                 "status": data.get("status", ""),
+>                 "aggregate_sharpe": data.get("aggregate_sharpe", 0),
+>                 "pct_profitable": data.get("pct_profitable", 0),
+>                 "bootstrap_p_value": data.get("bootstrap_p_value"),
+>                 "created_at": data.get("created_at", ""),
+>             })
+>         return results
+>
+>     # Generic fallback: return nodes matching a label, with optional WHERE status filter
+>     label = _extract_label_from_match(cypher)
+>     if label:
+>         # Parse a simple WHERE x.status = 'value' clause if present
+>         import re
+>         status_filter: str | None = None
+>         m = re.search(r"WHERE\s+\w+\.status\s*=\s*['\"]([^'\"]+)['\"]", cypher, re.IGNORECASE)
+>         if m:
+>             status_filter = m.group(1)
+>         name_filter: str | None = params.get("name")
+>         results = []
+>         for _, data in _G.nodes(data=True):
+>             if data.get("_label") != label:
+>                 continue
+>             if status_filter and data.get("status") != status_filter:
+>                 continue
+>             if name_filter and data.get("name") != name_filter and data.get("run_id") != name_filter:
+>                 continue
+>             results.append(dict(data))
+>         return results
+>
+>     log.debug("Unhandled query pattern — returning empty: %s", cypher[:80])
+>     return []
+>
+>
+> def _extract_label_from_match(cypher: str) -> str:
+>     """Pull the first :Label from a MATCH clause."""
+>     import re
+>     m = re.search(r":\s*([A-Za-z][A-Za-z0-9_]*)", cypher)
+>     return m.group(1) if m else ""
+>
+>
+> def latest_backtest_for_strategy(strategy: str) -> dict[str, Any] | None:
+>     """Return the latest valid backtest linked to ``strategy``, or None.
+>
+>     A backtest is linked either via a ``Strategy -[HAS_BACKTEST]-> Backtest``
+>     edge or by carrying a ``strategy`` property. Failed/running backtests are
+>     excluded; "latest" is the max over completed_at / run_date / created_at /
+>     updated_at. Results are de-duplicated by run_id.
+>     """
+>     candidates: dict[str, dict[str, Any]] = {}
+>
+>     def _add(node: dict[str, Any]) -> None:
+>         if node.get("_label") != "Backtest":
+>             return
+>         key = node.get("run_id") or node.get("name") or id(node)
+>         candidates[str(key)] = dict(node)
+>
+>     seed_id = f"Strategy::{strategy}"
+>     if seed_id in _G:
+>         for _, v, data in _G.out_edges(seed_id, data=True):
+>             if data.get("_type") == "HAS_BACKTEST":
+>                 _add(_G.nodes.get(v, {}))
+>
+>     for _, data in _G.nodes(data=True):
+>         if data.get("_label") == "Backtest" and data.get("strategy") == strategy:
+>             _add(data)
+>
+>     pool = [
+>         b for b in candidates.values()
+>         if b.get("status", "completed") not in _INVALID_BACKTEST_STATUSES
+>     ]
+>     if not pool:
+>         return None
+>
+>     def _ts(node: dict[str, Any]) -> str:
+>         for key in ("completed_at", "run_date", "created_at", "updated_at"):
+>             if node.get(key):
+>                 return str(node[key])
+>         return ""
+>
+>     return max(pool, key=_ts)
+>
+>
+> def latest_walkforward_for_strategy(strategy: str) -> dict[str, Any] | None:
+>     """Return the latest completed walk-forward run linked to ``strategy``.
+>
+>     Mirrors :func:`latest_backtest_for_strategy`: a run is linked via a
+>     ``Strategy -[HAS_WALKFORWARD]-> WalkforwardRun`` edge or by carrying a
+>     ``strategy`` property. Only ``status == 'completed'`` runs qualify
+>     (insufficient_data / failed runs never satisfy the gate); "latest" is the
+>     max over created_at / updated_at. De-duplicated by run_id.
+>     """
+>     candidates: dict[str, dict[str, Any]] = {}
+>
+>     def _add(node_id: str, node: dict[str, Any]) -> None:
+>         if node.get("_label") != "WalkforwardRun":
+>             return
+>         key = node.get("run_id") or node_id
+>         candidates[str(key)] = _walkforward_dict(node_id, node)
+>
+>     seed_id = f"Strategy::{strategy}"
+>     if seed_id in _G:
+>         for _, v, data in _G.out_edges(seed_id, data=True):
+>             if data.get("_type") == "HAS_WALKFORWARD":
+>                 _add(v, _G.nodes.get(v, {}))
+>
+>     for node_id, data in _G.nodes(data=True):
+>         if data.get("_label") == "WalkforwardRun" and data.get("strategy") == strategy:
+>             _add(node_id, data)
+>
+>     pool = [
+>         w for w in candidates.values()
+>         if w.get("status", "completed") == "completed"
+>     ]
+>     if not pool:
+>         return None
+>
+>     return max(pool, key=_walkforward_ts)
+>
+>
+> def _walkforward_dict(node_id: str, node: dict[str, Any]) -> dict[str, Any]:
+>     """Materialize a WalkforwardRun node, resolving its VALIDATES target.
+>
+>     ``validates_backtest`` is the run_id of the Backtest this run was computed
+>     against (via the ``VALIDATES`` edge), so the deployment gate can confirm a
+>     run validates the *exact* backtest being gated rather than just the newest
+>     run for the strategy.
+>     """
+>     out = dict(node)
+>     validates = None
+>     if node_id in _G:
+>         for _, v, data in _G.out_edges(node_id, data=True):
+>             if data.get("_type") == "VALIDATES":
+>                 validates = _G.nodes.get(v, {}).get("run_id") or str(v).split("::", 1)[-1]
+>                 break
+>     out["validates_backtest"] = validates
+>     return out
+>
+>
+> def _walkforward_ts(node: dict[str, Any]) -> str:
+>     for key in ("created_at", "updated_at"):
+>         if node.get(key):
+>             return str(node[key])
+>     return ""
+>
+>
+> def latest_walkforward_for_backtest(backtest_run_id: str) -> dict[str, Any] | None:
+>     """Return the latest completed walk-forward run that VALIDATES the backtest.
+>
+>     Stricter than :func:`latest_walkforward_for_strategy`: only runs linked by a
+>     ``WalkforwardRun -[VALIDATES]-> Backtest`` edge to *this* ``backtest_run_id``
+>     qualify. The deployment gate uses this so a stale run that validated an older
+>     backtest cannot green-light a newer one.
+>     """
+>     if not backtest_run_id:
+>         return None
+>     pool: dict[str, dict[str, Any]] = {}
+>     for node_id, data in _G.nodes(data=True):
+>         if data.get("_label") != "WalkforwardRun":
+>             continue
+>         if data.get("status", "completed") != "completed":
+>             continue
+>         wf = _walkforward_dict(node_id, data)
+>         if wf.get("validates_backtest") == backtest_run_id:
+>             pool[str(wf.get("run_id") or node_id)] = wf
+>     if not pool:
+>         return None
+>     return max(pool.values(), key=_walkforward_ts)
+>
+>
+> def nodes(label: str | None = None) -> list[tuple[str, dict[str, Any]]]:
+>     """``(node_id, props)`` for every node, optionally filtered by label."""
+>     return [
+>         (nid, dict(data))
+>         for nid, data in _G.nodes(data=True)
+>         if label is None or data.get("_label") == label
+>     ]
+>
+>
+> def out_relations(node_id: str) -> list[tuple[str, str, dict[str, Any]]]:
+>     """``(rel_type, target_id, edge_props)`` for edges leaving ``node_id``."""
+>     if node_id not in _G:
+>         return []
+>     return [
+>         (data.get("_type", ""), v, dict(data))
+>         for _, v, data in _G.out_edges(node_id, data=True)
+>     ]
+>
+>
+> def get_node(node_id: str) -> dict[str, Any] | None:
+>     """Props for a single node by id (``Label::key``), or None."""
+>     return dict(_G.nodes[node_id]) if node_id in _G else None
+>
+>
+> def graph_stats() -> dict[str, Any]:
+>     label_counts: dict[str, int] = {}
+>     for _, data in _G.nodes(data=True):
+>         lbl = data.get("_label", "Unknown")
+>         label_counts[lbl] = label_counts.get(lbl, 0) + 1
+>
+>     rel_counts: dict[str, int] = {}
+>     for _, _, data in _G.edges(data=True):
+>         rt = data.get("_type", "Unknown")
+>         rel_counts[rt] = rel_counts.get(rt, 0) + 1
+>
+>     return {
+>         "nodes": _G.number_of_nodes(),
+>         "edges": _G.number_of_edges(),
+>         "node_counts": dict(sorted(label_counts.items(), key=lambda x: -x[1])),
+>         "rel_counts": dict(sorted(rel_counts.items(), key=lambda x: -x[1])),
+>     }
+>
+>
+> def create_indexes() -> None:
+>     log.info("Local graph backend — no indexes needed")
+> ```

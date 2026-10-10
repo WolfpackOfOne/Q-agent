@@ -1,0 +1,85 @@
+---
+path: ".github/workflows/tests.yml"
+hub: "CI workflows"
+tags:
+  - "code/yaml"
+  - "areas/CI-workflows"
+github: "https://github.com/WolfpackOfOne/Q-agent/blob/main/.github/workflows/tests.yml"
+---
+# tests.yml
+
+`.github/workflows/tests.yml` · hub [[Hubs/Areas/CI workflows|CI workflows]] · [GitHub](https://github.com/WolfpackOfOne/Q-agent/blob/main/.github/workflows/tests.yml)
+
+**Triggers:**
+
+```yaml
+pull_request:
+  push:
+    branches: [main]
+```
+
+**Jobs:** `pytest`, `test-gate`
+
+## Source
+
+> [!example]- .github/workflows/tests.yml
+> ```yaml
+> name: tests
+>
+> on:
+>   pull_request:
+>   push:
+>     branches: [main]
+>
+> permissions:
+>   contents: read
+>
+> concurrency:
+>   group: tests-${{ github.ref }}
+>   cancel-in-progress: true
+>
+> jobs:
+>   pytest:
+>     name: pytest (${{ matrix.python-version }})
+>     runs-on: ubuntu-latest
+>     timeout-minutes: 15
+>     strategy:
+>       fail-fast: false
+>       matrix:
+>         python-version: ["3.11", "3.12"]
+>
+>     steps:
+>       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+>
+>       - name: Set up Python ${{ matrix.python-version }}
+>         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+>         with:
+>           python-version: ${{ matrix.python-version }}
+>           cache: pip
+>
+>       - name: Install dev dependencies
+>         run: |
+>           python -m pip install --upgrade pip
+>           pip install -r requirements-dev.txt
+>
+>       - name: Resolve full course environment
+>         run: >-
+>           python -m pip install --dry-run --ignore-installed
+>           -r requirements-dev.txt
+>           -r infrastructure/requirements.txt
+>           -r infrastructure/marimo/requirements.txt
+>
+>       - name: Run non-integration tests
+>         run: pytest -m "not integration"
+>
+>   test-gate:
+>     name: Tests
+>     if: always()
+>     needs: pytest
+>     runs-on: ubuntu-latest
+>     steps:
+>       - name: Verify test matrix
+>         env:
+>           RESULT: ${{ needs.pytest.result }}
+>         run: test "$RESULT" = "success"
+> ```

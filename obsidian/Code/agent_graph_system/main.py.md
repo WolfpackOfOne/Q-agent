@@ -1,0 +1,650 @@
+---
+path: "agent_graph_system/main.py"
+hub: "Agent Graph System"
+lines: 473
+tags:
+  - "code/python"
+  - "areas/Agent-Graph-System"
+github: "https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/main.py"
+---
+# main.py
+
+`agent_graph_system/main.py` · hub [[Hubs/Areas/Agent Graph System|Agent Graph System]] · [GitHub](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/main.py)
+
+## Purpose
+
+main.py — Agentic Graph Ontology System
+
+Entry point with subcommands:
+  init            Create Neo4j indexes and seed the graph from ontology schema
+  ingest          Parse a local repo and write to the graph
+  ingest-project  Ingest one MyProjects/ QuantConnect project into the graph
+  ingest-paper    Fetch an arXiv paper and write its sections into the graph
+  context-pack    Build a project context pack for an agent (md | json)
+  prune           Remove facts left behind by older ingest runs (dry-run by default)
+  walkforward     Run walk-forward validation for a project (md | json)
+  query           Run a named Cypher query or GraphRAG search
+  agent       Run a named agent (coding | monitoring | orchestration | research)
+  api         Start the FastAPI server
+  status      Show graph node/relationship counts
+
+Usage:
+  python -m agent_graph_system.main init
+  python -m agent_graph_system.main ingest --repo /path/to/repo
+  python -m agent_graph_system.main ingest-paper 2401.12345
+  python -m agent_graph_system.main query stale-deps
+  python -m agent_graph_system.main query rag "show notebooks using WRDS data"
+  python -m agent_graph_system.main agent monitoring
+  python -m agent_graph_system.main api
+  python -m agent_graph_system.main status
+
+## Dependencies
+
+**Imports (workspace):** [[Code/agent_graph_system/agents/coding_agent.py|coding_agent.py]], [[Code/agent_graph_system/agents/research_agent.py|research_agent.py]], [[Code/agent_graph_system/analysis/returns.py|returns.py]], [[Code/agent_graph_system/config.py|config.py]], [[Code/agent_graph_system/graph/backend.py|backend.py]], [[Code/agent_graph_system/graph/context_pack.py|context_pack.py]], [[Code/agent_graph_system/graph/cypher/queries.py|queries.py]], [[Code/agent_graph_system/graph/local/engine.py|engine.py]], [[Code/agent_graph_system/graph/neo4j/graph_models.py|graph_models.py]], [[Code/agent_graph_system/ingestion/papers/graph_writer.py|graph_writer.py]], [[Code/agent_graph_system/ingestion/quantconnect/graph_writer.py|graph_writer.py]], [[Code/agent_graph_system/ontology/policy.py|policy.py]], [[Code/agent_graph_system/rag/retriever.py|retriever.py]]
+
+**Imports (external):** [[Indexes/External packages#__future__|__future__]], [[Indexes/External packages#argparse|argparse]], [[Indexes/External packages#importlib|importlib]], [[Indexes/External packages#json|json]], [[Indexes/External packages#logging|logging]], [[Indexes/External packages#os|os]], [[Indexes/External packages#pathlib|pathlib]], [[Indexes/External packages#sys|sys]], [[Indexes/External packages#uvicorn|uvicorn]]
+
+## Functions
+
+### `cmd_init()`
+
+```python
+def cmd_init(args: argparse.Namespace) -> None
+```
+[line 50](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/main.py#L50)
+
+Bootstrap the graph: create indexes, seed agents, datasets, pipelines.
+
+### `cmd_ingest()`
+
+```python
+def cmd_ingest(args: argparse.Namespace) -> None
+```
+[line 83](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/main.py#L83)
+
+Parse a local git repo and write notebook/dependency graph.
+
+### `cmd_ingest_project()`
+
+```python
+def cmd_ingest_project(args: argparse.Namespace) -> None
+```
+[line 94](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/main.py#L94)
+
+Ingest a single MyProjects/ QuantConnect project into the graph.
+
+### `cmd_ingest_paper()`
+
+```python
+def cmd_ingest_paper(args: argparse.Namespace) -> None
+```
+[line 106](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/main.py#L106)
+
+Fetch an arXiv paper and write its sections into the graph.
+
+### `cmd_context_pack()`
+
+```python
+def cmd_context_pack(args: argparse.Namespace) -> None
+```
+[line 114](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/main.py#L114)
+
+Build a project context pack for an agent (markdown or JSON).
+
+### `cmd_prune()`
+
+```python
+def cmd_prune(args: argparse.Namespace) -> None
+```
+[line 142](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/main.py#L142)
+
+Report (or with --apply, delete) facts from older ingest runs.
+
+Ingest itself never deletes; this is the one, explicitly-invoked deletion
+path. Local backend only.
+
+### `_render_walkforward_summary()`
+
+```python
+def _render_walkforward_summary(payload: dict) -> str
+```
+[line 184](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/main.py#L184)
+
+Compact markdown summary of a walk-forward run payload.
+
+### `cmd_walkforward()`
+
+```python
+def cmd_walkforward(args: argparse.Namespace) -> None
+```
+[line 213](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/main.py#L213)
+
+Run walk-forward validation for a project and persist it to the graph.
+
+### `cmd_query()`
+
+```python
+def cmd_query(args: argparse.Namespace) -> None
+```
+[line 271](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/main.py#L271)
+
+Run a named query or GraphRAG search.
+
+### `cmd_agent()`
+
+```python
+def cmd_agent(args: argparse.Namespace) -> None
+```
+[line 301](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/main.py#L301)
+
+Run a named agent once.
+
+### `cmd_api()`
+
+```python
+def cmd_api(args: argparse.Namespace) -> None
+```
+[line 332](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/main.py#L332)
+
+Start the FastAPI server.
+
+### `cmd_status()`
+
+```python
+def cmd_status(args: argparse.Namespace) -> None
+```
+[line 344](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/main.py#L344)
+
+Print node and relationship counts.
+
+### `build_parser()`
+
+```python
+def build_parser() -> argparse.ArgumentParser
+```
+[line 366](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/main.py#L366)
+
+### `main()`
+
+```python
+def main() -> None
+```
+[line 451](https://github.com/WolfpackOfOne/Q-agent/blob/main/agent_graph_system/main.py#L451)
+
+## Source
+
+> [!example]- agent_graph_system/main.py (473 lines)
+> ```python
+> """
+> main.py — Agentic Graph Ontology System
+>
+> Entry point with subcommands:
+>   init            Create Neo4j indexes and seed the graph from ontology schema
+>   ingest          Parse a local repo and write to the graph
+>   ingest-project  Ingest one MyProjects/ QuantConnect project into the graph
+>   ingest-paper    Fetch an arXiv paper and write its sections into the graph
+>   context-pack    Build a project context pack for an agent (md | json)
+>   prune           Remove facts left behind by older ingest runs (dry-run by default)
+>   walkforward     Run walk-forward validation for a project (md | json)
+>   query           Run a named Cypher query or GraphRAG search
+>   agent       Run a named agent (coding | monitoring | orchestration | research)
+>   api         Start the FastAPI server
+>   status      Show graph node/relationship counts
+>
+> Usage:
+>   python -m agent_graph_system.main init
+>   python -m agent_graph_system.main ingest --repo /path/to/repo
+>   python -m agent_graph_system.main ingest-paper 2401.12345
+>   python -m agent_graph_system.main query stale-deps
+>   python -m agent_graph_system.main query rag "show notebooks using WRDS data"
+>   python -m agent_graph_system.main agent monitoring
+>   python -m agent_graph_system.main api
+>   python -m agent_graph_system.main status
+> """
+>
+> from __future__ import annotations
+>
+> import argparse
+> import json
+> import logging
+> import sys
+> from pathlib import Path
+>
+> from agent_graph_system.config import cfg
+>
+> logging.basicConfig(
+>     level=getattr(logging, cfg.log_level.upper(), logging.INFO),
+>     format="%(asctime)s  %(levelname)-8s  %(name)s  %(message)s",
+>     datefmt="%H:%M:%S",
+> )
+> log = logging.getLogger("main")
+>
+>
+> # ---------------------------------------------------------------------------
+> # Subcommand handlers
+> # ---------------------------------------------------------------------------
+>
+> def cmd_init(args: argparse.Namespace) -> None:
+>     """Bootstrap the graph: create indexes, seed agents, datasets, pipelines."""
+>     from agent_graph_system.graph.cypher.queries import create_indexes
+>     from agent_graph_system.graph.neo4j import graph_models as gm
+>     import os
+>     log.info("Backend: %s", os.getenv("GRAPH_BACKEND", "local"))
+>     log.info("Creating indexes …")
+>     create_indexes()
+>
+>     # Seed the known agents
+>     for name, role in [
+>         ("ResearchAgent", "research"),
+>         ("CodingAgent", "coding"),
+>         ("MonitoringAgent", "monitoring"),
+>         ("OrchestrationAgent", "orchestration"),
+>         ("WalkforwardAgent", "walkforward"),
+>     ]:
+>         gm.upsert_agent(name, role=role, status="idle")
+>
+>     # Seed the known data pipelines
+>     for name, src in [
+>         ("WRDS_CRSP_Daily", "WRDS"),
+>         ("EDGAR_Fundamentals", "EDGAR"),
+>         ("Polymarket_Prices", "Polymarket"),
+>         ("Crypto_OHLCV", "Crypto"),
+>     ]:
+>         gm.upsert_dataset(f"{src}_Data", source=src, status="fresh")
+>         gm.upsert_pipeline(f"{name}_Pipeline", pipeline_type="ingestion")
+>         gm.pipeline_produces_dataset(f"{name}_Pipeline", f"{src}_Data")
+>
+>     log.info("Init complete. Open http://localhost:7474 to explore the graph.")
+>
+>
+> def cmd_ingest(args: argparse.Namespace) -> None:
+>     """Parse a local git repo and write notebook/dependency graph."""
+>     from agent_graph_system.agents.coding_agent import CodingAgent
+>     repo_path = Path(args.repo).expanduser().resolve()
+>     if not repo_path.exists():
+>         log.error("Repo path not found: %s", repo_path)
+>         sys.exit(1)
+>     result = CodingAgent().run(repo_path=repo_path, repo_url=args.url or "")
+>     log.info("Ingested %d notebooks from '%s'", result["total"], result["repo"])
+>
+>
+> def cmd_ingest_project(args: argparse.Namespace) -> None:
+>     """Ingest a single MyProjects/ QuantConnect project into the graph."""
+>     from agent_graph_system.ingestion.quantconnect.graph_writer import ingest_project
+>     project_path = Path(args.project).expanduser().resolve()
+>     if not project_path.is_dir():
+>         log.error("Project path not found: %s", project_path)
+>         sys.exit(1)
+>     result = ingest_project(project_path)
+>     log.info("Ingested project '%s': %s", result["project"], result["counts"])
+>     print(json.dumps(result, indent=2, default=str))
+>
+>
+> def cmd_ingest_paper(args: argparse.Namespace) -> None:
+>     """Fetch an arXiv paper and write its sections into the graph."""
+>     from agent_graph_system.ingestion.papers.graph_writer import ingest_paper
+>     result = ingest_paper(args.arxiv_id)
+>     log.info("Ingested paper '%s': %d sections", result["arxiv_id"], result["section_count"])
+>     print(json.dumps(result, indent=2, default=str))
+>
+>
+> def cmd_context_pack(args: argparse.Namespace) -> None:
+>     """Build a project context pack for an agent (markdown or JSON)."""
+>     from agent_graph_system.graph import context_pack as cp
+>     from agent_graph_system.ingestion.quantconnect.graph_writer import ingest_project
+>
+>     path = Path(args.project).expanduser()
+>     project_name = path.name if (path.exists() or "/" in args.project) else args.project
+>
+>     # By default, (re)ingest from the path so the pack reflects the files on disk.
+>     if not args.no_ingest:
+>         if not path.is_dir():
+>             log.error("Project path not found: %s (use --no-ingest to read the graph as-is)", path)
+>             sys.exit(1)
+>         ingest_project(path.resolve())
+>         project_name = path.name
+>
+>     try:
+>         pack = cp.build_context_pack(project_name)
+>     except cp.ProjectNotInGraph as exc:
+>         log.error("%s", exc)
+>         sys.exit(1)
+>
+>     if args.format == "json":
+>         print(json.dumps(pack, indent=2, default=str))
+>     else:
+>         print(cp.render_markdown(pack))
+>
+>
+> def cmd_prune(args: argparse.Namespace) -> None:
+>     """Report (or with --apply, delete) facts from older ingest runs.
+>
+>     Ingest itself never deletes; this is the one, explicitly-invoked deletion
+>     path. Local backend only.
+>     """
+>     from agent_graph_system.graph.local import engine
+>
+>     if args.kind == "project":
+>         parent_id = f"Project::{args.name}"
+>         root_ids = [parent_id, f"Strategy::{args.name}"]
+>         scope_prop = "project"
+>     else:  # paper
+>         parent_id = f"Paper::{args.name}"
+>         root_ids = [parent_id]
+>         scope_prop = "paper"
+>
+>     parent = engine.get_node(parent_id)
+>     if parent is None:
+>         log.error("%s is not in the graph — ingest it first.", parent_id)
+>         sys.exit(1)
+>     run_marker = parent.get("last_ingest_run")
+>     if not run_marker:
+>         log.error(
+>             "%s has no last_ingest_run marker (legacy ingest) — re-ingest it "
+>             "before pruning so current facts are stamped.", parent_id,
+>         )
+>         sys.exit(1)
+>
+>     report = engine.prune_stale(
+>         root_ids, run_marker,
+>         scope_prop=scope_prop, scope_value=args.name,
+>         apply=args.apply,
+>     )
+>     if report["dry_run"]:
+>         log.info(
+>             "Dry run — %d stale edge(s), %d stale node(s); pass --apply to delete.",
+>             len(report["edges"]), len(report["nodes"]),
+>         )
+>     print(json.dumps(report, indent=2, default=str))
+>
+>
+> def _render_walkforward_summary(payload: dict) -> str:
+>     """Compact markdown summary of a walk-forward run payload."""
+>     if payload.get("status") == "insufficient_data":
+>         return (
+>             f"## Walk-forward — {payload.get('strategy')}\n"
+>             f"- status: insufficient_data\n- {payload.get('message', '')}\n"
+>         )
+>     n = payload.get("n_windows") or len(payload.get("windows", []))
+>     pct = payload.get("pct_windows_profitable", 0.0)
+>     mode = payload.get("mode") or "walkforward"
+>     lines = [f"## Walk-forward validation — {payload.get('strategy')}"]
+>     if mode != "walkforward":
+>         lines.append(f"- ⚠️ mode: {mode} (in-sample slicing — NOT gate-eligible)")
+>     lines += [
+>         f"- windows: {n} | profitable: {pct * 100:.1f}%",
+>         f"- OOS Sharpe: {payload.get('aggregate_sharpe', 0):.2f} | "
+>         f"OOS CAGR: {payload.get('aggregate_cagr', 0) * 100:.1f}% | "
+>         f"max drawdown: {payload.get('aggregate_max_drawdown', 0) * 100:.1f}%",
+>     ]
+>     p_value = payload.get("bootstrap_p_value")
+>     if p_value is not None:
+>         from agent_graph_system.ontology.policy import BOOTSTRAP_P_VALUE_THRESHOLD
+>         sig = "significant" if p_value <= BOOTSTRAP_P_VALUE_THRESHOLD else "not significant"
+>         lines.append(f"- bootstrap p-value: {p_value:.3f} ({sig})")
+>     else:
+>         lines.append("- bootstrap p-value: (not run)")
+>     return "\n".join(lines) + "\n"
+>
+>
+> def cmd_walkforward(args: argparse.Namespace) -> None:
+>     """Run walk-forward validation for a project and persist it to the graph."""
+>     from agent_graph_system.agents.research_agent import ResearchAgent
+>     from agent_graph_system.graph.neo4j import graph_models as gm
+>
+>     path = Path(args.project).expanduser()
+>     project_name = path.name if (path.exists() or "/" in args.project) else args.project
+>
+>     from agent_graph_system.analysis.returns import load_returns
+>
+>     # Two ways to supply OOS data:
+>     #  --oos-window CSV (repeatable): genuine per-window out-of-sample returns,
+>     #    each produced by a model trained only on its own window → mode=walkforward
+>     #  --returns-csv: one precomputed series → mode=rolling_holdout (gate-ineligible)
+>     returns = None
+>     windows = None
+>     if args.oos_window:
+>         windows = []
+>         for wp in args.oos_window:
+>             p = Path(wp).expanduser()
+>             if not p.exists():
+>                 log.error("OOS window file not found: %s", p)
+>                 sys.exit(1)
+>             windows.append(load_returns(p))
+>     elif args.returns_csv:
+>         returns_path = Path(args.returns_csv).expanduser()
+>         if not returns_path.exists():
+>             log.error("Returns file not found: %s", returns_path)
+>             sys.exit(1)
+>         returns = load_returns(returns_path)
+>     else:
+>         log.error("Provide --returns-csv (rolling holdout) or one or more "
+>                   "--oos-window CSVs (genuine walk-forward).")
+>         sys.exit(1)
+>
+>     # Ensure a Strategy node exists so HAS_WALKFORWARD links cleanly.
+>     from agent_graph_system.graph.local import engine
+>     existing = engine.get_node(f"Strategy::{project_name}")
+>     if existing is None:
+>         gm.upsert_strategy(project_name, strategy_type="unknown")
+>
+>     payload = ResearchAgent().run(
+>         mode="walkforward",
+>         strategy=project_name,
+>         returns=returns,
+>         windows=windows,
+>         train_months=args.train_months,
+>         test_months=args.test_months,
+>         step_months=args.step_months,
+>         bootstrap=not args.no_bootstrap,
+>     )
+>
+>     if args.format == "json":
+>         print(json.dumps(payload, indent=2, default=str))
+>     else:
+>         print(_render_walkforward_summary(payload))
+>
+>
+> def cmd_query(args: argparse.Namespace) -> None:
+>     """Run a named query or GraphRAG search."""
+>     from agent_graph_system.graph.cypher import queries as cq
+>     from agent_graph_system.rag.retriever import graphrag_query, stale_impact_report
+>
+>     name = args.query_name
+>
+>     dispatch = {
+>         "wrds-notebooks":    cq.notebooks_using_wrds,
+>         "stale-deps":        cq.stale_strategy_dependencies,
+>         "deployments":       cq.active_deployments,
+>         "pipeline-health":   cq.pipeline_health,
+>         "agents":            cq.agent_task_graph,
+>         "stale-impact":      stale_impact_report,
+>     }
+>
+>     if name == "rag":
+>         if not args.question:
+>             log.error("Pass a question: python main.py query rag \"your question\"")
+>             sys.exit(1)
+>         result = graphrag_query(args.question)
+>     elif name in dispatch:
+>         result = dispatch[name]()
+>     else:
+>         log.error("Unknown query '%s'. Available: %s", name, ", ".join(sorted(dispatch)))
+>         sys.exit(1)
+>
+>     print(json.dumps(result, indent=2, default=str))
+>
+>
+> def cmd_agent(args: argparse.Namespace) -> None:
+>     """Run a named agent once."""
+>     agents = {
+>         "coding":        ("agent_graph_system.agents.coding_agent", "CodingAgent"),
+>         "monitoring":    ("agent_graph_system.agents.monitoring_agent", "MonitoringAgent"),
+>         "orchestration": ("agent_graph_system.agents.orchestration_agent", "OrchestrationAgent"),
+>         "research":      ("agent_graph_system.agents.research_agent", "ResearchAgent"),
+>         "walkforward":   ("agent_graph_system.agents.walkforward_agent", "WalkforwardAgent"),
+>     }
+>     name = args.agent_name.lower()
+>     if name not in agents:
+>         log.error("Unknown agent '%s'. Available: %s", name, ", ".join(sorted(agents)))
+>         sys.exit(1)
+>
+>     module_path, class_name = agents[name]
+>     import importlib
+>     module = importlib.import_module(module_path)
+>     agent_cls = getattr(module, class_name)
+>
+>     kwargs: dict = {}
+>     if name == "coding":
+>         kwargs["repo_path"] = args.repo or str(Path.cwd())
+>     if name == "research" and args.question:
+>         kwargs["question"] = args.question
+>     if name == "walkforward" and getattr(args, "strategy", ""):
+>         kwargs["strategy"] = args.strategy
+>
+>     result = agent_cls().run(**kwargs)
+>     print(json.dumps(result, indent=2, default=str))
+>
+>
+> def cmd_api(args: argparse.Namespace) -> None:
+>     """Start the FastAPI server."""
+>     import uvicorn
+>     uvicorn.run(
+>         "agent_graph_system.api.app:app",
+>         host=cfg.api.host,
+>         port=cfg.api.port,
+>         reload=cfg.api.reload,
+>         log_level=cfg.log_level.lower(),
+>     )
+>
+>
+> def cmd_status(args: argparse.Namespace) -> None:
+>     """Print node and relationship counts."""
+>     from agent_graph_system.graph.backend import graph_stats
+>     import os
+>     stats = graph_stats()
+>     backend = os.getenv("GRAPH_BACKEND", "local")
+>     print(f"\n=== Graph status (backend: {backend}) ===")
+>     print(f"  Total nodes : {stats.get('nodes', sum(stats.get('node_counts', {}).values()))}")
+>     print(f"  Total edges : {stats.get('edges', sum(stats.get('rel_counts', {}).values()))}")
+>     print("\n  Node counts:")
+>     for label, count in stats.get("node_counts", {}).items():
+>         print(f"    {label:<20} {count}")
+>     print("\n  Relationship counts:")
+>     for rel, count in stats.get("rel_counts", {}).items():
+>         print(f"    {rel:<30} {count}")
+>     print()
+>
+>
+> # ---------------------------------------------------------------------------
+> # CLI wiring
+> # ---------------------------------------------------------------------------
+>
+> def build_parser() -> argparse.ArgumentParser:
+>     p = argparse.ArgumentParser(
+>         prog="python -m agent_graph_system.main",
+>         description="Agentic Graph Ontology System",
+>     )
+>     sub = p.add_subparsers(dest="command", required=True)
+>
+>     # init
+>     sub.add_parser("init", help="Bootstrap Neo4j schema and seed graph")
+>
+>     # ingest
+>     ingest_p = sub.add_parser("ingest", help="Ingest a local repo into the graph")
+>     ingest_p.add_argument("--repo", default=str(Path.cwd()), help="Path to repo root")
+>     ingest_p.add_argument("--url", default="", help="Remote URL for the repo")
+>
+>     # ingest-project
+>     ip = sub.add_parser("ingest-project", help="Ingest one MyProjects/ project into the graph")
+>     ip.add_argument("project", help="Path to the project directory (e.g. MyProjects/ElectionIndustryBeta)")
+>
+>     # ingest-paper
+>     ip2 = sub.add_parser("ingest-paper", help="Fetch an arXiv paper and write its sections into the graph")
+>     ip2.add_argument("arxiv_id", help="arXiv id or URL, e.g. 2401.12345")
+>
+>     # context-pack
+>     cp = sub.add_parser("context-pack", help="Build a project context pack for an agent")
+>     cp.add_argument("project", help="Project path (or name, with --no-ingest)")
+>     cp.add_argument("--format", choices=["md", "json"], default="md", help="Output format")
+>     cp.add_argument("--no-ingest", action="store_true",
+>                     help="Read the graph as-is instead of (re)ingesting from disk first")
+>
+>     # prune
+>     prune_p = sub.add_parser(
+>         "prune",
+>         help="Remove facts not refreshed by the latest ingest run "
+>              "(dry-run by default; local backend only)",
+>     )
+>     prune_p.add_argument("kind", choices=["project", "paper"],
+>                          help="Parent type to prune under")
+>     prune_p.add_argument("name", help="Project name or arXiv id")
+>     prune_p.add_argument("--apply", action="store_true",
+>                          help="Actually delete; without this, print a dry-run report")
+>
+>     # walkforward
+>     wf = sub.add_parser("walkforward", help="Run walk-forward validation for a project")
+>     wf.add_argument("project", help="Project path (or strategy name)")
+>     wf.add_argument("--returns-csv",
+>                     help="One precomputed series (CSV date+return/close, or LEAN "
+>                          "result JSON). Rolling-holdout reporting — NOT gate-eligible.")
+>     wf.add_argument("--oos-window", action="append", metavar="CSV",
+>                     help="Per-window out-of-sample returns CSV (repeatable). Each "
+>                          "window's returns must come from a model trained only on "
+>                          "that window — produces a genuine, gate-eligible run.")
+>     wf.add_argument("--train-months", type=int, default=12)
+>     wf.add_argument("--test-months", type=int, default=3)
+>     wf.add_argument("--step-months", type=int, default=3)
+>     wf.add_argument("--no-bootstrap", action="store_true",
+>                     help="Skip the bootstrap significance test")
+>     wf.add_argument("--format", choices=["md", "json"], default="md", help="Output format")
+>
+>     # query
+>     query_p = sub.add_parser("query", help="Run a named Cypher query or GraphRAG search")
+>     query_p.add_argument("query_name", help=(
+>         "Query name: wrds-notebooks | stale-deps | deployments | "
+>         "pipeline-health | agents | stale-impact | rag"
+>     ))
+>     query_p.add_argument("question", nargs="?", default="",
+>                          help="Question text (for 'rag' query type)")
+>
+>     # agent
+>     agent_p = sub.add_parser("agent", help="Run an agent: coding | monitoring | orchestration | research | walkforward")
+>     agent_p.add_argument("agent_name", help="Agent name")
+>     agent_p.add_argument("--repo", default="", help="Repo path (coding agent)")
+>     agent_p.add_argument("--question", default="", help="Question (research agent)")
+>     agent_p.add_argument("--strategy", default="",
+>                          help="Target a single strategy (walkforward agent); default scans all flagged")
+>
+>     # api
+>     api_p = sub.add_parser("api", help="Start FastAPI server")
+>
+>     # status
+>     sub.add_parser("status", help="Show graph node/relationship counts")
+>
+>     return p
+>
+>
+> def main() -> None:
+>     parser = build_parser()
+>     args = parser.parse_args()
+>
+>     handlers = {
+>         "init":    cmd_init,
+>         "ingest":  cmd_ingest,
+>         "ingest-project": cmd_ingest_project,
+>         "ingest-paper": cmd_ingest_paper,
+>         "context-pack":   cmd_context_pack,
+>         "prune":   cmd_prune,
+>         "walkforward":    cmd_walkforward,
+>         "query":   cmd_query,
+>         "agent":   cmd_agent,
+>         "api":     cmd_api,
+>         "status":  cmd_status,
+>     }
+>     handlers[args.command](args)
+>
+>
+> if __name__ == "__main__":
+>     main()
+> ```

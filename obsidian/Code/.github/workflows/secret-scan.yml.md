@@ -1,0 +1,96 @@
+---
+path: ".github/workflows/secret-scan.yml"
+hub: "CI workflows"
+tags:
+  - "code/yaml"
+  - "areas/CI-workflows"
+github: "https://github.com/WolfpackOfOne/Q-agent/blob/main/.github/workflows/secret-scan.yml"
+---
+# secret-scan.yml
+
+`.github/workflows/secret-scan.yml` · hub [[Hubs/Areas/CI workflows|CI workflows]] · [GitHub](https://github.com/WolfpackOfOne/Q-agent/blob/main/.github/workflows/secret-scan.yml)
+
+**Triggers:**
+
+```yaml
+pull_request:
+  push:
+    branches: [main]
+```
+
+**Jobs:** `gitleaks`, `personal-paths`, `security-gate`
+
+## Source
+
+> [!example]- .github/workflows/secret-scan.yml
+> ```yaml
+> name: Secret Scan
+>
+> on:
+>   pull_request:
+>   push:
+>     branches: [main]
+>
+> permissions:
+>   contents: read
+>
+> concurrency:
+>   group: security-${{ github.ref }}
+>   cancel-in-progress: true
+>
+> jobs:
+>   gitleaks:
+>     name: Scan for committed secrets
+>     runs-on: ubuntu-latest
+>     timeout-minutes: 10
+>     steps:
+>       - name: Checkout repository
+>         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+>         with:
+>           fetch-depth: 0
+>
+>       - name: Run Gitleaks
+>         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3
+>         env:
+>           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+>
+>   personal-paths:
+>     name: Scan for hardcoded personal paths
+>     runs-on: ubuntu-latest
+>     timeout-minutes: 5
+>     steps:
+>       - name: Checkout repository
+>         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+>
+>       - name: Scan text files for personal paths
+>         shell: bash
+>         run: |
+>           set -euo pipefail
+>
+>           pattern='(/Users/[A-Za-z][A-Za-z0-9._-]+/|/home/[A-Za-z][A-Za-z0-9._-]+/|/mnt/c/Users/[A-Za-z][A-Za-z0-9._-]+/|C:\\Users\\[A-Za-z][A-Za-z0-9._-]+\\)'
+>           matches="$(git grep -n -I -E "$pattern" -- ':!*.png' ':!*.jpg' ':!*.jpeg' ':!*.gif' ':!*.pdf' ':!*.zip' || true)"
+>
+>           # /home/qagent is the documented non-personal container account.
+>           filtered="$(printf '%s\n' "$matches" | sed 's#/home/qagent/#/home/<container-user>/#g' | grep -E "$pattern" || true)"
+>           if [ -n "$filtered" ]; then
+>             printf '%s\n' "$filtered"
+>             echo "Blocked: hardcoded personal path found."
+>             exit 1
+>           fi
+>
+>           echo "No hardcoded personal paths found."
+>
+>   security-gate:
+>     name: Security
+>     if: always()
+>     needs: [gitleaks, personal-paths]
+>     runs-on: ubuntu-latest
+>     steps:
+>       - name: Verify security scans
+>         env:
+>           GITLEAKS_RESULT: ${{ needs.gitleaks.result }}
+>           PATHS_RESULT: ${{ needs.personal-paths.result }}
+>         run: |
+>           test "$GITLEAKS_RESULT" = "success"
+>           test "$PATHS_RESULT" = "success"
+> ```

@@ -1,0 +1,6 @@
+# Per-user Obsidian state
+.obsidian/workspace*.json
+.obsidian/plugins/
+.obsidian/themes/
+.obsidian/cache
+.trash/

@@ -1,0 +1,16 @@
+{
+  "search": "-path:Indexes",
+  "showTags": false,
+  "showAttachments": false,
+  "showOrphans": true,
+  "colorGroups": [
+    {"query": "path:Hubs", "color": {"a": 1, "rgb": 16750848}},
+    {"query": "path:SQL", "color": {"a": 1, "rgb": 15277667}},
+    {"query": "path:Code/MyProjects", "color": {"a": 1, "rgb": 3900150}},
+    {"query": "path:Code/infrastructure/pipelines", "color": {"a": 1, "rgb": 5025616}},
+    {"query": "path:Code/infrastructure/marimo", "color": {"a": 1, "rgb": 10233776}},
+    {"query": "path:Code/agent_graph_system", "color": {"a": 1, "rgb": 16761095}},
+    {"query": "path:Code/tests", "color": {"a": 1, "rgb": 9807270}}
+  ],
+  "showArrow": true
+}
