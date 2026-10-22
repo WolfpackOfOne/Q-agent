@@ -3,12 +3,12 @@
 lean==1.0.225
 pytest==9.1.1
 pytest-cov==7.1.0
-pytest-mock==3.16.0
+pytest-mock==3.17.0
 pandas==3.0.6
 numpy==2.4.6
 networkx==3.6.1
 PyYAML==6.0.3
-ccxt==4.5.85
+ccxt==4.5.88
 requests==2.34.2
 python-dotenv==1.2.4
 tenacity==9.2.1

@@ -1,6 +1,6 @@
 -c ../constraints-course.txt
 
-ccxt>=4.5.85
+ccxt>=4.5.88
 requests>=2.34.2
 pandas>=3.0.6
 numpy>=2.4.6
