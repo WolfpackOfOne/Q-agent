@@ -1,17 +1,17 @@
 -c ../constraints-course.txt
 
-neo4j>=6.4.0
+neo4j>=6.4.1
 chromadb>=1.5.9
-sentence-transformers>=6.1.0
-fastapi>=0.143.0
+sentence-transformers>=6.2.0
+fastapi>=0.162.0
 uvicorn[standard]>=0.54.0
 pydantic>=2.14.1
 pyyaml>=6.0
 networkx>=3.6.1
 numpy>=2.4.6
-pandas>=3.0.6
-sqlalchemy>=2.1.4
+pandas>=3.1.0
+sqlalchemy>=2.1.6
 watchdog>=6.0.0
 python-dotenv>=1.2.4
-arxiv>=4.0.1
-pypdf>=6.20.0
+arxiv>=4.0.2
+pypdf>=6.21.2
